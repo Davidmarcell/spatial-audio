@@ -23,6 +23,7 @@ import {
   GEOCODE_DEBOUNCE_MS,
   type GeocodeResult,
 } from '../utils/geocode';
+import { playHaptic } from '../utils/haptics';
 import styles from './GlobeExplorer.module.css';
 
 type Props = {
@@ -206,11 +207,13 @@ export function GlobeExplorer({
     setLocationError(null);
 
     if (!navigator.geolocation) {
+      playHaptic('error');
       setLocationPhase('error');
       setLocationError('Geolocation not supported');
       return;
     }
 
+    playHaptic('loading');
     setLocationPhase('loading');
 
     navigator.geolocation.getCurrentPosition(
@@ -227,6 +230,7 @@ export function GlobeExplorer({
         setLocationPhase('idle');
       },
       (error) => {
+        playHaptic('error');
         setLocationPhase('error');
         setLocationError(
           error.code === 1 ? 'Location denied' : error.code === 3 ? 'Timed out' : 'Location failed',

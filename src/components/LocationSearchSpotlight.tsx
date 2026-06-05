@@ -8,6 +8,7 @@ import {
   GEOCODE_DEBOUNCE_MS,
   type GeocodeResult,
 } from '../utils/geocode';
+import { playHaptic } from '../utils/haptics';
 import styles from './LocationSearchSpotlight.module.css';
 
 type Props = {
@@ -266,6 +267,7 @@ export function LocationSearchSpotlight({
   }, [onOpenChange]);
 
   const open = useCallback(() => {
+    playHaptic('sheet');
     setIsPresent(true);
     setIsClosing(false);
     setIsAnimating(false);

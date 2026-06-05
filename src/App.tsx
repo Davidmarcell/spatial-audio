@@ -29,6 +29,7 @@ import sheetStack from './components/sheetStack.module.css';
 import { worldLocations, type WorldLocation } from './data/worldLocations';
 import type { SoundDef } from './data/types';
 import { useAudioEngine } from './hooks/useAudioEngine';
+import { useSpatialHaptics } from './hooks/useSpatialHaptics';
 import { useSpatialSources } from './hooks/useSpatialSources';
 import styles from './App.module.css';
 
@@ -66,8 +67,10 @@ export default function App() {
   const [locationSearchOpen, setLocationSearchOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const paletteRef = useRef<SoundPaletteHandle>(null);
+  const volumeHapticBucketsRef = useRef<Map<string, number>>(new Map());
 
   const { engine, preloadSounds, unlock, play, togglePlay, isPlaying, isUnlocked } = useAudioEngine();
+  const haptics = useSpatialHaptics();
   const {
     activeSounds,
     selectedId,
@@ -132,6 +135,7 @@ export default function App() {
       const nextRegion = getRegion(nextEnvironmentId, nextRegionId);
       if (!nextRegion) return;
 
+      haptics.pattern('success');
       setEnvironmentId(nextEnvironmentId);
       setRegionId(nextRegionId);
       loadDefaults(nextRegion.bedSounds ?? []);
@@ -140,7 +144,7 @@ export default function App() {
       }
       setDetailTarget(null);
     },
-    [engine, loadDefaults],
+    [engine, haptics, loadDefaults],
   );
 
   useEffect(() => {
@@ -219,6 +223,7 @@ export default function App() {
       const sound = soundMap.get(item.soundId);
       if (!sound) return;
 
+      haptics.pattern('remove');
       if (detailTarget?.instanceId === instanceId) {
         setDetailTarget(null);
       }
@@ -248,7 +253,7 @@ export default function App() {
         to: target,
       });
     },
-    [activeSounds, detailTarget, removeSound, selectedId, setSelectedId, soundMap],
+    [activeSounds, detailTarget, haptics, removeSound, selectedId, setSelectedId, soundMap],
   );
 
   useEffect(() => {
@@ -305,6 +310,10 @@ export default function App() {
         event.clientY - paletteDrag.startY,
       );
 
+      if (!paletteDrag.active && distance > DRAG_THRESHOLD) {
+        haptics.pattern('lift');
+      }
+
       setPaletteDrag((current) =>
         current
           ? {
@@ -320,6 +329,7 @@ export default function App() {
     const onPointerUp = (event: PointerEvent) => {
       if (event.pointerId !== paletteDrag.pointerId) return;
 
+      let dropped = false;
       if (paletteDrag.active) {
         const canvas = canvasRef.current;
         if (canvas) {
@@ -333,10 +343,15 @@ export default function App() {
           if (inside) {
             const position = canvasToNormalized(event.clientX, event.clientY, rect);
             addSound(paletteDrag.sound, position);
+            haptics.spatialDrop(position);
+            dropped = true;
           }
         }
       }
 
+      if (paletteDrag.active && !dropped) {
+        haptics.pattern('invalid');
+      }
       setPaletteDrag(null);
     };
 
@@ -348,7 +363,7 @@ export default function App() {
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
     };
-  }, [addSound, paletteDrag]);
+  }, [addSound, haptics, paletteDrag]);
 
   const handlePhysicsMove = useCallback(
     (instanceId: string, position: { x: number; y: number }) => {
@@ -374,6 +389,7 @@ export default function App() {
       const item = activeSounds.find((entry) => entry.instanceId === instanceId);
       if (!item) return;
       const sound = soundMap.get(item.soundId);
+      haptics.pattern('sheet');
       setDetailTarget({
         instanceId,
         soundId: item.soundId,
@@ -381,7 +397,7 @@ export default function App() {
         volume: item.volume,
       });
     },
-    [activeSounds, soundMap],
+    [activeSounds, haptics, soundMap],
   );
 
   const handleCloseDetail = useCallback(() => {
@@ -391,15 +407,21 @@ export default function App() {
   const handleDetailVolumeChange = useCallback(
     (instanceId: string, volume: number) => {
       handleVolumeChange(instanceId, volume);
+      const bucket = Math.round(volume * 4);
+      if (volumeHapticBucketsRef.current.get(instanceId) !== bucket) {
+        volumeHapticBucketsRef.current.set(instanceId, bucket);
+        haptics.volume(volume);
+      }
       setDetailTarget((current) =>
         current?.instanceId === instanceId ? { ...current, volume } : current,
       );
     },
-    [handleVolumeChange],
+    [handleVolumeChange, haptics],
   );
 
   const handlePaletteDragStart = useCallback(
     (sound: SoundDef, event: React.PointerEvent<HTMLButtonElement>) => {
+      haptics.pattern('tap');
       setPaletteDrag({
         sound,
         pointerId: event.pointerId,
@@ -410,7 +432,15 @@ export default function App() {
         active: false,
       });
     },
-    [],
+    [haptics],
+  );
+
+  const handleCanvasDragHapticEnd = useCallback(
+    (instanceId: string, position: { x: number; y: number }, moved: boolean) => {
+      if (moved) haptics.spatialDrop(position);
+      haptics.dragEnd(instanceId);
+    },
+    [haptics],
   );
 
   const handleGlobeSelect = useCallback(
@@ -461,7 +491,14 @@ export default function App() {
       >
         <div className={styles.app}>
       {!isUnlocked && (
-        <button type="button" className={styles.unlockBanner} onClick={() => void unlock()}>
+        <button
+          type="button"
+          className={styles.unlockBanner}
+          onClick={() => {
+            haptics.pattern('tap');
+            void unlock();
+          }}
+        >
           Tap to enable audio · press Play when you are ready
         </button>
       )}
@@ -477,7 +514,10 @@ export default function App() {
                 type="button"
                 className={`${styles.ringPickerBtn} ${ringVariant === variant ? styles.ringPickerBtnActive : ''}`}
                 aria-pressed={ringVariant === variant}
-                onClick={() => setRingVariant(variant)}
+                onClick={() => {
+                  haptics.pattern('selection');
+                  setRingVariant(variant);
+                }}
               >
                 {variant}
               </button>
@@ -513,6 +553,9 @@ export default function App() {
             onOpenDetail={handleOpenDetail}
             onMove={handlePhysicsMove}
             onSettle={updatePosition}
+            onDragHapticStart={haptics.dragStart}
+            onDragHapticMove={haptics.dragMove}
+            onDragHapticEnd={handleCanvasDragHapticEnd}
             dropHighlight={Boolean(paletteDrag?.active)}
             regionArt={regionArt}
             ringVariant={ringVariant}
@@ -542,8 +585,19 @@ export default function App() {
             onOpenChange={setLocationSearchOpen}
           />
         </div>
-        <MapButton onClick={() => setShowGlobe(true)} />
-        <PlayBar isPlaying={isPlaying} onToggle={() => void togglePlay()} />
+        <MapButton
+          onClick={() => {
+            haptics.pattern('sheet');
+            setShowGlobe(true);
+          }}
+        />
+        <PlayBar
+          isPlaying={isPlaying}
+          onToggle={() => {
+            haptics.pattern(isPlaying ? 'pause' : 'play');
+            void togglePlay();
+          }}
+        />
       </nav>
       <BottomBarMagnetTooltip anchor={bottomBarTooltip} />
 

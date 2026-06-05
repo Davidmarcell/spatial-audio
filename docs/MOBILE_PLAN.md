@@ -21,6 +21,7 @@ The current app already includes several mobile-friendly foundations:
 - Audio unlock through the first pointer/key interaction, plus a visible unlock banner.
 - Reduced-motion handling in canvas, dock, and overlay animation paths.
 - Keyboard nudge and deletion for selected sounds, which also supports external keyboards on tablets.
+- Optional Vibration API haptics on coarse-pointer devices for touch, drag, spatial drop, playback, sheet, location, and error states.
 
 ## Device classes and layout rules
 
@@ -167,26 +168,71 @@ Open product decision:
 - Fallback: copy link with a toast.
 - Share payload should include region, custom place when present, active sounds, positions, volumes, and globe style.
 
+## Haptics and vibration language
+
+Haptics are an optional enhancement layered on top of visible and audible feedback. The app should never rely on vibration as the only signal because iOS Safari and many desktop browsers do not expose the Vibration API.
+
+Implementation rules:
+
+- Trigger vibration only when `navigator.vibrate` is available and the primary pointer is coarse.
+- Keep patterns short; mobile web vibration is less nuanced than native haptics and can feel noisy if overused.
+- Pair haptics with interaction milestones, not every animation frame.
+- Match spatial audio semantics:
+  - Moving closer to the listener produces a stronger proximity tick when crossing distance bands.
+  - Crossing the center pan line produces a light tick.
+  - Dropping near the listener feels stronger than dropping far away.
+  - Volume slider ticks scale subtly with output level.
+- Treat reduced-motion and unsupported-device cases as graceful no-ops; visible and audio feedback remain complete.
+
+| Moment | Pattern | Audio/interaction meaning |
+| --- | --- | --- |
+| Touch sound tile | Short tap | User has grabbed an available sound |
+| Drag leaves dock | Soft double pulse | Sound is now active in the spatial field |
+| Drag crosses distance band | Throttled tick | Perceived loudness/depth is changing |
+| Drag crosses center pan | Light tick | Stereo image crosses left/right center |
+| Valid drop near listener | Stronger short pulse | Sound is close/louder |
+| Valid drop mid/far | Medium/light pulse | Sound is placed farther away |
+| Invalid drop | Warning double pulse | Scene did not change |
+| Select/open detail | Short sheet pulse | Focus shifted to a sound or sheet |
+| Remove sound | Heavier descending pulse | Source leaves the mix |
+| Play | Double pulse | Audio graph starts/resumes |
+| Pause | Single longer pulse | Audio graph stops |
+| Location loading | Tiny tick | Async location work started |
+| Location/region success | Confirming double pulse | New soundscape applied |
+| Error/denied/unavailable | Warning double pulse | User needs recovery path |
+| Volume crosses coarse step | Level-scaled tick | Gain changed enough to feel intentional |
+
+Current build coverage:
+
+- Palette pointer down, lift threshold, valid drop, and invalid drop.
+- Active canvas sound drag start, proximity band ticks, pan-center ticks, and release/drop.
+- Detail sheet opening and coarse volume changes.
+- Remove-to-dock flows.
+- Audio unlock, play, and pause controls.
+- Search/globe sheet entry.
+- Region changes from search, random, geolocation, and globe selection.
+- Geolocation loading and error states from bottom controls and the globe sheet.
+
 ## Mobile state inventory
 
 | State | Trigger | User-facing treatment |
 | --- | --- | --- |
 | First load | App opens | Show default region with bed sounds; keep audio unlock banner until first gesture |
 | Audio locked | Browser blocks audio | Persistent, tappable banner and inline prompts in sheets |
-| Audio unlocking | First gesture | Brief loading state on play control; avoid duplicate prompts |
-| Playing | Audio context running | Play bar shows pause; moving sounds updates immediately |
-| Paused | User pauses or tab suspends | Play bar shows play; scene remains interactive |
-| Region preloading | Region changes | Lightweight loading copy; keep previous UI responsive where safe |
-| Dragging from dock | Pointer moves past threshold | Floating tile, drop preview, dock origin visible |
-| Invalid drop | Release outside canvas | Return animation to dock and no scene mutation |
-| Canvas sound selected | Tap or new drop | Selected ring, detail affordance, keyboard focus where applicable |
-| Returning to dock | Active sound dragged to dock | Remove target highlight, return animation, source fades/removes |
-| Detail sheet open | Tap active sound | Medium sheet with volume, metadata, remove |
-| Search open | Tap search | Expanded bottom search with other controls dimmed |
+| Audio unlocking | First gesture | Brief loading state on play control; avoid duplicate prompts; short tap haptic where supported |
+| Playing | Audio context running | Play bar shows pause; moving sounds updates immediately; double play haptic |
+| Paused | User pauses or tab suspends | Play bar shows play; scene remains interactive; single pause haptic |
+| Region preloading | Region changes | Lightweight loading copy; keep previous UI responsive where safe; success haptic once applied |
+| Dragging from dock | Pointer moves past threshold | Floating tile, drop preview, dock origin visible; lift haptic |
+| Invalid drop | Release outside canvas | Return animation to dock and no scene mutation; warning haptic |
+| Canvas sound selected | Tap or new drop | Selected ring, detail affordance, keyboard focus where applicable; short selection haptic |
+| Returning to dock | Active sound dragged to dock | Remove target highlight, return animation, source fades/removes; remove haptic |
+| Detail sheet open | Tap active sound | Medium sheet with volume, metadata, remove; sheet haptic |
+| Search open | Tap search | Expanded bottom search with other controls dimmed; sheet haptic |
 | Globe loading | Open globe bundle/map | Full-screen loading panel with cancel/close |
-| Geolocation pending | Use my location | Button loading state and header copy |
-| Geolocation denied | Permission denied | Recovery copy with search/globe alternatives |
-| Geolocation unavailable | Browser/device unsupported | Disable location action and explain fallback |
+| Geolocation pending | Use my location | Button loading state and header copy; tiny loading tick |
+| Geolocation denied | Permission denied | Recovery copy with search/globe alternatives; warning haptic |
+| Geolocation unavailable | Browser/device unsupported | Disable location action and explain fallback; warning haptic |
 | Slow network | Audio/globe fetch delayed | Skeletons or retry buttons, not silent failure |
 | Reduced motion | OS setting enabled | No spring/flight dependency for comprehension |
 | Landscape phone | Orientation changes | Reflow dock/actions; recalculate canvas and keep selected sound in bounds |
@@ -201,7 +247,7 @@ Open product decision:
   - Remove from detail sheet.
 - Respect reduced motion by replacing return flights and springs with fades or direct state changes.
 - Keep color-independent state indicators for selected, loading, disabled, and remove-target states.
-- Avoid relying on haptics; treat vibration as optional enhancement only.
+- Avoid relying on haptics; treat vibration as optional enhancement only, and keep every haptic-backed state visible in the UI.
 - Screen reader mode should describe spatial coordinates as plain language, such as "near left", "far right", and "center".
 
 ## Performance and mobile browser constraints
@@ -220,6 +266,7 @@ Open product decision:
    - Add tap-to-add for dock tiles.
    - Add larger hit slop for active canvas sounds.
    - Ensure sheet gestures cannot steal active sound drags.
+   - Keep haptics aligned with tap/drag alternatives so non-drag flows receive equivalent confirmation.
 
 2. **Mobile state clarity**
    - Standardize loading, denied, unavailable, and retry states for geolocation/search/globe/audio.
@@ -248,6 +295,8 @@ Open product decision:
 - Play/pause state survives sheet open/close.
 - Location permission pending, denied, and unavailable states are clear.
 - Search and globe flows can change regions without losing feedback.
+- Haptics fire on supported Android/coarse-pointer browsers for lift, drop, proximity-band crossing, center-pan crossing, play/pause, location loading/success/error, detail open, volume steps, and remove.
+- Unsupported browsers and desktop pointers do not throw errors and still provide complete visual/audio feedback.
 - Orientation changes preserve selected sound and canvas bounds.
 - Reduced-motion mode remains understandable.
 - Refreshing a deployed URL with query parameters loads the app through the SPA fallback.
