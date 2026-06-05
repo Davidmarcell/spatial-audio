@@ -7,9 +7,9 @@ import { RandomizeLocationButton } from './components/RandomizeLocationButton';
 import { InfoButton } from './components/InfoButton';
 import {
   anchorFromTooltipTarget,
-  BottomBarMagnetTooltip,
   type BottomBarTooltipAnchor,
-} from './components/BottomBarMagnetTooltip';
+} from './components/bottomBarTooltipTarget';
+import { BottomBarMagnetTooltip } from './components/BottomBarMagnetTooltip';
 import { MapButton } from './components/MapButton';
 import { FlyingSoundTile } from './components/FlyingSoundTile';
 import { PlayBar } from './components/PlayBar';

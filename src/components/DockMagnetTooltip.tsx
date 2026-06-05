@@ -106,7 +106,7 @@ export function DockMagnetTooltip({ anchor }: Props) {
     const observer = new ResizeObserver(measure);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [anchor?.sound.id, anchor?.horizontal]);
+  }, [anchor]);
 
   if (!anchor) return null;
 

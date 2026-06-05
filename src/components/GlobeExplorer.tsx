@@ -252,14 +252,6 @@ export function GlobeExplorer({
       handleLocationPick(point as WorldLocation);
     };
 
-    let globe: {
-      pointOfView: (pov: { lat?: number; lng?: number; altitude?: number }, ms?: number) => void;
-      width: (w: number) => void;
-      height: (h: number) => void;
-      pointsData: (data: WorldLocation[]) => void;
-      controls: () => { autoRotate: boolean; autoRotateSpeed: number; enableZoom: boolean };
-    };
-
     const outlineStroke = `rgba(30, 28, 26, ${appearance.outlineOpacity})`;
 
     const factory = Globe()
@@ -310,7 +302,7 @@ export function GlobeExplorer({
       );
     }
 
-    globe = factory(container);
+    const globe = factory(container);
 
     const controls = globe.controls();
     controls.autoRotate = true;

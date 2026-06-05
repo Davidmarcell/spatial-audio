@@ -186,7 +186,7 @@ export function SpatialCanvas({
 
     drag.target = canvasToNormalized(clientX, clientY, canvas.getBoundingClientRect());
     setRenderStates(new Map(physicsRef.current));
-  }, []);
+  }, [canvasRef]);
 
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
@@ -252,7 +252,7 @@ export function SpatialCanvas({
       event.currentTarget.setPointerCapture(event.pointerId);
       setRenderStates(new Map(physicsRef.current));
     },
-    [onSelect],
+    [canvasRef, onSelect],
   );
 
   const ringClass = isPlaying

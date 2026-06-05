@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import type { BottomBarTooltipAnchor } from './bottomBarTooltipTarget';
 import styles from './BottomBarMagnetTooltip.module.css';
 
 const GAP = 8;
 const VIEWPORT_PADDING = 8;
-
-export type BottomBarTooltipAnchor = {
-  text: string;
-  rect: DOMRect;
-};
 
 type Placement = 'above' | 'below' | 'left' | 'right';
 
@@ -82,15 +78,6 @@ function computePlacement(
       Math.max(VIEWPORT_PADDING, vh - tooltipHeight - VIEWPORT_PADDING),
     ),
   };
-}
-
-export function anchorFromTooltipTarget(target: EventTarget | null): BottomBarTooltipAnchor | null {
-  if (!(target instanceof Element)) return null;
-  const button = target.closest<HTMLButtonElement>('[data-tooltip]');
-  if (!button || button.disabled) return null;
-  const text = button.getAttribute('data-tooltip');
-  if (!text) return null;
-  return { text, rect: button.getBoundingClientRect() };
 }
 
 export function BottomBarMagnetTooltip({ anchor }: Props) {
