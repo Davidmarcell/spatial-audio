@@ -32,6 +32,13 @@ Suggested captures: main canvas with a few sounds placed, globe sheet open, soun
 
 ---
 
+## Product plans
+
+- **Mobile version:** see [docs/MOBILE_PLAN.md](./docs/MOBILE_PLAN.md) for mobile-specific layout patterns, touch interactions, app states, accessibility requirements, performance constraints, and QA coverage.
+- **Portfolio case study:** see [docs/PORTFOLIO.md](./docs/PORTFOLIO.md) for copy-ready project notes.
+
+---
+
 ## Tech stack
 
 | Layer | Tools |
@@ -85,7 +92,7 @@ npm start                # build + serve + open browser at http://127.0.0.1:4173
 
 Static Vite app — build and publish the `dist/` folder.
 
-**Vercel** (recommended): connect the repo; [`vercel.json`](./vercel.json) handles SPA routing.
+**Vercel** (recommended): connect the repo to the user's Vercel account; [`vercel.json`](./vercel.json) sets the Vite framework, install/build/output commands, SPA routing, and production headers. See [docs/VERCEL_DEPLOYMENT.md](./docs/VERCEL_DEPLOYMENT.md) for the import checklist.
 
 ```bash
 npm run build
