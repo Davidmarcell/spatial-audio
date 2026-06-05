@@ -1,0 +1,9 @@
+.loading {
+  display: grid;
+  place-items: center;
+  min-height: 12rem;
+  padding: 2rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text-muted);
+}

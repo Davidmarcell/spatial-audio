@@ -1,14 +1,23 @@
+import { getSoundIconSrc } from '../data/iconArt';
 import type { ActiveSound, BedSound, SoundDef } from '../data/types';
+import { SoundIconImage } from './SoundIconImage';
 import styles from './AmbientBed.module.css';
 
 type Props = {
   bedSounds: BedSound[];
   activeSounds: ActiveSound[];
   soundMap: Map<string, SoundDef>;
+  selectedSoundId: string | null;
   onVolumeChange: (soundId: string, volume: number) => void;
 };
 
-export function AmbientBed({ bedSounds, activeSounds, soundMap, onVolumeChange }: Props) {
+export function AmbientBed({
+  bedSounds,
+  activeSounds,
+  soundMap,
+  selectedSoundId,
+  onVolumeChange,
+}: Props) {
   if (bedSounds.length === 0) return null;
 
   return (
@@ -25,13 +34,19 @@ export function AmbientBed({ bedSounds, activeSounds, soundMap, onVolumeChange }
           const active = activeSounds.find((entry) => entry.soundId === item.soundId);
           const volume = active?.volume ?? item.volume;
           const percent = Math.round(volume * 100);
+          const isSelected = selectedSoundId === item.soundId;
 
           return (
-            <div key={item.soundId} className={styles.track}>
+            <div
+              key={item.soundId}
+              className={`${styles.track} ${isSelected ? styles.trackSelected : ''}`}
+            >
               <div className={styles.trackHeader}>
-                <span className={styles.icon} aria-hidden>
-                  {sound.icon}
-                </span>
+                <SoundIconImage
+                  src={getSoundIconSrc(sound.id, active?.instanceId)}
+                  alt=""
+                  size="palette"
+                />
                 <span className={styles.name}>{sound.name}</span>
                 <span className={styles.value}>{percent}%</span>
               </div>

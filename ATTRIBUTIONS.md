@@ -26,6 +26,14 @@ All bundled sounds are royalty-free or Creative Commons licensed. Some clips are
 | `public/audio/costa-rica/rain-canopy.mp3` | Rain and Thunder #20 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #2720](https://bigsoundbank.com/storm-and-rain-4-s2719.html) |
 | `public/audio/costa-rica/stream-distant.mp3` | Forest and Stream #1 | Pierre SIBANARCO / BigSoundBank | CC0 1.0 | [BigSoundBank #2713](https://bigsoundbank.com/forest-and-stream-1-s2713.html) |
 
+## Bedford-Stuyvesant, Brooklyn
+
+| File | Title | Author | License | Source |
+|------|-------|--------|---------|--------|
+| `public/audio/bed-stuy/gray-catbird.ogg` | Gray Catbird (Dumetella carolinensis) | G. McGrane | Public domain | [Commons file](https://commons.wikimedia.org/wiki/File:Gray_Catbird.ogg) |
+| `public/audio/bed-stuy/northern-cardinal.ogg` | Northern Cardinal song (XC125284) | Xeno-canto / Wikimedia Commons | CC BY-SA 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Cardinalis_cardinalis_-_Northern_Cardinal_XC125284.ogg) |
+| `public/audio/bed-stuy/blue-jay.ogg` | Blue Jay call (XC86756) | Jonathon Jongsma / Xeno-canto | CC BY-SA 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Cyanocitta_cristata_-_Blue_Jay_-_XC86756.ogg) |
+
 ## Re-downloading assets
 
 ```bash

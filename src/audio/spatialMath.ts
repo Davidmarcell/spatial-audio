@@ -1,16 +1,32 @@
 import type { SpatialPoint } from '../data/types';
 
-/** Listener sits at the bottom-center of the canvas. */
-export const LISTENER: SpatialPoint = { x: 0, y: 0 };
+/** Listener sits at the center of the canvas. */
+export const LISTENER: SpatialPoint = { x: 0, y: 0.5 };
 
 const DISTANCE_FALLOFF = 2.4;
 const MIN_GAIN = 0.02;
 const MAX_GAIN = 0.85;
 
+const PROXIMITY_SCALE_MAX = 1.48;
+const PROXIMITY_SCALE_MIN = 0.62;
+const PROXIMITY_SCALE_RANGE = 1.12;
+
 export function distanceFromListener(point: SpatialPoint): number {
   const dx = point.x - LISTENER.x;
   const dy = point.y - LISTENER.y;
   return Math.hypot(dx, dy);
+}
+
+/** Closer to the listener = larger icon (inverse of perceived distance). */
+export function scaleFromDistance(distance: number): number {
+  const t = Math.min(1, distance / PROXIMITY_SCALE_RANGE);
+  const eased = 1 - (1 - t) ** 2.2;
+  return PROXIMITY_SCALE_MAX - eased * (PROXIMITY_SCALE_MAX - PROXIMITY_SCALE_MIN);
+}
+
+/** Higher when closer so near sounds sit visually on top. */
+export function depthZIndex(distance: number): number {
+  return Math.round(10 + (1 - Math.min(1, distance / PROXIMITY_SCALE_RANGE)) * 90);
 }
 
 export function gainFromDistance(distance: number, baseGain = MAX_GAIN): number {
@@ -46,14 +62,12 @@ export function normalizedToPercent(point: SpatialPoint): { left: string; top: s
   };
 }
 
-/** Default arc positions when adding sounds from the palette. */
+/** Default ring positions when adding sounds from the palette. */
 export function defaultSpawnPosition(index: number, total = 6): SpatialPoint {
-  const startAngle = Math.PI * 0.15;
-  const endAngle = Math.PI * 0.85;
-  const angle = startAngle + ((endAngle - startAngle) * index) / Math.max(1, total - 1);
-  const radius = 0.55;
+  const angle = (index / Math.max(1, total)) * Math.PI * 2 - Math.PI / 2;
+  const radius = 0.38;
   return {
     x: Math.cos(angle) * radius,
-    y: Math.sin(angle) * radius,
+    y: LISTENER.y + Math.sin(angle) * radius,
   };
 }

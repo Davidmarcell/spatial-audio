@@ -4,8 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 NZ="$ROOT/public/audio/nz"
 CR="$ROOT/public/audio/costa-rica"
+BS="$ROOT/public/audio/bed-stuy"
 
-mkdir -p "$NZ" "$CR"
+mkdir -p "$NZ" "$CR" "$BS"
 
 download() {
   local url="$1"
@@ -35,5 +36,10 @@ download "https://upload.wikimedia.org/wikipedia/commons/f/ff/Herring_Gull_%28La
 download "https://upload.wikimedia.org/wikipedia/commons/6/64/Pacific_Pygmy_Owl_call_%28Glaucidium_peruanum%29.ogg" "$NZ/morepork-call.ogg"
 download "https://upload.wikimedia.org/wikipedia/commons/a/a8/Toco_Toucan_call_%28Ramphastos_toco%29.ogg" "$CR/toucan-call.ogg"
 download "https://upload.wikimedia.org/wikipedia/commons/9/91/Resplendent_Quetzal_song_%28Pharomachrus_mocinno%29.ogg" "$CR/quetzal-song.ogg"
+
+# Bedford-Stuyvesant backyard birds — see ATTRIBUTIONS.md
+download "https://upload.wikimedia.org/wikipedia/commons/5/5a/Gray_Catbird.ogg" "$BS/gray-catbird.ogg"
+download "https://upload.wikimedia.org/wikipedia/commons/0/0a/Cardinalis_cardinalis_-_Northern_Cardinal_XC125284.ogg" "$BS/northern-cardinal.ogg"
+download "https://upload.wikimedia.org/wikipedia/commons/1/15/Cyanocitta_cristata_-_Blue_Jay_-_XC86756.ogg" "$BS/blue-jay.ogg"
 
 echo "Done."

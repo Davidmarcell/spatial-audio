@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+
+export type RadarRingVariant = 1 | 2 | 3 | 4;
 import {
   createPhysics,
   isSettled,
@@ -6,20 +8,26 @@ import {
   type IconPhysics,
 } from '../audio/iconPhysics';
 import { canvasToNormalized } from '../audio/spatialMath';
+import type { RegionArtContext } from '../data/iconArt';
 import type { ActiveSound, SoundDef, SpatialPoint } from '../data/types';
-import { SoundControls } from './SoundControls';
 import { SoundIcon } from './SoundIcon';
 import styles from './SpatialCanvas.module.css';
 
 type Props = {
+  canvasRef?: RefObject<HTMLDivElement | null>;
   activeSounds: ActiveSound[];
   soundMap: Map<string, SoundDef>;
   selectedId: string | null;
   onSelect: (instanceId: string) => void;
-  onRemove: (instanceId: string) => void;
+  onRemove: (instanceId: string, iconRect: DOMRect) => void;
+  onOpenDetail: (instanceId: string) => void;
   onMove: (instanceId: string, position: SpatialPoint) => void;
   onSettle: (instanceId: string, position: SpatialPoint) => void;
-  onVolumeChange: (instanceId: string, volume: number) => void;
+  dropHighlight?: boolean;
+  returningId?: string | null;
+  regionArt: RegionArtContext;
+  ringVariant: RadarRingVariant;
+  isPlaying?: boolean;
 };
 
 type DragState = {
@@ -29,18 +37,27 @@ type DragState = {
 };
 
 export function SpatialCanvas({
+  canvasRef: externalCanvasRef,
   activeSounds,
   soundMap,
   selectedId,
   onSelect,
   onRemove,
+  onOpenDetail,
   onMove,
   onSettle,
-  onVolumeChange,
+  dropHighlight = false,
+  returningId = null,
+  regionArt,
+  ringVariant,
+  isPlaying = false,
 }: Props) {
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const internalCanvasRef = useRef<HTMLDivElement>(null);
+  const canvasRef = externalCanvasRef ?? internalCanvasRef;
   const physicsRef = useRef<Map<string, IconPhysics>>(new Map());
   const dragRef = useRef<DragState | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const dragMovedRef = useRef(false);
   const onMoveRef = useRef(onMove);
   const onSettleRef = useRef(onSettle);
   const activeSoundsRef = useRef(activeSounds);
@@ -175,13 +192,29 @@ export function SpatialCanvas({
     const onPointerMove = (event: PointerEvent) => {
       const drag = dragRef.current;
       if (!drag || event.pointerId !== drag.pointerId) return;
+
+      if (dragStartRef.current) {
+        const dx = event.clientX - dragStartRef.current.x;
+        const dy = event.clientY - dragStartRef.current.y;
+        if (Math.hypot(dx, dy) > 8) {
+          dragMovedRef.current = true;
+        }
+      }
+
       updateDragTarget(event.clientX, event.clientY);
     };
 
     const onPointerUp = (event: PointerEvent) => {
       const drag = dragRef.current;
       if (!drag || event.pointerId !== drag.pointerId) return;
+
+      if (!dragMovedRef.current) {
+        onOpenDetail(drag.instanceId);
+      }
+
       dragRef.current = null;
+      dragStartRef.current = null;
+      dragMovedRef.current = false;
       setDraggingId(null);
     };
 
@@ -191,7 +224,7 @@ export function SpatialCanvas({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [updateDragTarget]);
+  }, [onOpenDetail, updateDragTarget]);
 
   const handlePointerDown = useCallback(
     (instanceId: string, event: React.PointerEvent<HTMLButtonElement>) => {
@@ -212,6 +245,8 @@ export function SpatialCanvas({
         pointerId: event.pointerId,
         target,
       };
+      dragStartRef.current = { x: event.clientX, y: event.clientY };
+      dragMovedRef.current = false;
       setDraggingId(instanceId);
 
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -220,18 +255,32 @@ export function SpatialCanvas({
     [onSelect],
   );
 
-  const selectedSound = selectedId
-    ? activeSounds.find((item) => item.instanceId === selectedId)
-    : null;
-  const selectedDef = selectedSound ? soundMap.get(selectedSound.soundId) : null;
+  const ringClass = isPlaying
+    ? styles.radarRingsPlaying
+    : ringVariant === 2
+      ? styles.radarRingsBreath
+      : ringVariant === 3
+        ? styles.radarRingsPulsate
+        : ringVariant === 4
+          ? styles.radarRingsRipple
+          : styles.radarRingsStatic;
 
   return (
     <div className={styles.wrapper}>
-      <div ref={canvasRef} className={styles.canvas} aria-label="Spatial sound grid">
+      <div
+        ref={canvasRef}
+        className={`${styles.canvas} ${dropHighlight ? styles.canvasDropTarget : ''}`}
+        aria-label="Spatial sound grid"
+      >
         <div className={styles.grid} aria-hidden />
+        <div className={`${styles.radarRings} ${ringClass}`} aria-hidden>
+          <div className={styles.radarRing} />
+          <div className={styles.radarRing} />
+          <div className={styles.radarRing} />
+        </div>
         {activeSounds.map((item) => {
           const sound = soundMap.get(item.soundId);
-          if (!sound) return null;
+          if (!sound || item.instanceId === returningId) return null;
 
           const physics = renderStates.get(item.instanceId) ?? createPhysics(item.position);
           const isDragging = draggingId === item.instanceId;
@@ -240,7 +289,7 @@ export function SpatialCanvas({
             <SoundIcon
               key={item.instanceId}
               instanceId={item.instanceId}
-              icon={sound.icon}
+              soundId={item.soundId}
               name={sound.name}
               position={{ x: physics.x, y: physics.y }}
               sway={physics.sway}
@@ -248,28 +297,19 @@ export function SpatialCanvas({
               selected={selectedId === item.instanceId}
               onSelect={onSelect}
               onRemove={onRemove}
+              onOpenDetail={onOpenDetail}
               onPointerDown={handlePointerDown}
+              regionArt={regionArt}
             />
           );
         })}
-        <div className={styles.listener}>
-          <span className={styles.listenerLabel}>You</span>
+        <div className={styles.listener} aria-label="You — listener position">
           <span className={styles.listenerDot} aria-hidden />
+          <span className={styles.listenerLabel}>You</span>
         </div>
-        {selectedSound && selectedDef && (
-          <div className={styles.controlsOverlay}>
-            <SoundControls
-              name={selectedDef.name}
-              icon={selectedDef.icon}
-              volume={selectedSound.volume}
-              onVolumeChange={(volume) => onVolumeChange(selectedSound.instanceId, volume)}
-            />
-          </div>
-        )}
       </div>
       <p className={styles.help}>
-        Drag icons to move them with weight and sway. Select one to adjust its volume. Distance from
-        You still controls loudness.
+        Drag tiles from the dock onto the grid. Move them closer to You in the centre for louder volume.
       </p>
     </div>
   );

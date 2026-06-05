@@ -1,21 +1,38 @@
+import { getSoundIconSrc } from '../data/iconArt';
+import { SoundIconImage } from './SoundIconImage';
 import styles from './SoundControls.module.css';
 
 type Props = {
   name: string;
-  icon: string;
+  soundId: string;
+  variantKey?: string;
   volume: number;
+  compact?: boolean;
   onVolumeChange: (volume: number) => void;
 };
 
-export function SoundControls({ name, icon, volume, onVolumeChange }: Props) {
+export function SoundControls({
+  name,
+  soundId,
+  variantKey,
+  volume,
+  compact = false,
+  onVolumeChange,
+}: Props) {
   const percent = Math.round(volume * 100);
 
   return (
-    <div className={styles.panel} aria-label={`Controls for ${name}`}>
+    <div
+      className={`${styles.panel} ${compact ? styles.compact : ''}`}
+      aria-label={`Controls for ${name}`}
+      onPointerDown={(event) => event.stopPropagation()}
+    >
       <div className={styles.header}>
-        <span className={styles.icon} aria-hidden>
-          {icon}
-        </span>
+        <SoundIconImage
+          src={getSoundIconSrc(soundId, variantKey)}
+          alt=""
+          size={compact ? 'compact' : 'palette'}
+        />
         <div>
           <p className={styles.name}>{name}</p>
           <p className={styles.hint}>Volume</p>

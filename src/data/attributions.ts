@@ -107,4 +107,27 @@ export const attributions: Attribution[] = [
     license: 'CC0 1.0',
     sourceUrl: 'https://bigsoundbank.com/forest-and-stream-1-s2713.html',
   },
+  {
+    file: '/audio/bed-stuy/gray-catbird.ogg',
+    title: 'Gray Catbird (Dumetella carolinensis)',
+    author: 'G. McGrane',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Gray_Catbird.ogg',
+  },
+  {
+    file: '/audio/bed-stuy/northern-cardinal.ogg',
+    title: 'Northern Cardinal song (XC125284)',
+    author: 'Recorded for Xeno-canto; uploaded to Wikimedia Commons',
+    license: 'CC BY-SA 3.0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Cardinalis_cardinalis_-_Northern_Cardinal_XC125284.ogg',
+  },
+  {
+    file: '/audio/bed-stuy/blue-jay.ogg',
+    title: 'Blue Jay call (XC86756)',
+    author: 'Jonathon Jongsma / Xeno-canto; uploaded to Wikimedia Commons',
+    license: 'CC BY-SA 3.0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Cyanocitta_cristata_-_Blue_Jay_-_XC86756.ogg',
+  },
 ];

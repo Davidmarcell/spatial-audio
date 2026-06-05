@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { defaultSpawnPosition } from '../audio/spatialMath';
-import { createDefaultActiveSounds, isDefaultInstance, MAX_ACTIVE_SOUNDS } from '../data/environments';
+import { createDefaultActiveSounds } from '../data/environments';
 import type { ActiveSound, BedSound, SoundDef, SpatialPoint } from '../data/types';
 
 function createInstanceId(soundId: string) {
@@ -16,21 +16,34 @@ export function useSpatialSources() {
     setSelectedId(null);
   }, []);
 
-  const addSound = useCallback((sound: SoundDef) => {
+  const loadScene = useCallback(
+    (items: Array<{ soundId: string; position: SpatialPoint; volume: number }>) => {
+      setActiveSounds(
+        items.map((item) => ({
+          instanceId: createInstanceId(item.soundId),
+          soundId: item.soundId,
+          position: item.position,
+          volume: Math.max(0, Math.min(1, item.volume)),
+        })),
+      );
+      setSelectedId(null);
+    },
+    [],
+  );
+
+  const addSound = useCallback((sound: SoundDef, position?: SpatialPoint) => {
     setActiveSounds((current) => {
-      if (current.length >= MAX_ACTIVE_SOUNDS) return current;
       if (current.some((item) => item.soundId === sound.id)) return current;
 
       const instanceId = createInstanceId(sound.id);
-      const position = defaultSpawnPosition(current.length, MAX_ACTIVE_SOUNDS);
+      const ringTotal = Math.max(current.length + 1, 6);
+      const spawn = position ?? defaultSpawnPosition(current.length, ringTotal);
       setSelectedId(instanceId);
-      return [...current, { instanceId, soundId: sound.id, position, volume: 1 }];
+      return [...current, { instanceId, soundId: sound.id, position: spawn, volume: 1 }];
     });
   }, []);
 
   const removeSound = useCallback((instanceId: string) => {
-    if (isDefaultInstance(instanceId)) return;
-
     setActiveSounds((current) => current.filter((item) => item.instanceId !== instanceId));
     setSelectedId((current) => (current === instanceId ? null : current));
   }, []);
@@ -82,12 +95,12 @@ export function useSpatialSources() {
     selectedId,
     setSelectedId,
     loadDefaults,
+    loadScene,
     addSound,
     removeSound,
     updatePosition,
     updateVolume,
     updateVolumeBySoundId,
     nudgeSelected,
-    maxReached: activeSounds.length >= MAX_ACTIVE_SOUNDS,
   };
 }

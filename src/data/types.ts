@@ -5,8 +5,8 @@ export type SoundDef = {
   name: string;
   category: SoundCategory;
   src: string;
-  icon: string;
   loop: boolean;
+  description?: string;
 };
 
 export type BedSound = {
@@ -47,3 +47,5 @@ export type Attribution = {
   license: string;
   sourceUrl: string;
 };
+
+export type ArtworkAttribution = Attribution;

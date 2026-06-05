@@ -24,6 +24,11 @@ export function useAudioEngine() {
     setIsUnlocked(true);
   }, []);
 
+  const unlock = useCallback(async () => {
+    await audioEngine.unlock();
+    setIsUnlocked(true);
+  }, []);
+
   const pause = useCallback(() => {
     audioEngine.pause();
     setIsPlaying(false);
@@ -42,11 +47,12 @@ export function useAudioEngine() {
       isPlaying,
       isUnlocked,
       preloadSounds,
+      unlock,
       play,
       pause,
       togglePlay,
       engine: audioEngine,
     }),
-    [isPlaying, isUnlocked, preloadSounds, play, pause, togglePlay],
+    [isPlaying, isUnlocked, preloadSounds, unlock, play, pause, togglePlay],
   );
 }
