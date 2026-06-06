@@ -431,8 +431,8 @@ export function LocationSearchSpotlight({
         aria-controls={isPresent ? listboxId : undefined}
         data-tooltip="Search locations"
       >
-        <span className={styles.triggerLabel}>{currentLabel}</span>
         <SearchIcon />
+        <span className={styles.triggerLabel}>{currentLabel}</span>
       </button>
 
       {isPresent && (
