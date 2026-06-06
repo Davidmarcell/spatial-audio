@@ -23,6 +23,9 @@ type Props = {
   onOpenDetail: (instanceId: string) => void;
   onMove: (instanceId: string, position: SpatialPoint) => void;
   onSettle: (instanceId: string, position: SpatialPoint) => void;
+  onDragHapticStart?: (instanceId: string, position: SpatialPoint) => void;
+  onDragHapticMove?: (instanceId: string, position: SpatialPoint) => void;
+  onDragHapticEnd?: (instanceId: string, position: SpatialPoint, moved: boolean) => void;
   dropHighlight?: boolean;
   returningId?: string | null;
   regionArt: RegionArtContext;
@@ -46,6 +49,9 @@ export function SpatialCanvas({
   onOpenDetail,
   onMove,
   onSettle,
+  onDragHapticStart,
+  onDragHapticMove,
+  onDragHapticEnd,
   dropHighlight = false,
   returningId = null,
   regionArt,
@@ -185,8 +191,9 @@ export function SpatialCanvas({
     if (!drag || !canvas) return;
 
     drag.target = canvasToNormalized(clientX, clientY, canvas.getBoundingClientRect());
+    onDragHapticMove?.(drag.instanceId, drag.target);
     setRenderStates(new Map(physicsRef.current));
-  }, []);
+  }, [canvasRef, onDragHapticMove]);
 
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
@@ -208,10 +215,13 @@ export function SpatialCanvas({
       const drag = dragRef.current;
       if (!drag || event.pointerId !== drag.pointerId) return;
 
-      if (!dragMovedRef.current) {
+      const moved = dragMovedRef.current;
+      const target = drag.target;
+      if (!moved) {
         onOpenDetail(drag.instanceId);
       }
 
+      onDragHapticEnd?.(drag.instanceId, target, moved);
       dragRef.current = null;
       dragStartRef.current = null;
       dragMovedRef.current = false;
@@ -224,7 +234,7 @@ export function SpatialCanvas({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [onOpenDetail, updateDragTarget]);
+  }, [onDragHapticEnd, onOpenDetail, updateDragTarget]);
 
   const handlePointerDown = useCallback(
     (instanceId: string, event: React.PointerEvent<HTMLButtonElement>) => {
@@ -245,6 +255,7 @@ export function SpatialCanvas({
         pointerId: event.pointerId,
         target,
       };
+      onDragHapticStart?.(instanceId, target);
       dragStartRef.current = { x: event.clientX, y: event.clientY };
       dragMovedRef.current = false;
       setDraggingId(instanceId);
@@ -252,7 +263,7 @@ export function SpatialCanvas({
       event.currentTarget.setPointerCapture(event.pointerId);
       setRenderStates(new Map(physicsRef.current));
     },
-    [onSelect],
+    [canvasRef, onDragHapticStart, onSelect],
   );
 
   const ringClass = isPlaying

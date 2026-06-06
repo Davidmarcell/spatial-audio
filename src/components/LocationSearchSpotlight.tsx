@@ -8,6 +8,8 @@ import {
   GEOCODE_DEBOUNCE_MS,
   type GeocodeResult,
 } from '../utils/geocode';
+import { playHaptic } from '../utils/haptics';
+import { publicAssetPath } from '../utils/publicAssetPath';
 import styles from './LocationSearchSpotlight.module.css';
 
 type Props = {
@@ -140,7 +142,7 @@ function LocationThumbnail({ item }: { item: SearchItem }) {
 
   return (
     <img
-      src={art.src}
+      src={publicAssetPath(art.src)}
       alt=""
       className={styles.thumb}
       loading="lazy"
@@ -266,6 +268,7 @@ export function LocationSearchSpotlight({
   }, [onOpenChange]);
 
   const open = useCallback(() => {
+    playHaptic('sheet');
     setIsPresent(true);
     setIsClosing(false);
     setIsAnimating(false);
@@ -429,8 +432,8 @@ export function LocationSearchSpotlight({
         aria-controls={isPresent ? listboxId : undefined}
         data-tooltip="Search locations"
       >
-        <span className={styles.triggerLabel}>{currentLabel}</span>
         <SearchIcon />
+        <span className={styles.triggerLabel}>{currentLabel}</span>
       </button>
 
       {isPresent && (

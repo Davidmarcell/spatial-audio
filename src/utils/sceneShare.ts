@@ -148,7 +148,7 @@ export async function decodeScenePayload(encoded: string): Promise<SharedScene |
   const compressed = trimmed.startsWith('z.');
   const body = compressed ? trimmed.slice(2) : trimmed;
 
-  let json = '';
+  let json: string;
   if (compressed) {
     json = await maybeDecompress(body, true);
   } else {

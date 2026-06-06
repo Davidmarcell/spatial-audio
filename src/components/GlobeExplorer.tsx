@@ -23,6 +23,7 @@ import {
   GEOCODE_DEBOUNCE_MS,
   type GeocodeResult,
 } from '../utils/geocode';
+import { playHaptic } from '../utils/haptics';
 import styles from './GlobeExplorer.module.css';
 
 type Props = {
@@ -206,11 +207,13 @@ export function GlobeExplorer({
     setLocationError(null);
 
     if (!navigator.geolocation) {
+      playHaptic('error');
       setLocationPhase('error');
       setLocationError('Geolocation not supported');
       return;
     }
 
+    playHaptic('loading');
     setLocationPhase('loading');
 
     navigator.geolocation.getCurrentPosition(
@@ -227,6 +230,7 @@ export function GlobeExplorer({
         setLocationPhase('idle');
       },
       (error) => {
+        playHaptic('error');
         setLocationPhase('error');
         setLocationError(
           error.code === 1 ? 'Location denied' : error.code === 3 ? 'Timed out' : 'Location failed',
@@ -250,14 +254,6 @@ export function GlobeExplorer({
 
     const pickLocation = (point: unknown) => {
       handleLocationPick(point as WorldLocation);
-    };
-
-    let globe: {
-      pointOfView: (pov: { lat?: number; lng?: number; altitude?: number }, ms?: number) => void;
-      width: (w: number) => void;
-      height: (h: number) => void;
-      pointsData: (data: WorldLocation[]) => void;
-      controls: () => { autoRotate: boolean; autoRotateSpeed: number; enableZoom: boolean };
     };
 
     const outlineStroke = `rgba(30, 28, 26, ${appearance.outlineOpacity})`;
@@ -310,7 +306,7 @@ export function GlobeExplorer({
       );
     }
 
-    globe = factory(container);
+    const globe = factory(container);
 
     const controls = globe.controls();
     controls.autoRotate = true;

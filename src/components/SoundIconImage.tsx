@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getDetailIconSrc } from '../data/iconDetailSrc';
 import { getIconCrop } from '../data/iconCrop';
+import { publicAssetPath } from '../utils/publicAssetPath';
 import styles from './SoundIconImage.module.css';
 
 type Props = {
@@ -22,8 +23,10 @@ export function SoundIconImage({
   size = 'canvas',
   crop,
 }: Props) {
-  const resolvedSrc =
-    size === 'detail' ? getDetailIconSrc(src, sourceUrl, detailSrc) : src;
+  const fallbackSrc = publicAssetPath(src);
+  const resolvedSrc = publicAssetPath(
+    size === 'detail' ? getDetailIconSrc(src, sourceUrl, detailSrc) : src,
+  );
   const [imageSrc, setImageSrc] = useState(resolvedSrc);
   const resolvedCrop = crop ?? getIconCrop(soundId ?? '', src, size);
 
@@ -41,7 +44,7 @@ export function SoundIconImage({
         loading={size === 'detail' ? 'eager' : 'lazy'}
         decoding={size === 'detail' ? 'sync' : 'async'}
         onError={() => {
-          if (imageSrc !== src) setImageSrc(src);
+          if (imageSrc !== fallbackSrc) setImageSrc(fallbackSrc);
         }}
         style={{
           transform: `scale(${resolvedCrop.scale})`,

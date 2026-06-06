@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { WorldLocation } from '../data/worldLocations';
 import { findNearestRegion } from '../utils/geo';
+import { playHaptic } from '../utils/haptics';
 import styles from './UseMyLocationButton.module.css';
 
 type Props = {
@@ -70,12 +71,14 @@ export function UseMyLocationButton({ locations, onMatch }: Props) {
     setErrorLabel(null);
 
     if (!navigator.geolocation) {
+      playHaptic('error');
       setPhase('error');
       setErrorLabel('Not supported');
       scheduleIdleReset(4000);
       return;
     }
 
+    playHaptic('loading');
     setPhase('loading');
 
     navigator.geolocation.getCurrentPosition(
@@ -86,6 +89,7 @@ export function UseMyLocationButton({ locations, onMatch }: Props) {
         };
         const nearest = findNearestRegion(coords, locations);
         if (!nearest) {
+          playHaptic('error');
           setPhase('error');
           setErrorLabel('No regions');
           scheduleIdleReset(4000);
@@ -97,6 +101,7 @@ export function UseMyLocationButton({ locations, onMatch }: Props) {
         setErrorLabel(null);
       },
       (error) => {
+        playHaptic('error');
         setPhase('error');
         setErrorLabel(geolocationErrorMessage(error.code));
         scheduleIdleReset(4000);

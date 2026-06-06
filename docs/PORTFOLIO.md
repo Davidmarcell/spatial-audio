@@ -49,6 +49,18 @@ Sharing is URL-first: globe textures persist via query params; soundscape state 
 | **Tags** | React, TypeScript, Web Audio API, globe.gl, Three.js, interactive audio, creative coding |
 | **Featured image** | Main canvas screenshot (see `docs/screenshots/`) |
 
+## Suggested prototypes-page entry
+
+| Field | Value |
+| --- | --- |
+| **Slug** | `spatial-audio` |
+| **Route** | `/prototypes/spatial-audio` |
+| **Status** | Prototype |
+| **Summary** | Interactive ambient soundscape composer with spatial Web Audio, mobile haptics, globe map, and museum-sourced artwork. |
+| **Launch URL** | _Use the Vercel production URL for this repo, or the same-domain static export at `/prototypes/spatial-audio/`._ |
+
+Integration notes: see [docs/PORTFOLIO_INTEGRATION.md](./PORTFOLIO_INTEGRATION.md).
+
 ---
 
 ## Screenshots checklist
