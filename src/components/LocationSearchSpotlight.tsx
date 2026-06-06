@@ -9,6 +9,7 @@ import {
   type GeocodeResult,
 } from '../utils/geocode';
 import { playHaptic } from '../utils/haptics';
+import { publicAssetPath } from '../utils/publicAssetPath';
 import styles from './LocationSearchSpotlight.module.css';
 
 type Props = {
@@ -141,7 +142,7 @@ function LocationThumbnail({ item }: { item: SearchItem }) {
 
   return (
     <img
-      src={art.src}
+      src={publicAssetPath(art.src)}
       alt=""
       className={styles.thumb}
       loading="lazy"

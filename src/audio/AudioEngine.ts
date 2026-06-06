@@ -1,5 +1,6 @@
 import type { SoundDef, SpatialPoint } from '../data/types';
 import { gainFromDistance, toPannerPosition } from './spatialMath';
+import { publicAssetPath } from '../utils/publicAssetPath';
 
 type SourceNode = {
   soundId: string;
@@ -54,17 +55,18 @@ export class AudioEngine {
   }
 
   private async loadBuffer(src: string): Promise<AudioBuffer> {
-    const cached = this.bufferCache.get(src);
+    const resolvedSrc = publicAssetPath(src);
+    const cached = this.bufferCache.get(resolvedSrc);
     if (cached) return cached;
 
-    const response = await fetch(src);
+    const response = await fetch(resolvedSrc);
     if (!response.ok) {
-      throw new Error(`Failed to load audio: ${src}`);
+      throw new Error(`Failed to load audio: ${resolvedSrc}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await this.context!.decodeAudioData(arrayBuffer.slice(0));
-    this.bufferCache.set(src, audioBuffer);
+    this.bufferCache.set(resolvedSrc, audioBuffer);
     return audioBuffer;
   }
 

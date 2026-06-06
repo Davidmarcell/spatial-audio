@@ -22,8 +22,9 @@ The committed `vercel.json` mirrors the important production settings:
 - Production build through `npm run build`.
 - Static output from `dist`.
 - SPA fallback that rewrites all app URLs to `index.html`.
-- Immutable caching for built assets under `/assets/*`.
+- Immutable caching for built assets under `/assets/*`, bundled audio under `/audio/*`, and bundled icons under `/icons/*`.
 - Basic security headers for document and asset responses.
+- Iframe-friendly embedding for the Portfolio prototypes page by omitting `X-Frame-Options`.
 
 ## Environment variables
 
@@ -44,6 +45,19 @@ Notes:
 5. After production is live, update:
    - The live demo link in `README.md`.
    - The live demo URL in `docs/PORTFOLIO.md`.
+   - The Portfolio prototypes-page entry described in `docs/PORTFOLIO_INTEGRATION.md`.
+
+## Portfolio integration
+
+For the Portfolio website, prefer deploying this repo as its own Vercel project and linking or lazy-embedding it from the Portfolio prototypes page.
+
+If the Portfolio repo should serve the prototype from the same domain, build the subpath export instead:
+
+```bash
+npm run build:portfolio
+```
+
+That command sets Vite's base path to `/prototypes/spatial-audio/`; copy the generated `dist/` contents into the Portfolio repo's static folder at the matching route. See [PORTFOLIO_INTEGRATION.md](./PORTFOLIO_INTEGRATION.md) for the full route and cache-header checklist.
 
 ## Production verification
 
@@ -56,4 +70,5 @@ After deployment, verify:
 - Play/pause works after unlocking audio.
 - The globe sheet opens and can be closed on mobile.
 - Location search returns a place and applies the nearest soundscape.
-- Built files under `/assets/` include long-lived cache headers.
+- Built files under `/assets/`, `/audio/`, and `/icons/` include long-lived cache headers.
+- If embedded from the Portfolio site, the iframe is not blocked by response headers.

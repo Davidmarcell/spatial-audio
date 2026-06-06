@@ -114,7 +114,13 @@ After deploy, update the live demo link at the top of this README and in [docs/P
 
 Copy-ready case study: **[docs/PORTFOLIO.md](./docs/PORTFOLIO.md)**
 
-No separate portfolio site was found in `~/Projects` — link this repo (or your deploy URL) directly from your portfolio CMS or personal site.
+Portfolio prototypes-page integration plan: **[docs/PORTFOLIO_INTEGRATION.md](./docs/PORTFOLIO_INTEGRATION.md)**
+
+To build a static export for a Portfolio subpath at `/prototypes/spatial-audio/`:
+
+```bash
+npm run build:portfolio
+```
 
 ---
 

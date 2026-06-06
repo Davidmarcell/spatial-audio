@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:portfolio": "VITE_BASE_PATH=/prototypes/spatial-audio/ npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "serve": "vite preview",
