@@ -1,0 +1,28 @@
+.root {
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.xs {
+  width: 0.625rem;
+  height: 0.625rem;
+  font-size: 0.625rem;
+}
+
+.sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  font-size: 0.875rem;
+}
+
+.md {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+}
+
+.lg {
+  width: 1.125rem;
+  height: 1.125rem;
+  font-size: 1.125rem;
+}

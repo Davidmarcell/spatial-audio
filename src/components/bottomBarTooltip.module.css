@@ -15,7 +15,7 @@
   transform: translateX(-50%) scale(0.92);
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--tooltip-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);

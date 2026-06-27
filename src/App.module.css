@@ -16,12 +16,15 @@
   z-index: 20;
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: max(0.65rem, env(safe-area-inset-top, 0px)) 1rem 0.45rem;
   pointer-events: none;
 }
 
 .brand {
   min-width: 0;
+  max-width: min(28rem, calc(100% - 2rem));
+  text-align: center;
   pointer-events: auto;
 }
 
@@ -30,55 +33,7 @@
   font-size: 1.05rem;
   font-weight: 650;
   letter-spacing: -0.02em;
-}
-
-.subtitle {
-  margin: 0.1rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-}
-
-.ringPicker {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.45rem;
-  padding: 0.22rem;
-  width: fit-content;
-  border-radius: 0.55rem;
-  background: rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow: var(--shadow-sm);
-}
-
-.ringPickerBtn {
-  width: 1.35rem;
-  height: 1.35rem;
-  padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 0.35rem;
-  background: rgba(255, 255, 255, 0.55);
-  color: var(--text-muted);
-  font: inherit;
-  font-size: 0.62rem;
-  font-weight: 650;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.ringPickerBtn:hover {
-  background: rgba(255, 255, 255, 0.85);
   color: var(--text);
-}
-
-.ringPickerBtnActive {
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--text);
-  border-color: rgba(17, 17, 17, 0.18);
 }
 
 .main {
@@ -130,62 +85,105 @@
   pointer-events: auto;
 }
 
-.locationGroup {
+.leftActionGroup,
+.rightActionGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.topFabGroup {
+  position: fixed;
+  top: max(0.65rem, env(safe-area-inset-top, 0px));
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  z-index: 21;
   display: flex;
   align-items: center;
   gap: 0.45rem;
 }
 
-.attributionsFab {
-  position: fixed;
-  right: max(0.75rem, env(safe-area-inset-right, 0px));
-  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
-  z-index: 31;
-}
-
 .bottomBar {
   position: fixed;
-  left: 0.75rem;
-  right: 0.75rem;
+  left: 0;
+  right: 0;
   bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
   z-index: 30;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  min-width: min(100%, 22rem);
   pointer-events: none;
+  transform-origin: center bottom;
+  transform: translateY(0);
+  transition: transform var(--search-rise-duration) var(--search-rise-ease);
+  will-change: transform;
+  opacity: 1;
+  transition:
+    transform var(--search-rise-duration) var(--search-rise-ease),
+    opacity 220ms ease;
 }
 
-.bottomBar > * {
+.bottomBarPlay,
+.bottomBarRow {
   pointer-events: auto;
 }
 
-.bottomBarSearchOpen > :not(.locationGroup) {
-  opacity: 0.42;
-  transform: translateY(3px) scale(0.94);
-  filter: blur(0.4px);
-  transition:
-    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+/* Compact, centred cluster: the location buttons, search pill and map/share
+   buttons hug together with even gaps and sit centred on the viewport. The
+   left and right groups carry the same two 3rem buttons, so the pill lands on
+   the true viewport centre and the screen-centred expanded portal lines up
+   with no jump. */
+.bottomBarRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow: visible;
 }
 
-.bottomBarSearchOpen .locationGroup > :not(:last-child) {
-  opacity: 0.42;
-  transform: translateY(3px) scale(0.94);
-  filter: blur(0.4px);
+.bottomBarPlay,
+.leftActionGroup,
+.rightActionGroup {
+  transform-origin: center center;
   transition:
-    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity var(--search-side-shift-duration) var(--search-rise-ease),
+    transform var(--search-side-shift-duration) var(--search-rise-ease);
+  transition-delay: 0ms;
 }
 
-.bottomBar > *,
-.bottomBar .locationGroup > * {
-  transition:
-    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+.bottomBarSearchOpen {
+  transform: translateY(calc(-1 * var(--bottom-bar-rise)));
+}
+
+.bottomBarHidden {
+  opacity: 0;
+  transform: translateY(18px);
+  pointer-events: none;
+}
+
+.bottomBarSearchOpen .bottomBarPlay {
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  pointer-events: none;
+}
+
+.bottomBarSearchOpen .leftActionGroup,
+.bottomBarSearchOpen .rightActionGroup {
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: var(--search-side-shift-delay);
+}
+
+.bottomBarSearchOpen .leftActionGroup {
+  transform: translate3d(calc(-1 * var(--search-side-shift-distance)), 0, 0);
+}
+
+.bottomBarSearchOpen .rightActionGroup {
+  transform: translate3d(var(--search-side-shift-distance), 0, 0);
 }
 
 .unlockBanner {
@@ -210,7 +208,7 @@
 }
 
 .unlockBanner:hover {
-  background: #fff;
+  background: var(--surface-solid);
 }
 
 .globeLoading {
@@ -220,9 +218,9 @@
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgba(245, 242, 236, 0.55);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  background: var(--loading-scrim);
+  backdrop-filter: var(--blur-glass-panel);
+  -webkit-backdrop-filter: var(--blur-glass-panel);
 }
 
 .globeLoadingPanel {
@@ -233,7 +231,7 @@
   padding: 1.5rem 1.75rem;
   border-radius: 1.25rem;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--loading-panel);
   box-shadow: var(--shadow-lg);
 }
 
@@ -245,18 +243,8 @@
 }
 
 .globeLoadingClose {
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.35rem 0.85rem;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--text-muted);
-  font: inherit;
+  composes: pillCompact from './styles/glassButton.module.css';
   font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.globeLoadingClose:hover {
-  color: var(--text);
 }
 
 @media (min-width: 769px) {
@@ -265,21 +253,54 @@
   }
 
   .bottomBar {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    transform: translateY(0);
     bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottomBarSearchOpen {
+    transform: translateY(calc(-1 * var(--bottom-bar-rise)));
+  }
+
+  .bottomBarHidden {
+    transform: translateY(18px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bottomBarSearchOpen > :not(.locationGroup),
-  .bottomBarSearchOpen .locationGroup > :not(:last-child),
-  .bottomBar > *,
-  .bottomBar .locationGroup > * {
+  .bottomBar {
     transition: none;
+    will-change: auto;
     transform: none;
-    filter: none;
+  }
+
+  .bottomBarHidden {
+    opacity: 0;
+  }
+
+  .bottomBarSearchOpen {
+    transform: none;
+  }
+
+  .bottomBarSearchOpen .bottomBarPlay,
+  .bottomBarSearchOpen .leftActionGroup,
+  .bottomBarSearchOpen .rightActionGroup,
+  .bottomBarPlay,
+  .leftActionGroup,
+  .rightActionGroup {
+    transition: none;
+    transition-delay: 0ms;
+    transform: none;
+  }
+}
+
+@media (min-width: 769px) {
+  @media (prefers-reduced-motion: reduce) {
+    .bottomBar,
+    .bottomBarSearchOpen {
+      transform: none;
+    }
   }
 }
 
@@ -289,19 +310,15 @@
   }
 
   .bottomBar {
-    left: 0.65rem;
-    right: 0.65rem;
+    left: 0;
+    right: 0;
     bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
-  }
-
-  .attributionsFab {
-    bottom: calc(4.85rem + env(safe-area-inset-bottom, 0px));
   }
 
   .dockOverlay {
     left: 50%;
     top: auto;
-    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(12.05rem + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
   }
 }

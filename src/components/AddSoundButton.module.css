@@ -1,0 +1,11 @@
+.button {
+  composes: tile from '../styles/glassButton.module.css';
+  transform-origin: left center;
+  will-change: transform;
+}
+
+@media (max-width: 768px) {
+  .button {
+    transform-origin: center bottom;
+  }
+}

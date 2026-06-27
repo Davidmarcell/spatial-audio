@@ -49,6 +49,8 @@ export const soundBlurbs: Record<string, string> = {
   'park-rustle':
     'Leaves and city park texture — rustle between brownstones and community gardens.',
   'urban-breeze': 'Air moving between buildings and avenues on a clear city day.',
+  'street-jazz-busker':
+    'A loose jazz trio on the corner — guitar, brushed rhythm, and saxophone carrying down the street.',
   'distant-traffic': 'Far-off traffic hiss — the low shimmer of a borough awake.',
   'alpine-wind': 'Cold wind through high passes and limestone peaks of the Dolomites.',
   'mountain-stream': 'Meltwater over stone — bright streams in alpine valleys.',
@@ -58,6 +60,8 @@ export const soundBlurbs: Record<string, string> = {
     'Layered insect chorus of northern Thai foothills — cicadas at dusk and dawn.',
   'hill-bird':
     'Melodic calls from Doi Suthep forest — bulbuls, barbets, and hill-country songbirds.',
+  'understory-bird':
+    'Songbirds in forest margins and understory — melodic calls filtered through dense tropical foliage.',
   'monsoon-rain': 'Tropical rain on broad leaves during monsoon season.',
   'tropical-bird': 'Colourful lowland forest birds — toucans and hornbills of the tropics.',
 };

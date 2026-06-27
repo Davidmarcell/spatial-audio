@@ -12,3 +12,44 @@
   overflow: hidden;
   isolation: isolate;
 }
+
+/* Scale + blur when About / Attributions overlay is open (not Silk sheets). */
+.outletScaleBlur {
+  transform: scale(var(--scale-blur-scale)) translateY(var(--scale-blur-translate-y));
+  border-radius: var(--scale-blur-radius);
+  filter: blur(var(--scale-blur-blur));
+  transition:
+    transform var(--scale-blur-duration) var(--ease-premium-enter),
+    filter var(--scale-blur-duration) var(--ease-premium-backdrop),
+    border-radius var(--scale-blur-duration) var(--ease-premium-enter);
+  pointer-events: none;
+  user-select: none;
+}
+
+/*
+ * Blur-only variant for the sound tile detail modal: keep the app layer at
+ * scale 1 (no downscale / parallax) so tiles never shift position when the
+ * modal opens — only the blur fades in.
+ */
+.outletBlurOnly {
+  filter: blur(var(--scale-blur-blur));
+  transition: filter var(--scale-blur-duration) var(--ease-premium-backdrop);
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outletScaleBlur {
+    transform: none;
+    filter: none;
+    border-radius: 0;
+    transition: none;
+    opacity: 0.6;
+  }
+
+  .outletBlurOnly {
+    filter: none;
+    transition: none;
+    opacity: 0.6;
+  }
+}

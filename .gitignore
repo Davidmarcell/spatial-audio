@@ -27,3 +27,11 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Font Awesome Pro (licensed — copy from local install to public/fonts/fontawesome/)
+public/fonts/fontawesome/
+
+# Local agent/editor tooling (not part of the app)
+.cursor/
+.agents/
+skills-lock.json

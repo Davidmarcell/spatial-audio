@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { UiIcon } from './UiIcon';
 import styles from './ShareButton.module.css';
 
 type Props = {
@@ -9,21 +10,6 @@ type Props = {
   onFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void;
   onBlur?: () => void;
 };
-
-function ShareIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={styles.icon}>
-      <path
-        d="M8 12l8-4.5v9L8 12zm0 0V8.5A2.5 2.5 0 0 1 10.5 6H18M8 12v3.5A2.5 2.5 0 0 0 10.5 18H18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export function ShareButton({
   onShare,
@@ -78,7 +64,7 @@ export function ShareButton({
         aria-label="Share soundscape"
         data-tooltip="Share soundscape"
       >
-        <ShareIcon />
+        <UiIcon icon="arrow-up-from-bracket" />
       </button>
       <span className={styles.live} role="status" aria-live="polite" aria-atomic="true">
         {status ?? ''}

@@ -1,3 +1,11 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .header {
   display: flex;
   align-items: flex-start;
@@ -16,16 +24,18 @@
 }
 
 .dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 2rem;
   height: 2rem;
   border: none;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-elevated);
   color: var(--text-muted);
-  font-size: 1.25rem;
-  line-height: 1;
+  line-height: 0;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   flex-shrink: 0;
 }
 
@@ -35,10 +45,21 @@
 
 .artwork {
   flex-shrink: 0;
-  min-height: 200px;
-  max-height: min(42vh, 360px);
+  min-width: 0;
+  height: min(36vh, 280px);
+  max-height: min(36vh, 280px);
   background: #f8f6f2;
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.infoColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .scroll {
@@ -55,8 +76,6 @@
 .eyebrow {
   margin: 0;
   font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--text-secondary);
 }
 
@@ -66,13 +85,6 @@
   line-height: 1.12;
   letter-spacing: -0.03em;
   font-weight: 700;
-}
-
-.categoryHint {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  text-transform: capitalize;
 }
 
 .section {
@@ -103,17 +115,18 @@
 }
 
 .meta div {
-  display: grid;
-  grid-template-columns: 4.75rem 1fr;
-  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .meta dt {
   margin: 0;
   font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: normal;
   color: var(--text-secondary);
+  font-weight: 550;
 }
 
 .meta dd {
@@ -129,6 +142,20 @@
 
 .meta a:hover {
   text-decoration: underline;
+}
+
+.sourceLink {
+  composes: pillCompact from '../styles/glassButton.module.css';
+  composes: noShadow from '../styles/glassButton.module.css';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.sourceLink:hover {
+  text-decoration: none;
 }
 
 .volumeHeader {
@@ -152,7 +179,21 @@
 
 @media (max-width: 760px) {
   .artwork {
-    min-height: 180px;
-    max-height: 36vh;
+    height: min(36vh, 260px);
+    max-height: min(36vh, 260px);
+  }
+}
+
+@media (min-width: 761px) {
+  .root {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .artwork {
+    height: auto;
+    max-height: none;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
   }
 }

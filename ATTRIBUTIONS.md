@@ -34,6 +34,12 @@ All bundled sounds are royalty-free or Creative Commons licensed. Some clips are
 | `public/audio/bed-stuy/northern-cardinal.ogg` | Northern Cardinal song (XC125284) | Xeno-canto / Wikimedia Commons | CC BY-SA 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Cardinalis_cardinalis_-_Northern_Cardinal_XC125284.ogg) |
 | `public/audio/bed-stuy/blue-jay.ogg` | Blue Jay call (XC86756) | Jonathon Jongsma / Xeno-canto | CC BY-SA 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Cyanocitta_cristata_-_Blue_Jay_-_XC86756.ogg) |
 
+## London
+
+| File | Title | Author | License | Source |
+|------|-------|--------|---------|--------|
+| `public/audio/london/street-jazz-busker.mp3` | Fake Jazz Trio | Antti Luode / Wikimedia Commons | CC BY 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Fake_Jazz_Trio_(Antti_Luode).mp3) |
+
 ## Re-downloading assets
 
 ```bash

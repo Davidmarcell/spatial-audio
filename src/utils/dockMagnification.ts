@@ -3,7 +3,7 @@ export function dockMagnification(
   distance: number,
   baseSize: number,
   maxSize: number,
-  influence = 120,
+  influence = 60,
 ): number {
   if (distance >= influence) return baseSize;
   const t = 1 - distance / influence;

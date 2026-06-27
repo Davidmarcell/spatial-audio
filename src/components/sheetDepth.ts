@@ -1,5 +1,13 @@
 import type { SheetContentProps } from '@silk-hq/components';
 
+/** CSS custom properties for ScaleBlurOverlay background (About, Attributions). */
+export const scaleBlurBackground = {
+  scale: 0.97,
+  translateY: -10,
+  blurPx: 24,
+  borderRadiusPx: 14,
+} as const;
+
 /**
  * Background layer animation when a sheet presents — iOS-style scale, parallax,
  * and corner rounding. Used on SheetStack.Outlet (Silk "Sheet with Depth" pattern).

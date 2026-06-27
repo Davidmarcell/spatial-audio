@@ -1,16 +1,20 @@
 import { lazy, Suspense } from 'react';
 import { Sheet } from '@silk-hq/components';
 import type { WorldLocation } from '../data/worldLocations';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import {
   bottomSheetStackingAnimation,
   sheetBackdropTravelAnimation,
 } from './sheetDepth';
 import sheet from './indentedSheet.module.css';
+import { ScaleBlurOverlay } from './ScaleBlurOverlay';
 import styles from './GlobeMapSheet.module.css';
 
 const GlobeExplorer = lazy(() =>
   import('./GlobeExplorer').then((module) => ({ default: module.GlobeExplorer })),
 );
+
+const MOBILE_MAP_QUERY = '(max-width: 768px)';
 
 type Props = {
   open: boolean;
@@ -22,15 +26,43 @@ type Props = {
   onSelect: (location: WorldLocation) => void;
 };
 
-export function GlobeMapSheet({
-  open,
+type GlobeContentProps = Omit<Props, 'open'> & {
+  showCloseButton?: boolean;
+};
+
+function GlobeMapContent({
   onOpenChange,
   locations,
   activeEnvironmentId,
   activeRegionId,
   activeLocationId,
   onSelect,
-}: Props) {
+  showCloseButton = true,
+}: GlobeContentProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.loading} role="status" aria-live="polite">
+          Loading world map…
+        </div>
+      }
+    >
+      <GlobeExplorer
+        locations={locations}
+        activeEnvironmentId={activeEnvironmentId}
+        activeRegionId={activeRegionId}
+        activeLocationId={activeLocationId}
+        onSelect={onSelect}
+        onClose={() => onOpenChange(false)}
+        showCloseButton={showCloseButton}
+      />
+    </Suspense>
+  );
+}
+
+function GlobeMapMobileSheet(props: Props) {
+  const { open, onOpenChange } = props;
+
   const handlePresentedChange = (presented: boolean) => {
     if (!presented) onOpenChange(false);
   };
@@ -61,27 +93,40 @@ export function GlobeMapSheet({
             stackingAnimation={bottomSheetStackingAnimation}
           >
             <Sheet.BleedingBackground className={sheet.bleeding} />
-            {open && (
-              <Suspense
-                fallback={
-                  <div className={styles.loading} role="status" aria-live="polite">
-                    Loading world map…
-                  </div>
-                }
-              >
-                <GlobeExplorer
-                  locations={locations}
-                  activeEnvironmentId={activeEnvironmentId}
-                  activeRegionId={activeRegionId}
-                  activeLocationId={activeLocationId}
-                  onSelect={onSelect}
-                  onClose={() => onOpenChange(false)}
-                />
-              </Suspense>
-            )}
+            {open && <GlobeMapContent {...props} />}
           </Sheet.Content>
         </Sheet.View>
       </Sheet.Portal>
     </Sheet.Root>
   );
+}
+
+function GlobeMapModal(props: Props) {
+  const { open, onOpenChange } = props;
+
+  return (
+    <ScaleBlurOverlay
+      open={open}
+      onOpenChange={onOpenChange}
+      title="World map"
+      titleId="globe-map-modal-title"
+      closeLabel="Close world map"
+      lockBodyScroll
+      extraPanelClassName={styles.modalPanel}
+      bodyClassName={styles.modalBody}
+      backdropClassName={styles.modalBackdrop}
+    >
+      <GlobeMapContent {...props} showCloseButton={false} />
+    </ScaleBlurOverlay>
+  );
+}
+
+export function GlobeMapSheet(props: Props) {
+  const isMobile = useMediaQuery(MOBILE_MAP_QUERY);
+
+  if (isMobile) {
+    return <GlobeMapMobileSheet {...props} />;
+  }
+
+  return <GlobeMapModal {...props} />;
 }

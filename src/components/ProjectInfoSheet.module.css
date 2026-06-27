@@ -1,0 +1,91 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  padding: 0.6rem 0.85rem 0.85rem;
+}
+
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
+  margin-bottom: 0.7rem;
+  flex-shrink: 0;
+}
+
+.tab,
+.tabActive {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  padding: 0.42rem 0.8rem;
+  cursor: pointer;
+  transition:
+    color 180ms var(--ease-ios),
+    border-color 180ms var(--ease-ios),
+    background-color 180ms var(--ease-ios),
+    box-shadow 180ms var(--ease-ios);
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab:focus-visible,
+.tabActive:focus-visible {
+  outline: none;
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--focus-ring) 55%, transparent);
+}
+
+.tabActive {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--glass-border-strong) 72%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  box-shadow: none;
+}
+
+.panel {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: calc(var(--radius-lg) - 0.2rem);
+  padding-inline: 0.05rem;
+}
+
+.section + .section {
+  margin-top: 1.35rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid var(--border);
+}
+
+.heading {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}

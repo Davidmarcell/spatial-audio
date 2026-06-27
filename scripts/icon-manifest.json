@@ -72,6 +72,68 @@
       "author": "Maria Sibylla Merian (Getty Museum)",
       "license": "Public domain",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Metamorphosis_of_a_Small_Emperor_Moth_on_a_Damson_Plum,_plate_13_of_the_Caterpillar_Book,_by_Maria_Sibylla_Merian_(Getty_109Q5N).jpg"
+    },
+    {
+      "id": "quetzal",
+      "file": "quetzal.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Birds_and_nature_%281905%29_%2814564781960%29.jpg/330px-Birds_and_nature_%281905%29_%2814564781960%29.jpg",
+      "title": "Resplendent Trogon (Resplendent Quetzal, Pharomachrus mocinno)",
+      "author": "Birds and nature (1905), A. W. Mumford — Biodiversity Heritage Library",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Birds_and_nature_(1905)_(14564781960).jpg"
+    },
+    {
+      "id": "forest-stream",
+      "file": "forest-stream.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/A_Forest_Stream_by_Peder_Mork_Monsted.jpg/330px-A_Forest_Stream_by_Peder_Mork_Monsted.jpg",
+      "title": "A Forest Stream",
+      "author": "Peder Mørk Mønsted (1905)",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_Forest_Stream_by_Peder_Mork_Monsted.jpg"
+    },
+    {
+      "id": "waldbach",
+      "file": "waldbach.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Eduard_Leonhardi_-_Waldbach_%281894%29.jpg/330px-Eduard_Leonhardi_-_Waldbach_%281894%29.jpg",
+      "title": "Waldbach (Forest stream)",
+      "author": "Eduard Leonhardi (1894)",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Eduard_Leonhardi_-_Waldbach_(1894).jpg",
+      "pool": "stream",
+      "tags": ["temperate", "european", "forest", "woodland"]
+    },
+    {
+      "id": "hiroshige-rain",
+      "file": "hiroshige-rain.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Hiroshige%2C_A_bridge_in_the_rain.jpg/330px-Hiroshige%2C_A_bridge_in_the_rain.jpg",
+      "title": "A bridge in the rain",
+      "author": "Utagawa Hiroshige",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hiroshige,_A_bridge_in_the_rain.jpg",
+      "pool": "rain",
+      "tags": ["asian", "temperate", "urban"]
+    },
+    {
+      "id": "bricher-surf",
+      "file": "bricher-surf.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Crashing_Waves-Alfred_T_Bricher.jpg/330px-Crashing_Waves-Alfred_T_Bricher.jpg",
+      "title": "Crashing Waves",
+      "author": "Alfred Thompson Bricher",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Crashing_Waves-Alfred_T_Bricher.jpg",
+      "pool": "surf",
+      "tags": ["temperate", "coastal", "americas"]
+    },
+    {
+      "id": "wind-trees",
+      "file": "wind-trees.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Ivan_Shishkin_-_Wind-Fallen_Trees.JPG/330px-Ivan_Shishkin_-_Wind-Fallen_Trees.JPG",
+      "title": "Wind-Fallen Trees",
+      "author": "Ivan Shishkin",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ivan_Shishkin_-_Wind-Fallen_Trees.JPG",
+      "pool": "wind",
+      "tags": ["cold", "temperate", "european", "forest"]
     }
   ],
   "nypl": [
@@ -110,65 +172,66 @@
         "title": "Good Harbor Beach, Cape Ann, Massachusetts",
         "artist": "William Trost Richards",
         "medium": "Graphite on tan wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11908"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11908",
+        "tags": ["temperate", "coastal", "americas"]
       },
       {
         "objectId": 17053,
         "title": "Boys in a Dory",
         "artist": "Winslow Homer",
         "medium": "Watercolor and gouache over graphite",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/17053"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/17053",
+        "tags": ["temperate", "coastal", "americas"]
       },
       {
         "objectId": 339153,
         "title": "Fishing Boats on the Beach in Winter",
         "artist": "Anton Mauve",
         "medium": "Black chalk, watercolor, and white bodycolor",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/339153"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/339153",
+        "tags": ["cold", "coastal", "european"]
       },
       {
         "objectId": 334086,
         "title": "On the Beach",
         "artist": "Eugène Boudin",
         "medium": "Graphite and watercolor",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/334086"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/334086",
+        "tags": ["temperate", "coastal", "european"]
       },
       {
         "objectId": 460052,
         "title": "Beach Scene",
         "artist": "Eugène Boudin",
         "medium": "Pastel on gray wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/460052"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/460052",
+        "tags": ["temperate", "coastal", "european"]
       },
       {
-        "objectId": 15519,
-        "title": "Bay, Hill, and Figure on Shore (from Sketchbook X)",
-        "artist": "William Trost Richards",
-        "medium": "Graphite on off-white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/15519"
+        "objectId": 11138,
+        "title": "Shore and Surf, Nassau",
+        "artist": "Winslow Homer",
+        "medium": "Watercolor and graphite on off-white wove paper",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11138",
+        "tags": ["tropical", "coastal", "americas", "caribbean"]
       }
     ],
     "wind": [
-      {
-        "objectId": 824771,
-        "title": "Marie Antoinette in a Park",
-        "artist": "Anonymous (French)",
-        "medium": "Black chalk, stumped, and white chalk",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/824771"
-      },
       {
         "objectId": 11306,
         "title": "Birch Tree, Niagara",
         "artist": "John Frederick Kensett",
         "medium": "Graphite on smooth textured off-white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306",
+        "tags": ["temperate", "americas", "forest"]
       },
       {
-        "objectId": 11124,
-        "title": "Hurricane, Bahamas",
+        "objectId": 11131,
+        "title": "Palm Tree, Nassau",
         "artist": "Winslow Homer",
         "medium": "Watercolor and graphite on off-white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11124"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11131",
+        "tags": ["tropical", "coastal", "americas", "caribbean"]
       }
     ],
     "forest": [
@@ -177,21 +240,32 @@
         "title": "Forest Scene",
         "artist": "Johann Hermann Carmiencke",
         "medium": "Graphite and watercolor on buff-colored wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/10378"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/10378",
+        "tags": ["temperate", "european", "forest", "woodland"]
       },
       {
         "objectId": 11306,
         "title": "Birch Tree, Niagara",
         "artist": "John Frederick Kensett",
         "medium": "Graphite on smooth textured off-white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306",
+        "tags": ["temperate", "americas", "forest"]
       },
       {
         "objectId": 15775,
         "title": "Two Sketches: River Bank with Trees; Figure in a Canoe",
         "artist": "Albert Bierstadt",
         "medium": "Graphite on wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775",
+        "tags": ["temperate", "americas", "forest"]
+      },
+      {
+        "objectId": 371022,
+        "title": "Tropical Coastal Landscape",
+        "artist": "Frans Post",
+        "medium": "Watercolor",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/371022",
+        "tags": ["tropical", "americas", "forest", "coastal"]
       }
     ],
     "rain": [
@@ -200,14 +274,8 @@
         "title": "Hurricane, Bahamas",
         "artist": "Winslow Homer",
         "medium": "Watercolor and graphite on off-white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11124"
-      },
-      {
-        "objectId": 13115,
-        "title": "New York from the Heights near Brooklyn",
-        "artist": "William Guy Wall",
-        "medium": "Watercolor and graphite on white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/13115"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/11124",
+        "tags": ["tropical", "coastal", "americas", "caribbean"]
       },
       {
         "objectId": 489985,
@@ -215,30 +283,66 @@
         "artist": "Vasily Kandinsky",
         "medium": "Watercolor over graphite on paper",
         "sourceUrl": "https://www.metmuseum.org/art/collection/search/489985",
-        "iiifSuffix": "preview"
+        "iiifSuffix": "preview",
+        "tags": ["european", "temperate"]
+      },
+      {
+        "objectId": 55433,
+        "title": "Sudden Shower over Shin-Ōhashi Bridge and Atake",
+        "artist": "Utagawa Hiroshige",
+        "medium": "Woodblock print; ink and color on paper",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/55433",
+        "tags": ["asian", "temperate", "urban"]
       }
     ],
     "stream": [
+      {
+        "objectId": 12586,
+        "title": "Trees and Stream",
+        "artist": "Walter Shirlaw",
+        "medium": "Graphite and watercolor on off-white laid paper",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/12586",
+        "tags": ["temperate", "americas", "forest"]
+      },
+      {
+        "objectId": 12307,
+        "title": "Stream and Rocks",
+        "artist": "John Singer Sargent",
+        "medium": "Watercolor, gouache, and graphite on white wove paper",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/12307",
+        "tags": ["temperate", "alpine", "mountain"]
+      },
+      {
+        "objectId": 10770,
+        "title": "River Scene (from McGuire Scrapbook)",
+        "artist": "Thomas Doughty",
+        "medium": "Graphite on off-white wove paper",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/10770",
+        "tags": ["temperate", "americas"]
+      },
+      {
+        "objectId": 12392,
+        "title": "Mountains and Stream, Faido",
+        "artist": "John Singer Sargent",
+        "medium": "Watercolor and graphite on off-white wove paper",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/12392",
+        "tags": ["alpine", "mountain", "temperate", "european"]
+      },
       {
         "objectId": 15775,
         "title": "Two Sketches: River Bank with Trees; Figure in a Canoe",
         "artist": "Albert Bierstadt",
         "medium": "Graphite on wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775",
+        "tags": ["temperate", "americas", "forest"]
       },
       {
-        "objectId": 17053,
-        "title": "Boys in a Dory",
-        "artist": "Winslow Homer",
-        "medium": "Watercolor and gouache over graphite",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/17053"
-      },
-      {
-        "objectId": 15519,
-        "title": "Bay, Hill, and Figure on Shore (from Sketchbook X)",
-        "artist": "William Trost Richards",
-        "medium": "Graphite on off-white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/15519"
+        "objectId": 286187,
+        "title": "Tropical Scenery, Cascade, Limon River",
+        "artist": "John Moran",
+        "medium": "Albumen silver print from glass negative",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/286187",
+        "tags": ["tropical", "americas", "forest"]
       }
     ],
     "quetzal": [
@@ -247,14 +351,26 @@
         "title": "Long-Tailed Bird Seen in Profile",
         "artist": "Count Giorgio Durante (Duranti)",
         "medium": "Watercolor over graphite",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/338617"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/338617",
+        "tags": ["tropical", "americas"]
+      }
+    ],
+    "owl": [
+      {
+        "objectId": 751141,
+        "title": "Monedula, Chouëtte (The Owl), from \"Livre d'Oyseaux\" (Book of Birds)",
+        "artist": "Albert Flamen",
+        "medium": "Etching",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/751141",
+        "tags": ["temperate", "european", "woodland"]
       },
       {
-        "objectId": 363843,
-        "title": "Eclectus Roratus Polychloros",
-        "artist": "Edward Lear",
-        "medium": "Watercolor and gouache over graphite",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/363843"
+        "objectId": 393450,
+        "title": "Snowy Owl",
+        "artist": "Henry Emerson Tuttle",
+        "medium": "Drypoint",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/393450",
+        "tags": ["cold", "arctic"]
       }
     ],
     "toucan": [
@@ -263,7 +379,8 @@
         "title": "Eclectus Roratus Polychloros",
         "artist": "Edward Lear",
         "medium": "Watercolor and gouache over graphite",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/363843"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/363843",
+        "tags": ["tropical", "asian"]
       }
     ],
     "nyc-traffic": [
@@ -272,21 +389,24 @@
         "title": "Sleighing in New York",
         "artist": "Thomas Benecke",
         "medium": "Color lithograph with hand-coloring",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/339882"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/339882",
+        "tags": ["cold", "urban", "americas"]
       },
       {
         "objectId": 388212,
         "title": "Broadway Circus and Olympic Theatre, Broadway between Howard and Grand Streets, New York",
         "artist": "Anonymous, American, 19th century",
         "medium": "Watercolor and ink",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/388212"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/388212",
+        "tags": ["urban", "americas", "temperate"]
       },
       {
         "objectId": 266296,
         "title": "Mulberry Street",
         "artist": "Sid Grossman",
         "medium": "Gelatin silver print",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/266296"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/266296",
+        "tags": ["urban", "americas"]
       }
     ],
     "nyc-breeze": [
@@ -295,21 +415,24 @@
         "title": "New York from the Heights near Brooklyn",
         "artist": "William Guy Wall",
         "medium": "Watercolor and graphite on white wove paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/13115"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/13115",
+        "tags": ["urban", "americas", "temperate", "coastal"]
       },
       {
         "objectId": 488326,
         "title": "Brooklyn Bridge",
         "artist": "John Marin",
         "medium": "Watercolor and charcoal on paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/488326"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/488326",
+        "tags": ["urban", "americas", "temperate"]
       },
       {
         "objectId": 853645,
         "title": "Rooftops, Brooklyn",
         "artist": "Fidelia Bridges",
         "medium": "Watercolor and gouache on tan hot-pressed paper",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/853645"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/853645",
+        "tags": ["urban", "americas", "temperate"]
       }
     ],
     "nyc-park": [
@@ -318,10 +441,85 @@
         "title": "Central Park (Summer)",
         "artist": "Julius Bien",
         "medium": "Lithograph, printed in colors",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/371952"
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/371952",
+        "tags": ["urban", "americas", "temperate", "garden"]
       }
     ]
   },
+  "locationArt": [
+    {
+      "objectId": 10481,
+      "locationId": "costa-rica-pacific",
+      "title": "Heart of the Andes",
+      "artist": "Frederic Edwin Church",
+      "medium": "Oil on canvas",
+      "date": "1859",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/10481"
+    },
+    {
+      "objectId": 38064,
+      "locationId": "bangkok",
+      "title": "Buddhist Temple Painting",
+      "artist": "Unidentified artist, Thailand",
+      "medium": "Hanging scroll; color on silk",
+      "date": "early 19th century",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/38064"
+    },
+    {
+      "objectId": 380481,
+      "locationId": "new-orleans",
+      "title": "\"Rounding a Bend\" on the Mississippi – The Parting Salute",
+      "artist": "Frances Flora Bond Palmer (Currier & Ives)",
+      "medium": "Hand-colored lithograph",
+      "date": "1866",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/380481"
+    },
+    {
+      "objectId": 830271,
+      "locationId": "cape-town",
+      "title": "Bald Ibis from the Cape of Good Hope, from \"Histoire Naturelle des Oiseaux\"",
+      "artist": "François Nicolas Martinet",
+      "medium": "Hand-colored etching and engraving",
+      "date": "1770–86",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/830271"
+    },
+    {
+      "objectId": 437310,
+      "locationId": "paris",
+      "title": "The Boulevard Montmartre on a Winter Morning",
+      "artist": "Camille Pissarro",
+      "medium": "Oil on canvas",
+      "date": "1897",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/437310"
+    },
+    {
+      "objectId": 439844,
+      "locationId": "swiss-alps",
+      "title": "Heroic Landscape with Rainbow",
+      "artist": "Joseph Anton Koch",
+      "medium": "Oil on canvas",
+      "date": "1824",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/439844"
+    },
+    {
+      "objectId": 39557,
+      "locationId": "himalayas",
+      "title": "Wooded Mountains at Dusk",
+      "artist": "Kuncan",
+      "medium": "Hanging scroll; ink and color on paper",
+      "date": "dated 1666",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/39557"
+    },
+    {
+      "objectId": 381008,
+      "locationId": "new-york",
+      "title": "Evening, New York Harbor",
+      "artist": "Henry Farrer",
+      "medium": "Etching",
+      "date": "1884",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/381008"
+    }
+  ],
   "soundPoolMap": {
     "surf": "surf",
     "wind": "wind",
@@ -329,6 +527,7 @@
     "forest-ambience": "forest",
     "rain": "rain",
     "stream": "stream",
+    "forest-stream": "stream",
     "quetzal": "quetzal",
     "toucan": "toucan"
   }

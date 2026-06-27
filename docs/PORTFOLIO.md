@@ -1,4 +1,4 @@
-# Spatial Audio — Portfolio case study
+# Saudade — Portfolio case study
 
 _Copy the sections below into your portfolio site, CMS, or LinkedIn project description._
 
@@ -10,7 +10,7 @@ An interactive ambient soundscape composer where you drag sounds through 2D spac
 
 ## Live demo
 
-**URL:** _[Add after deploy — e.g. https://spatial-audio.vercel.app]_
+**URL:** _[Add after deploy — e.g. https://saudade.vercel.app]_
 
 **GitHub:** _[Add repo URL if public]_
 
@@ -22,7 +22,7 @@ Most ambient or nature apps play a fixed mix. I wanted something closer to *bein
 
 ## The approach
 
-I built **Spatial Audio** as a static React app with a custom Web Audio graph. Each sound is a looping source routed through gain and stereo panner nodes; dragging on a radar-style canvas updates position in real time. Regions (Auckland, Rio, Bed-Stuy, London, the Dolomites, and others) ship curated palettes and always-on ambient beds so a scene sounds coherent even before you add layers.
+I built **Saudade** as a static React app with a custom Web Audio graph. Each sound is a looping source routed through gain and stereo panner nodes; dragging on a radar-style canvas updates position in real time. Regions (Auckland, Rio, Bed-Stuy, London, the Dolomites, and others) ship curated palettes and always-on ambient beds so a scene sounds coherent even before you add layers.
 
 The UI uses **Silk** swipeable sheets for stacked navigation — globe map, sound art detail, attributions — without leaving the main canvas. A **globe.gl** explorer adds a Radio Garden–style map: curated pins, geocode search for custom locations, and nearest-region matching from browser geolocation. Tile artwork comes from **NYPL Digital Collections** (Audubon lithographs), **The Met Open Access**, and **Wikimedia Commons**, chosen so small icons stay readable and legally clear.
 
@@ -43,7 +43,7 @@ Sharing is URL-first: globe textures persist via query params; soundscape state 
 
 | Field | Value |
 | --- | --- |
-| **Title** | Spatial Audio |
+| **Title** | Saudade |
 | **Role** | Design & development |
 | **Year** | 2025–2026 |
 | **Tags** | React, TypeScript, Web Audio API, globe.gl, Three.js, interactive audio, creative coding |

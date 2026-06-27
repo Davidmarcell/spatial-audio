@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { getSoundIconSrc, type RegionArtContext } from '../data/iconArt';
+import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import {
   depthZIndex,
   distanceFromListener,
@@ -8,6 +8,7 @@ import {
 } from '../audio/spatialMath';
 import type { SpatialPoint } from '../data/types';
 import { SoundIconImage } from './SoundIconImage';
+import { UiIcon } from './UiIcon';
 import styles from './SoundIcon.module.css';
 
 type Props = {
@@ -21,31 +22,9 @@ type Props = {
   regionArt: RegionArtContext;
   onSelect: (instanceId: string) => void;
   onRemove: (instanceId: string, iconRect: DOMRect) => void;
-  onOpenDetail: (instanceId: string) => void;
+  onOpenDetail: (instanceId: string, originRect: DOMRect | null) => void;
   onPointerDown: (instanceId: string, event: React.PointerEvent<HTMLButtonElement>) => void;
 };
-
-function EyeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={styles.actionSvg}>
-      <path
-        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-      />
-      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.75" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={styles.actionSvg}>
-      <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="1.75" />
-    </svg>
-  );
-}
 
 export function SoundIcon({
   instanceId,
@@ -78,8 +57,17 @@ export function SoundIcon({
   const handleOpenDetail = (event: React.MouseEvent) => {
     event.stopPropagation();
     onSelect(instanceId);
-    onOpenDetail(instanceId);
+    const rect = iconRef.current?.getBoundingClientRect() ?? null;
+    onOpenDetail(instanceId, rect);
   };
+
+  const artwork = getSoundArtworkForRegion(
+    regionArt.id,
+    regionArt.soundIds,
+    soundId,
+    instanceId,
+    regionArt.tags,
+  );
 
   return (
     <div
@@ -88,7 +76,7 @@ export function SoundIcon({
       data-instance-id={instanceId}
     >
       <div
-        className={styles.iconBody}
+        className={`${styles.iconBody} ${isDragging ? styles.iconBodyDragging : ''}`}
         style={{
           transform: `rotate(${swayDeg}deg) scale(${scale})`,
         }}
@@ -106,7 +94,9 @@ export function SoundIcon({
           onPointerDown={(event) => onPointerDown(instanceId, event)}
         >
           <SoundIconImage
-            src={getSoundIconSrc(soundId, instanceId, regionArt)}
+            src={artwork.src}
+            sourceUrl={artwork.sourceUrl}
+            detailSrc={artwork.detailSrc}
             alt={name}
             soundId={soundId}
             size="canvas"
@@ -116,13 +106,13 @@ export function SoundIcon({
               className={`${styles.actionButton} ${styles.actionLeft}`}
               role="presentation"
             >
-              <EyeIcon />
+              <UiIcon icon="eye" size="xs" />
             </span>
             <span
               className={`${styles.actionButton} ${styles.actionRight}`}
               role="presentation"
             >
-              <CloseIcon />
+              <UiIcon icon="xmark" size="xs" />
             </span>
           </span>
         </button>

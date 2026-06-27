@@ -61,7 +61,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-row);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
   box-shadow: var(--shadow-sm);
@@ -87,8 +87,6 @@
 .meta dt {
   margin: 0;
   font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--text-secondary);
 }
 

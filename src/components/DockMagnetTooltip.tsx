@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { SoundDef } from '../data/types';
-import { getSoundTooltipLines } from '../utils/soundTooltip';
 import styles from './DockMagnetTooltip.module.css';
 
 const GAP = 8;
 const VIEWPORT_PAD = 8;
 
 export type DockTooltipAnchor = {
-  sound: SoundDef;
+  id: string;
+  title: string;
   /** Icon center (includes transform scale). */
   centerX: number;
   centerY: number;
@@ -106,12 +105,11 @@ export function DockMagnetTooltip({ anchor }: Props) {
     const observer = new ResizeObserver(measure);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [anchor?.sound.id, anchor?.horizontal]);
+  }, [anchor?.id, anchor?.horizontal]);
 
   if (!anchor) return null;
 
-  const { sound } = anchor;
-  const { title } = getSoundTooltipLines(sound);
+  const { title } = anchor;
   const tooltipWidth = size.width || 80;
   const tooltipHeight = size.height || 28;
   const { placement, left, top } = computePlacement(anchor, tooltipWidth, tooltipHeight);

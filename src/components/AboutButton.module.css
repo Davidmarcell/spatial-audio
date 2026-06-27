@@ -1,0 +1,14 @@
+.aboutButton {
+  composes: pill from '../styles/glassButton.module.css';
+}
+
+.label {
+  display: inline-block;
+  line-height: 1.2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aboutButton {
+    transition: none;
+  }
+}

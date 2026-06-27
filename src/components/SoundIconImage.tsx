@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { getDetailIconSrc } from '../data/iconDetailSrc';
+import { useEffect, useMemo, useState } from 'react';
 import { getIconCrop } from '../data/iconCrop';
+import { FALLBACK_ICON_SRC, iconSrcFallbackChain } from '../data/iconDetailSrc';
 import styles from './SoundIconImage.module.css';
 
 type Props = {
@@ -22,14 +22,19 @@ export function SoundIconImage({
   size = 'canvas',
   crop,
 }: Props) {
-  const resolvedSrc =
-    size === 'detail' ? getDetailIconSrc(src, sourceUrl, detailSrc) : src;
-  const [imageSrc, setImageSrc] = useState(resolvedSrc);
+  const fallbackChain = useMemo(
+    () =>
+      iconSrcFallbackChain({ src, sourceUrl, detailSrc }, size === 'detail' ? 'detail' : 'tile'),
+    [detailSrc, size, sourceUrl, src],
+  );
+  const [chainIndex, setChainIndex] = useState(0);
+  const imageSrc = fallbackChain[chainIndex] ?? FALLBACK_ICON_SRC;
   const resolvedCrop = crop ?? getIconCrop(soundId ?? '', src, size);
+  const isDetail = size === 'detail';
 
   useEffect(() => {
-    setImageSrc(resolvedSrc);
-  }, [resolvedSrc]);
+    setChainIndex(0);
+  }, [fallbackChain]);
 
   return (
     <span className={`${styles.frame} ${styles[size] ?? ''}`}>
@@ -38,15 +43,22 @@ export function SoundIconImage({
         src={imageSrc}
         alt={alt}
         draggable={false}
-        loading={size === 'detail' ? 'eager' : 'lazy'}
-        decoding={size === 'detail' ? 'sync' : 'async'}
+        loading={isDetail ? 'eager' : 'lazy'}
+        decoding={isDetail ? 'sync' : 'async'}
         onError={() => {
-          if (imageSrc !== src) setImageSrc(src);
+          setChainIndex((current) => {
+            if (current >= fallbackChain.length - 1) return current;
+            return current + 1;
+          });
         }}
-        style={{
-          transform: `scale(${resolvedCrop.scale})`,
-          objectPosition: `${resolvedCrop.x ?? '50%'} ${resolvedCrop.y ?? '50%'}`,
-        }}
+        style={
+          isDetail
+            ? undefined
+            : {
+                transform: `scale(${resolvedCrop.scale})`,
+                objectPosition: `${resolvedCrop.x ?? '50%'} ${resolvedCrop.y ?? '50%'}`,
+              }
+        }
       />
     </span>
   );

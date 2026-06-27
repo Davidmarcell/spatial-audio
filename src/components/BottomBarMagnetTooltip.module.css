@@ -3,7 +3,7 @@
   z-index: 50;
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--tooltip-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
@@ -23,7 +23,7 @@
   width: 8px;
   height: 8px;
   transform: translateX(-50%) rotate(45deg);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--tooltip-bg);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -36,7 +36,7 @@
   width: 8px;
   height: 8px;
   transform: translateX(-50%) rotate(45deg);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--tooltip-bg);
   border-left: 1px solid var(--border);
   border-top: 1px solid var(--border);
 }
@@ -49,7 +49,7 @@
   width: 8px;
   height: 8px;
   transform: translateY(-50%) rotate(45deg);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--tooltip-bg);
   border-right: 1px solid var(--border);
   border-top: 1px solid var(--border);
 }
@@ -62,7 +62,7 @@
   width: 8px;
   height: 8px;
   transform: translateY(-50%) rotate(45deg);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--tooltip-bg);
   border-left: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }

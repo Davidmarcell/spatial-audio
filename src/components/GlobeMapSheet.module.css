@@ -7,3 +7,53 @@
   font-weight: 650;
   color: var(--text-muted);
 }
+
+.modalPanel {
+  --scale-blur-panel-width: min(87.5rem, calc(100vw - 2rem));
+  max-height: min(
+    90dvh,
+    calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
+  /* One continuous surface: the header (transparent) and the globe body share
+     this single gradient, so the title bar matches the globe background and
+     there's no nested rounded box. */
+  background: radial-gradient(circle at 50% 46%, #ffffff 0%, #f4f6fb 56%, #e8edf5 100%);
+}
+
+/* Seamless title bar — no divider line between header and globe surface. */
+.modalPanel header {
+  border-bottom: none;
+}
+
+/* Scoped with the panel class so it outranks ScaleBlurOverlay's
+   `.body { flex: 1; min-height: 0 }`. Without the higher specificity the
+   flex-basis:0 / min-height:0 there defeats this explicit height and the
+   globe (which has no intrinsic height of its own) collapses to nothing. */
+.modalPanel .modalBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: min(
+    78dvh,
+    calc(90dvh - 3.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
+  height: min(
+    78dvh,
+    calc(90dvh - 3.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
+  padding: 0;
+  overflow: hidden;
+}
+
+.modalPanel .modalBody > * {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Blur the app behind the world map modal. Scoped to this overlay only via the
+   backdropClassName prop so other ScaleBlurOverlay consumers are unaffected. The
+   shared backdrop already handles the dimming/opacity transition. */
+.modalBackdrop {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}

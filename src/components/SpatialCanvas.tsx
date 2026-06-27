@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
+import { useScenePlayingBarColors } from '../hooks/useScenePlayingBarColors';
 
 export type RadarRingVariant = 1 | 2 | 3 | 4;
 import {
@@ -20,9 +21,10 @@ type Props = {
   selectedId: string | null;
   onSelect: (instanceId: string) => void;
   onRemove: (instanceId: string, iconRect: DOMRect) => void;
-  onOpenDetail: (instanceId: string) => void;
+  onOpenDetail: (instanceId: string, originRect: DOMRect | null) => void;
   onMove: (instanceId: string, position: SpatialPoint) => void;
   onSettle: (instanceId: string, position: SpatialPoint) => void;
+  onDragBegin?: () => void;
   dropHighlight?: boolean;
   returningId?: string | null;
   regionArt: RegionArtContext;
@@ -36,6 +38,15 @@ type DragState = {
   target: SpatialPoint;
 };
 
+type PendingDragState = {
+  instanceId: string;
+  pointerId: number;
+  startX: number;
+  startY: number;
+};
+
+const DRAG_THRESHOLD_PX = 8;
+
 export function SpatialCanvas({
   canvasRef: externalCanvasRef,
   activeSounds,
@@ -46,6 +57,7 @@ export function SpatialCanvas({
   onOpenDetail,
   onMove,
   onSettle,
+  onDragBegin,
   dropHighlight = false,
   returningId = null,
   regionArt,
@@ -56,15 +68,16 @@ export function SpatialCanvas({
   const canvasRef = externalCanvasRef ?? internalCanvasRef;
   const physicsRef = useRef<Map<string, IconPhysics>>(new Map());
   const dragRef = useRef<DragState | null>(null);
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  const dragMovedRef = useRef(false);
+  const pendingDragRef = useRef<PendingDragState | null>(null);
   const onMoveRef = useRef(onMove);
   const onSettleRef = useRef(onSettle);
+  const onDragBeginRef = useRef(onDragBegin);
   const activeSoundsRef = useRef(activeSounds);
   const reducedMotionRef = useRef(false);
   const movingRef = useRef<Map<string, boolean>>(new Map());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [renderStates, setRenderStates] = useState<Map<string, IconPhysics>>(new Map());
+  const playingBarColors = useScenePlayingBarColors(activeSounds, regionArt);
 
   useEffect(() => {
     onMoveRef.current = onMove;
@@ -73,6 +86,10 @@ export function SpatialCanvas({
   useEffect(() => {
     onSettleRef.current = onSettle;
   }, [onSettle]);
+
+  useEffect(() => {
+    onDragBeginRef.current = onDragBegin;
+  }, [onDragBegin]);
 
   useEffect(() => {
     activeSoundsRef.current = activeSounds;
@@ -133,7 +150,7 @@ export function SpatialCanvas({
         const isDragging = drag?.instanceId === item.instanceId;
         const target = isDragging ? drag.target : null;
 
-        const next =
+        const stepped =
           dt === 0
             ? current
             : reducedMotion
@@ -146,6 +163,8 @@ export function SpatialCanvas({
                   sway: 0,
                 }
               : stepPhysics(current, target, dt);
+
+        const next = isDragging ? stepped : { ...stepped, sway: 0 };
 
         physicsRef.current.set(item.instanceId, next);
 
@@ -188,33 +207,68 @@ export function SpatialCanvas({
     setRenderStates(new Map(physicsRef.current));
   }, []);
 
+  const resetIconMotion = useCallback((instanceId: string) => {
+    const current = physicsRef.current.get(instanceId);
+    if (!current) return;
+    physicsRef.current.set(instanceId, {
+      ...current,
+      vx: 0,
+      vy: 0,
+      sway: 0,
+    });
+    setRenderStates(new Map(physicsRef.current));
+  }, []);
+
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
+      const pending = pendingDragRef.current;
+      if (pending && event.pointerId === pending.pointerId) {
+        const dx = event.clientX - pending.startX;
+        const dy = event.clientY - pending.startY;
+        if (Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) {
+          const canvas = canvasRef.current;
+          if (canvas) {
+            dragRef.current = {
+              instanceId: pending.instanceId,
+              pointerId: pending.pointerId,
+              target: canvasToNormalized(
+                event.clientX,
+                event.clientY,
+                canvas.getBoundingClientRect(),
+              ),
+            };
+            setDraggingId(pending.instanceId);
+            onDragBeginRef.current?.();
+            setRenderStates(new Map(physicsRef.current));
+          }
+          pendingDragRef.current = null;
+        }
+        return;
+      }
+
       const drag = dragRef.current;
       if (!drag || event.pointerId !== drag.pointerId) return;
-
-      if (dragStartRef.current) {
-        const dx = event.clientX - dragStartRef.current.x;
-        const dy = event.clientY - dragStartRef.current.y;
-        if (Math.hypot(dx, dy) > 8) {
-          dragMovedRef.current = true;
-        }
-      }
 
       updateDragTarget(event.clientX, event.clientY);
     };
 
     const onPointerUp = (event: PointerEvent) => {
+      const pending = pendingDragRef.current;
+      if (pending && event.pointerId === pending.pointerId) {
+        resetIconMotion(pending.instanceId);
+        const canvas = canvasRef.current;
+        const icon = canvas?.querySelector<HTMLElement>(
+          `[data-instance-id="${pending.instanceId}"] [data-sound-icon]`,
+        );
+        onOpenDetail(pending.instanceId, icon?.getBoundingClientRect() ?? null);
+        pendingDragRef.current = null;
+        return;
+      }
+
       const drag = dragRef.current;
       if (!drag || event.pointerId !== drag.pointerId) return;
 
-      if (!dragMovedRef.current) {
-        onOpenDetail(drag.instanceId);
-      }
-
       dragRef.current = null;
-      dragStartRef.current = null;
-      dragMovedRef.current = false;
       setDraggingId(null);
     };
 
@@ -224,33 +278,23 @@ export function SpatialCanvas({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [onOpenDetail, updateDragTarget]);
+  }, [onOpenDetail, resetIconMotion, updateDragTarget]);
 
   const handlePointerDown = useCallback(
     (instanceId: string, event: React.PointerEvent<HTMLButtonElement>) => {
       event.preventDefault();
       onSelect(instanceId);
 
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const target = canvasToNormalized(
-        event.clientX,
-        event.clientY,
-        canvas.getBoundingClientRect(),
-      );
-
-      dragRef.current = {
+      pendingDragRef.current = {
         instanceId,
         pointerId: event.pointerId,
-        target,
+        startX: event.clientX,
+        startY: event.clientY,
       };
-      dragStartRef.current = { x: event.clientX, y: event.clientY };
-      dragMovedRef.current = false;
-      setDraggingId(instanceId);
+      dragRef.current = null;
+      setDraggingId(null);
 
       event.currentTarget.setPointerCapture(event.pointerId);
-      setRenderStates(new Map(physicsRef.current));
     },
     [onSelect],
   );
@@ -263,16 +307,22 @@ export function SpatialCanvas({
         ? styles.radarRingsPulsate
         : ringVariant === 4
           ? styles.radarRingsRipple
-          : styles.radarRingsStatic;
+          : '';
+
+  const canvasStyle = isPlaying ? (playingBarColors as CSSProperties | undefined) : undefined;
 
   return (
     <div className={styles.wrapper}>
       <div
         ref={canvasRef}
-        className={`${styles.canvas} ${dropHighlight ? styles.canvasDropTarget : ''}`}
+        className={`${styles.canvas} ${isPlaying ? styles.canvasPlaying : ''} ${dropHighlight ? styles.canvasDropTarget : ''}`}
+        style={canvasStyle}
         aria-label="Spatial sound grid"
       >
-        <div className={styles.grid} aria-hidden />
+        <div
+          className={`${styles.playingBarShader} ${isPlaying ? styles.playingBarShaderActive : ''}`}
+          aria-hidden
+        />
         <div className={`${styles.radarRings} ${ringClass}`} aria-hidden>
           <div className={styles.radarRing} />
           <div className={styles.radarRing} />

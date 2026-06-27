@@ -1,5 +1,6 @@
 import { artworkAttributions } from '../data/iconArt';
 import { attributions } from '../data/attributions';
+import { locationArtAttributions } from '../data/locationArtAttributions';
 import type { ArtworkAttribution, Attribution } from '../data/types';
 import styles from './Attributions.module.css';
 
@@ -76,6 +77,11 @@ export function Attributions({ embedded = false }: Props) {
         items={artworkAttributions}
         headingId="artwork-attributions"
         title="Illustrations"
+      />
+      <AttributionList
+        items={locationArtAttributions}
+        headingId="location-art-attributions"
+        title="Location art"
       />
     </section>
   );

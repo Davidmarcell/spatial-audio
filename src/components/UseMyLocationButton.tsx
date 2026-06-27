@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { WorldLocation } from '../data/worldLocations';
-import { findNearestRegion } from '../utils/geo';
+import { resolveGeolocationSoundscape } from '../utils/resolveGeolocationSoundscape';
+import { UiIcon } from './UiIcon';
 import styles from './UseMyLocationButton.module.css';
 
+export type GeoMatchResult = {
+  environmentId: string;
+  regionId: string;
+  lat: number;
+  lng: number;
+  name: string;
+  subtitle: string;
+};
+
 type Props = {
-  locations: readonly WorldLocation[];
-  onMatch: (environmentId: string, regionId: string) => void;
+  onMatch: (result: GeoMatchResult) => void;
 };
 
 type ButtonPhase = 'idle' | 'loading' | 'error';
+
+const GEO_TIMEOUT_MS = 12_000;
+const GEO_WATCHDOG_MS = GEO_TIMEOUT_MS + 1_500;
 
 function geolocationErrorMessage(code: number): string {
   switch (code) {
@@ -23,26 +34,11 @@ function geolocationErrorMessage(code: number): string {
   }
 }
 
-function LocationTargetIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={styles.icon}>
-      <circle cx="12" cy="12" r="7.25" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="12" cy="12" r="2.75" fill="none" stroke="currentColor" strokeWidth="1.75" />
-      <path
-        d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-export function UseMyLocationButton({ locations, onMatch }: Props) {
+export function UseMyLocationButton({ onMatch }: Props) {
   const [phase, setPhase] = useState<ButtonPhase>('idle');
   const [errorLabel, setErrorLabel] = useState<string | null>(null);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef(0);
 
   const clearResetTimer = useCallback(() => {
     if (resetTimerRef.current) {
@@ -76,34 +72,50 @@ export function UseMyLocationButton({ locations, onMatch }: Props) {
       return;
     }
 
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     setPhase('loading');
+
+    const watchdog = window.setTimeout(() => {
+      if (requestIdRef.current !== requestId) return;
+      setPhase('error');
+      setErrorLabel('Timed out');
+      scheduleIdleReset(4000);
+    }, GEO_WATCHDOG_MS);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const coords = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        const nearest = findNearestRegion(coords, locations);
-        if (!nearest) {
-          setPhase('error');
-          setErrorLabel('No regions');
-          scheduleIdleReset(4000);
-          return;
-        }
+        if (requestIdRef.current !== requestId) return;
+        window.clearTimeout(watchdog);
 
-        onMatch(nearest.environmentId, nearest.regionId);
-        setPhase('idle');
-        setErrorLabel(null);
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        void (async () => {
+          try {
+            const match = await resolveGeolocationSoundscape(lat, lng);
+            if (requestIdRef.current !== requestId) return;
+            onMatch(match);
+            setPhase('idle');
+            setErrorLabel(null);
+          } catch {
+            if (requestIdRef.current !== requestId) return;
+            setPhase('error');
+            setErrorLabel('Location failed');
+            scheduleIdleReset(4000);
+          }
+        })();
       },
       (error) => {
+        if (requestIdRef.current !== requestId) return;
+        window.clearTimeout(watchdog);
         setPhase('error');
         setErrorLabel(geolocationErrorMessage(error.code));
         scheduleIdleReset(4000);
       },
-      { enableHighAccuracy: false, timeout: 12_000, maximumAge: 60_000 },
+      { enableHighAccuracy: false, timeout: GEO_TIMEOUT_MS, maximumAge: 60_000 },
     );
-  }, [clearResetTimer, locations, onMatch, scheduleIdleReset]);
+  }, [clearResetTimer, onMatch, scheduleIdleReset]);
 
   const isLoading = phase === 'loading';
   const isError = phase === 'error';
@@ -126,7 +138,7 @@ export function UseMyLocationButton({ locations, onMatch }: Props) {
       aria-label={ariaLabel}
       data-tooltip="Use my location"
     >
-      <LocationTargetIcon />
+      <UiIcon icon="location-crosshairs" />
       <span className={styles.label}>{ariaLabel}</span>
     </button>
   );

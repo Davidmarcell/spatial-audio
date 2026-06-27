@@ -1,0 +1,168 @@
+.cluster {
+  --control-size: 3rem;
+  --volume-gap: 0.6rem;
+  --pair-duration: 480ms;
+  /* Single shared easing curve that drives BOTH the play pill and the master
+     volume so they translate as one locked pair, open and close. */
+  --pair-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  display: inline-flex;
+  align-items: center;
+}
+
+.playSlot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  isolation: isolate;
+  transform: translateX(0);
+  transition: transform var(--pair-duration) var(--pair-ease);
+}
+
+/* Recentre the wider pill + round volume block on the viewport while expanded. */
+.playSlot[data-phase='opening'],
+.playSlot[data-phase='expanded'] {
+  transform: translateX(var(--pair-recenter, 0px));
+}
+
+.playPill {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-shrink: 0;
+  transform: translateX(0);
+}
+
+.playSlot[data-phase='opening'] .playPill {
+  animation: playPairShift var(--pair-duration) var(--pair-ease) both;
+}
+
+.playSlot[data-phase='expanded'] .playPill {
+  transform: translateX(calc(-1 * var(--pair-offset, 0px)));
+}
+
+.playSlot[data-phase='closing'] .playPill {
+  animation: playPairShift var(--pair-duration) var(--pair-ease) reverse both;
+}
+
+.volumeRail {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--control-size);
+  height: var(--control-size);
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  backface-visibility: hidden;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+}
+
+.volumeRail[data-phase='opening'] {
+  animation: volumePairGlass var(--pair-duration) var(--pair-ease) both;
+  pointer-events: auto;
+}
+
+.volumeRail[data-phase='expanded'] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(calc(-50% + var(--pair-offset, 0px)), -50%);
+}
+
+.volumeRail[data-phase='closing'] {
+  animation: volumePairGlass var(--pair-duration) var(--pair-ease) reverse both;
+  pointer-events: none;
+}
+
+/* Pill and volume share the exact same two-stop translate, the same duration and
+   the same --pair-ease. They travel an equal distance about the centre in
+   opposite directions, so they move as one locked pair with no per-element
+   overshoot or scale to break the lockstep. */
+@keyframes playPairShift {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(calc(-1 * var(--pair-offset, 0px)));
+  }
+}
+
+@keyframes volumePairGlass {
+  0% {
+    /* Fully present from frame one — the wider play pill (z-index 2) masks it at
+       centre, so it emerges from behind the pill in lockstep, no fade-in lag. */
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--pair-offset, 0px)), -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playSlot {
+    transition: none;
+  }
+
+  .playSlot[data-phase='expanded'] .playPill {
+    transform: translateX(calc(-1 * var(--pair-offset, 0px)));
+  }
+
+  .playSlot[data-phase='opening'] .playPill,
+  .playSlot[data-phase='closing'] .playPill {
+    animation: none;
+  }
+
+  .volumeRail {
+    left: calc(100% + var(--volume-gap));
+    transform: translateY(-50%) scale(1);
+    transition: opacity var(--pair-duration) ease;
+  }
+
+  .volumeRail[data-phase='expanded'],
+  .volumeRail[data-phase='opening'] {
+    opacity: 1;
+    animation: none;
+    transform: translateY(-50%) scale(1);
+  }
+
+  .volumeRail[data-phase='closing'] {
+    opacity: 0;
+    animation: none;
+  }
+}
+
+.cluster[data-reduced-motion] .playSlot {
+  transition: none;
+}
+
+.cluster[data-reduced-motion] .playSlot[data-phase='expanded'] .playPill {
+  transform: translateX(calc(-1 * var(--pair-offset, 0px)));
+}
+
+.cluster[data-reduced-motion] .playSlot[data-phase='opening'] .playPill,
+.cluster[data-reduced-motion] .playSlot[data-phase='closing'] .playPill {
+  animation: none;
+}
+
+.cluster[data-reduced-motion] .volumeRail {
+  left: calc(100% + var(--volume-gap));
+  top: 50%;
+  transform: translateY(-50%) scale(1);
+  transition: opacity var(--pair-duration) ease;
+}
+
+.cluster[data-reduced-motion] .volumeRail[data-phase='expanded'],
+.cluster[data-reduced-motion] .volumeRail[data-phase='opening'] {
+  opacity: 1;
+  animation: none;
+}
+
+.cluster[data-reduced-motion] .volumeRail[data-phase='closing'] {
+  opacity: 0;
+  animation: none;
+}

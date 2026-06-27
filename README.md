@@ -1,4 +1,4 @@
-# Spatial Audio
+# Saudade
 
 **Compose ambient soundscapes in 2D space — drag sounds around a listener, hear distance and stereo pan update in real time.**
 
@@ -48,7 +48,7 @@ Suggested captures: main canvas with a few sounds placed, globe sheet open, soun
 
 ## Quick start
 
-**Double-click** `Open Spatial Audio.command` in the project folder — it builds (if needed), serves at **http://127.0.0.1:4173**, and opens your browser.
+**Double-click** `Open Saudade.command` in the project folder — it builds (if needed), serves at **http://127.0.0.1:4173**, and opens your browser.
 
 Or from the terminal:
 
@@ -57,6 +57,12 @@ npm install
 npm run download:audio   # first time only, if audio isn't bundled yet
 npm run dev              # Vite dev server with hot reload → http://127.0.0.1:5173
 ```
+
+### Development
+
+Keep **one** terminal running `npm run dev` (or `npm run dev:stable`) while you work. Use the URL printed in that terminal — always **http://127.0.0.1:5173**. After agent edits, hard refresh with **Cmd+Shift+R** (Ctrl+Shift+R on Windows/Linux).
+
+**Connection refused?** The dev server is not running. Start it yourself in a persistent terminal — agent-started servers stop when the agent session ends.
 
 Production preview:
 
@@ -71,6 +77,7 @@ npm start                # build + serve + open browser at http://127.0.0.1:4173
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Vite dev server with hot reload (port 5173) |
+| `npm run dev:stable` | Same as dev, pinned to http://127.0.0.1:5173 (`--strictPort`) |
 | `npm start` | Production build, serve at http://127.0.0.1:4173, open browser |
 | `npm run build` | Production build to `dist/` |
 | `npm run serve` | Serve existing build (run `npm run build` first) |

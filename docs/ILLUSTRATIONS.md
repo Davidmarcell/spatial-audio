@@ -1,6 +1,6 @@
 # Illustration sourcing
 
-Spatial Audio uses **historical illustrations and watercolours** for sound tiles—not wildlife photographs. That keeps tiles readable at small sizes, avoids mixed photo styles, and matches the public-domain collections we already use for ambience (Met Open Access drawings).
+Saudade uses **historical illustrations and watercolours** for sound tiles—not wildlife photographs. That keeps tiles readable at small sizes, avoids mixed photo styles, and matches the public-domain collections we already use for ambience (Met Open Access drawings).
 
 ## Preferred sources (in order)
 

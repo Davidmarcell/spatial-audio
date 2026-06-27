@@ -12,26 +12,115 @@
 
 .canvas {
   position: relative;
+  z-index: 0;
   flex: 1;
   width: 100%;
   min-height: 0;
   overflow: visible;
   container-type: size;
-  background: #fff;
-  transition: box-shadow 0.2s ease;
+  background: var(--canvas-bg);
+  transition:
+    box-shadow 0.2s ease,
+    background-color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.canvasPlaying {
+  overflow: hidden;
 }
 
 .canvasDropTarget {
-  box-shadow: inset 0 0 0 2px rgba(17, 17, 17, 0.16);
+  box-shadow: inset 0 0 0 2px var(--drop-highlight);
 }
 
-.grid {
+.playingBarShader {
+  --radiance-colour-1: var(--playing-bar-colour-1-override, var(--playing-bar-warm));
+  --radiance-colour-2: var(--playing-bar-colour-2-override, var(--playing-bar-accent));
+  --radiance-edge-size: calc(52% + var(--playing-bar-edge-rise, 0.39) * 48%);
+  --radiance-edge-height: calc(36% + var(--playing-bar-edge-rise, 0.39) * 58%);
+
   position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
-  background-size: 24px 24px;
+  left: 0;
+  right: 0;
+  /* Overscan a few px below the container edge so the breathing scale/blur can
+     never expose a hairline of background beneath the band. */
+  bottom: calc(var(--playing-bar-vertical-offset, 0) * -18vh - 3px);
+  height: calc(min(var(--playing-bar-shader-max-vh, 82vh), 100%) + 3px);
   pointer-events: none;
-  opacity: 0.5;
+  z-index: 1;
+  opacity: 0;
+  transform-origin: center bottom;
+  transition: opacity 0.55s var(--ease-ios);
+  /*
+   * Bar-shaders wave gradient: Oklab colour blend along an angled axis, with corner
+   * edge rise and a soft vertical mask so the band can breathe without hard edges.
+   */
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 var(--playing-bar-mask-fade-start, 35%),
+    rgba(0, 0, 0, 0.62) 68%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 var(--playing-bar-mask-fade-start, 35%),
+    rgba(0, 0, 0, 0.62) 68%,
+    transparent 100%
+  );
+  background:
+    radial-gradient(
+      ellipse var(--radiance-edge-size) var(--radiance-edge-height) at 0% 100%,
+      color-mix(in oklab, var(--radiance-colour-1) 92%, transparent) 0%,
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse var(--radiance-edge-size) var(--radiance-edge-height) at 100% 100%,
+      color-mix(in oklab, var(--radiance-colour-2) 92%, transparent) 0%,
+      transparent 64%
+    ),
+    linear-gradient(
+      calc(var(--playing-bar-gradient-angle, 191) * 1deg),
+      color-mix(in oklab, var(--radiance-colour-1) 90%, transparent)
+        var(--playing-bar-gradient-stop-start, 23%),
+      color-mix(in oklab, var(--radiance-colour-2) 94%, transparent)
+        var(--playing-bar-gradient-stop-end, 73%)
+    );
+  background-size:
+    100% 100%,
+    100% 100%,
+    calc(100% / var(--playing-bar-gradient-scale, 0.64)) 115%;
+  background-position:
+    0% 100%,
+    100% 100%,
+    calc(50% + (var(--playing-bar-gradient-offset, 0.58) - 0.5) * 72%) 100%;
+  background-repeat: no-repeat;
+}
+
+.playingBarShaderActive {
+  opacity: var(--playing-bar-wave-opacity, 1);
+}
+
+:root[data-playing-bar-breathe='1'] .playingBarShaderActive {
+  animation: playingBarRadianceBreath var(--playing-bar-breath-duration, 9.5s) ease-in-out infinite;
+}
+
+@keyframes playingBarRadianceBreath {
+  0%,
+  100% {
+    transform: scaleY(1) translateY(0);
+    filter: blur(0);
+  }
+
+  38% {
+    transform: scaleY(1.22);
+    filter: blur(0.4px);
+  }
+
+  62% {
+    transform: scaleY(1.08);
+    filter: blur(0.15px);
+  }
 }
 
 .radarRings {
@@ -47,7 +136,7 @@
   top: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 1px dashed rgba(0, 0, 0, 0.07);
+  border: 1px dashed var(--radar-ring);
   background: transparent;
 }
 
@@ -183,7 +272,7 @@
   height: 0.75rem;
   border-radius: 999px;
   background: var(--accent);
-  box-shadow: 0 0 14px rgba(76, 175, 120, 0.55);
+  box-shadow: 0 0 14px var(--listener-glow);
   flex-shrink: 0;
 }
 
@@ -199,6 +288,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .playingBarShaderActive {
+    animation: none;
+  }
+
   .radarRingsPlaying .radarRing,
   .radarRingsBreath .radarRing,
   .radarRingsPulsate .radarRing,

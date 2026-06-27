@@ -1,4 +1,4 @@
-import { getRegion } from '../data/environments';
+import { getRegion, getRegionSoundCatalog } from '../data/environments';
 import type { ActiveSound, SpatialPoint } from '../data/types';
 import type { WorldLocation } from '../data/worldLocations';
 
@@ -102,7 +102,7 @@ function decodeWire(wire: SceneWire): SharedScene | null {
   const region = getRegion(wire.e, wire.r);
   if (!region) return null;
 
-  const validSoundIds = new Set(region.sounds.map((sound) => sound.id));
+  const validSoundIds = new Set(getRegionSoundCatalog(region.sounds).map((sound) => sound.id));
   const sounds = wire.s
     .filter((row) => Array.isArray(row) && row.length >= 4 && validSoundIds.has(row[0]))
     .map(([soundId, x, y, volume]) => ({
@@ -216,7 +216,7 @@ export function sceneFromAppState(input: {
   const region = getRegion(input.environmentId, input.regionId);
   if (!region) return null;
 
-  const validSoundIds = new Set(region.sounds.map((sound) => sound.id));
+  const validSoundIds = new Set(getRegionSoundCatalog(region.sounds).map((sound) => sound.id));
   const sounds = input.activeSounds
     .filter((item) => validSoundIds.has(item.soundId))
     .map((item) => ({

@@ -9,6 +9,8 @@ export type IconPoolEntry = {
   license: string;
   sourceUrl: string;
   detailSrc?: string;
+  /** Region/climate flavour tags biasing location-aware tile selection. */
+  tags?: string[];
 };
 
 export const fixedIcons: Record<string, string> = {
@@ -21,18 +23,38 @@ export const fixedIcons: Record<string, string> = {
   "fantail": "/icons/fantail.jpg",
   "gull": "/icons/gull.jpg",
   "howler": "/icons/howler.jpg",
-  "insects": "/icons/insects.jpg"
+  "insects": "/icons/insects.jpg",
+  "quetzal": "/icons/quetzal.jpg",
+  "forest-stream": "/icons/forest-stream.jpg"
 };
 
 export const iconPools: Record<string, IconPoolEntry[]> = {
   "surf": [
+    {
+      "src": "/icons/bricher-surf.jpg",
+      "title": "Crashing Waves",
+      "author": "Alfred Thompson Bricher",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Crashing_Waves-Alfred_T_Bricher.jpg",
+      "tags": [
+        "temperate",
+        "coastal",
+        "americas"
+      ]
+    },
     {
       "src": "/icons/met/11908.jpg",
       "title": "Good Harbor Beach, Cape Ann, Massachusetts",
       "author": "William Trost Richards",
       "medium": "Graphite on tan wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11908"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11908",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/ap1977.380.jpg",
+      "tags": [
+        "temperate",
+        "coastal",
+        "americas"
+      ]
     },
     {
       "src": "/icons/met/17053.jpg",
@@ -40,7 +62,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Winslow Homer",
       "medium": "Watercolor and gouache over graphite",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/17053"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/17053",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/DT5026.jpg",
+      "tags": [
+        "temperate",
+        "coastal",
+        "americas"
+      ]
     },
     {
       "src": "/icons/met/339153.jpg",
@@ -48,7 +76,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Anton Mauve",
       "medium": "Black chalk, watercolor, and white bodycolor",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/339153"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/339153",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP800942.jpg",
+      "tags": [
+        "cold",
+        "coastal",
+        "european"
+      ]
     },
     {
       "src": "/icons/met/334086.jpg",
@@ -56,7 +90,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Eugène Boudin",
       "medium": "Graphite and watercolor",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/334086"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/334086",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP805486.jpg",
+      "tags": [
+        "temperate",
+        "coastal",
+        "european"
+      ]
     },
     {
       "src": "/icons/met/460052.jpg",
@@ -64,25 +104,43 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Eugène Boudin",
       "medium": "Pastel on gray wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/460052"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/460052",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/rl/original/sf-rlc-1975-1-573.JPG",
+      "tags": [
+        "temperate",
+        "coastal",
+        "european"
+      ]
     },
     {
-      "src": "/icons/met/15519.jpg",
-      "title": "Bay, Hill, and Figure on Shore (from Sketchbook X)",
-      "author": "William Trost Richards",
-      "medium": "Graphite on off-white wove paper",
+      "src": "/icons/met/11138.jpg",
+      "title": "Shore and Surf, Nassau",
+      "author": "Winslow Homer",
+      "medium": "Watercolor and graphite on off-white wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/15519"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11138",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/DP-21450-001.jpg",
+      "tags": [
+        "tropical",
+        "coastal",
+        "americas",
+        "caribbean"
+      ]
     }
   ],
   "wind": [
     {
-      "src": "/icons/met/824771.jpg",
-      "title": "Marie Antoinette in a Park",
-      "author": "Anonymous (French)",
-      "medium": "Black chalk, stumped, and white chalk",
-      "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/824771"
+      "src": "/icons/wind-trees.jpg",
+      "title": "Wind-Fallen Trees",
+      "author": "Ivan Shishkin",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ivan_Shishkin_-_Wind-Fallen_Trees.JPG",
+      "tags": [
+        "cold",
+        "temperate",
+        "european",
+        "forest"
+      ]
     },
     {
       "src": "/icons/met/11306.jpg",
@@ -90,15 +148,28 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "John Frederick Kensett",
       "medium": "Graphite on smooth textured off-white wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/APS1047.jpg",
+      "tags": [
+        "temperate",
+        "americas",
+        "forest"
+      ]
     },
     {
-      "src": "/icons/met/11124.jpg",
-      "title": "Hurricane, Bahamas",
+      "src": "/icons/met/11131.jpg",
+      "title": "Palm Tree, Nassau",
       "author": "Winslow Homer",
       "medium": "Watercolor and graphite on off-white wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11124"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11131",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/DP-21448-001.jpg",
+      "tags": [
+        "tropical",
+        "coastal",
+        "americas",
+        "caribbean"
+      ]
     }
   ],
   "forest": [
@@ -108,7 +179,14 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Johann Hermann Carmiencke",
       "medium": "Graphite and watercolor on buff-colored wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/10378"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/10378",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/ap1978.86.jpg",
+      "tags": [
+        "temperate",
+        "european",
+        "forest",
+        "woodland"
+      ]
     },
     {
       "src": "/icons/met/11306.jpg",
@@ -116,7 +194,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "John Frederick Kensett",
       "medium": "Graphite on smooth textured off-white wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11306",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/APS1047.jpg",
+      "tags": [
+        "temperate",
+        "americas",
+        "forest"
+      ]
     },
     {
       "src": "/icons/met/15775.jpg",
@@ -124,25 +208,57 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Albert Bierstadt",
       "medium": "Graphite on wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/260802.jpg",
+      "tags": [
+        "temperate",
+        "americas",
+        "forest"
+      ]
+    },
+    {
+      "src": "/icons/met/371022.jpg",
+      "title": "Tropical Coastal Landscape",
+      "author": "Frans Post",
+      "medium": "Watercolor",
+      "license": "CC0 (The Metropolitan Museum of Art)",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/371022",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP872958.jpg",
+      "tags": [
+        "tropical",
+        "americas",
+        "forest",
+        "coastal"
+      ]
     }
   ],
   "rain": [
+    {
+      "src": "/icons/hiroshige-rain.jpg",
+      "title": "A bridge in the rain",
+      "author": "Utagawa Hiroshige",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hiroshige,_A_bridge_in_the_rain.jpg",
+      "tags": [
+        "asian",
+        "temperate",
+        "urban"
+      ]
+    },
     {
       "src": "/icons/met/11124.jpg",
       "title": "Hurricane, Bahamas",
       "author": "Winslow Homer",
       "medium": "Watercolor and graphite on off-white wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11124"
-    },
-    {
-      "src": "/icons/met/13115.jpg",
-      "title": "New York from the Heights near Brooklyn",
-      "author": "William Guy Wall",
-      "medium": "Watercolor and graphite on white wove paper",
-      "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/13115"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/11124",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/DP-17779-001.jpg",
+      "tags": [
+        "tropical",
+        "coastal",
+        "americas",
+        "caribbean"
+      ]
     },
     {
       "src": "/icons/met/489985.jpg",
@@ -150,33 +266,124 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Vasily Kandinsky",
       "medium": "Watercolor over graphite on paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/489985"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/489985",
+      "tags": [
+        "european",
+        "temperate"
+      ]
+    },
+    {
+      "src": "/icons/met/55433.jpg",
+      "title": "Sudden Shower over Shin-Ōhashi Bridge and Atake",
+      "author": "Utagawa Hiroshige",
+      "medium": "Woodblock print; ink and color on paper",
+      "license": "CC0 (The Metropolitan Museum of Art)",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/55433",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/as/original/DP130156.jpg",
+      "tags": [
+        "asian",
+        "temperate",
+        "urban"
+      ]
     }
   ],
   "stream": [
+    {
+      "src": "/icons/waldbach.jpg",
+      "title": "Waldbach (Forest stream)",
+      "author": "Eduard Leonhardi (1894)",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Eduard_Leonhardi_-_Waldbach_(1894).jpg",
+      "tags": [
+        "temperate",
+        "european",
+        "forest",
+        "woodland"
+      ]
+    },
+    {
+      "src": "/icons/met/12586.jpg",
+      "title": "Trees and Stream",
+      "author": "Walter Shirlaw",
+      "medium": "Graphite and watercolor on off-white laid paper",
+      "license": "CC0 (The Metropolitan Museum of Art)",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/12586",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/ap67.28.1.jpg",
+      "tags": [
+        "temperate",
+        "americas",
+        "forest"
+      ]
+    },
+    {
+      "src": "/icons/met/12307.jpg",
+      "title": "Stream and Rocks",
+      "author": "John Singer Sargent",
+      "medium": "Watercolor, gouache, and graphite on white wove paper",
+      "license": "CC0 (The Metropolitan Museum of Art)",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/12307",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/DT235918.jpg",
+      "tags": [
+        "temperate",
+        "alpine",
+        "mountain"
+      ]
+    },
+    {
+      "src": "/icons/met/10770.jpg",
+      "title": "River Scene (from McGuire Scrapbook)",
+      "author": "Thomas Doughty",
+      "medium": "Graphite on off-white wove paper",
+      "license": "CC0 (The Metropolitan Museum of Art)",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/10770",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/ap26.216.13.jpg",
+      "tags": [
+        "temperate",
+        "americas"
+      ]
+    },
+    {
+      "src": "/icons/met/12392.jpg",
+      "title": "Mountains and Stream, Faido",
+      "author": "John Singer Sargent",
+      "medium": "Watercolor and graphite on off-white wove paper",
+      "license": "CC0 (The Metropolitan Museum of Art)",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/12392",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/ap50.130.82c verso.jpg",
+      "tags": [
+        "alpine",
+        "mountain",
+        "temperate",
+        "european"
+      ]
+    },
     {
       "src": "/icons/met/15775.jpg",
       "title": "Two Sketches: River Bank with Trees; Figure in a Canoe",
       "author": "Albert Bierstadt",
       "medium": "Graphite on wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/260802.jpg",
+      "tags": [
+        "temperate",
+        "americas",
+        "forest"
+      ]
     },
     {
-      "src": "/icons/met/17053.jpg",
-      "title": "Boys in a Dory",
-      "author": "Winslow Homer",
-      "medium": "Watercolor and gouache over graphite",
+      "src": "/icons/met/286187.jpg",
+      "title": "Tropical Scenery, Cascade, Limon River",
+      "author": "John Moran",
+      "medium": "Albumen silver print from glass negative",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/17053"
-    },
-    {
-      "src": "/icons/met/15519.jpg",
-      "title": "Bay, Hill, and Figure on Shore (from Sketchbook X)",
-      "author": "William Trost Richards",
-      "medium": "Graphite on off-white wove paper",
-      "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/15519"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/286187",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ph/original/DP146671.jpg",
+      "tags": [
+        "tropical",
+        "americas",
+        "forest"
+      ]
     }
   ],
   "quetzal": [
@@ -186,15 +393,40 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Count Giorgio Durante (Duranti)",
       "medium": "Watercolor over graphite",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/338617"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/338617",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP809437.jpg",
+      "tags": [
+        "tropical",
+        "americas"
+      ]
+    }
+  ],
+  "owl": [
+    {
+      "src": "/icons/met/751141.jpg",
+      "title": "Monedula, Chouëtte (The Owl), from \"Livre d'Oyseaux\" (Book of Birds)",
+      "author": "Albert Flamen",
+      "medium": "Etching",
+      "license": "CC0 (The Metropolitan Museum of Art)",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/751141",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP857003.jpg",
+      "tags": [
+        "temperate",
+        "european",
+        "woodland"
+      ]
     },
     {
-      "src": "/icons/met/363843.jpg",
-      "title": "Eclectus Roratus Polychloros",
-      "author": "Edward Lear",
-      "medium": "Watercolor and gouache over graphite",
+      "src": "/icons/met/393450.jpg",
+      "title": "Snowy Owl",
+      "author": "Henry Emerson Tuttle",
+      "medium": "Drypoint",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/363843"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/393450",
+      "tags": [
+        "cold",
+        "arctic"
+      ]
     }
   ],
   "toucan": [
@@ -211,7 +443,12 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Edward Lear",
       "medium": "Watercolor and gouache over graphite",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/363843"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/363843",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP821097.jpg",
+      "tags": [
+        "tropical",
+        "asian"
+      ]
     }
   ],
   "nyc-traffic": [
@@ -221,7 +458,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Thomas Benecke",
       "medium": "Color lithograph with hand-coloring",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/339882"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/339882",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/49I_136R5.jpg",
+      "tags": [
+        "cold",
+        "urban",
+        "americas"
+      ]
     },
     {
       "src": "/icons/met/388212.jpg",
@@ -229,7 +472,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Anonymous, American, 19th century",
       "medium": "Watercolor and ink",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/388212"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/388212",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP820284.jpg",
+      "tags": [
+        "urban",
+        "americas",
+        "temperate"
+      ]
     },
     {
       "src": "/icons/met/266296.jpg",
@@ -237,7 +486,11 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Sid Grossman",
       "medium": "Gelatin silver print",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/266296"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/266296",
+      "tags": [
+        "urban",
+        "americas"
+      ]
     }
   ],
   "nyc-breeze": [
@@ -247,7 +500,14 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "William Guy Wall",
       "medium": "Watercolor and graphite on white wove paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/13115"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/13115",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/DT5423.jpg",
+      "tags": [
+        "urban",
+        "americas",
+        "temperate",
+        "coastal"
+      ]
     },
     {
       "src": "/icons/met/488326.jpg",
@@ -255,7 +515,12 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "John Marin",
       "medium": "Watercolor and charcoal on paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/488326"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/488326",
+      "tags": [
+        "urban",
+        "americas",
+        "temperate"
+      ]
     },
     {
       "src": "/icons/met/853645.jpg",
@@ -263,7 +528,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "author": "Fidelia Bridges",
       "medium": "Watercolor and gouache on tan hot-pressed paper",
       "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/853645"
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/853645",
+      "detailSrc": "https://images.metmuseum.org/CRDImages/ad/original/DP-25621-001.jpg",
+      "tags": [
+        "urban",
+        "americas",
+        "temperate"
+      ]
     }
   ],
   "nyc-park": [
@@ -274,7 +545,13 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "medium": "Lithograph, printed in colors",
       "license": "CC0 (The Metropolitan Museum of Art)",
       "sourceUrl": "https://www.metmuseum.org/art/collection/search/371952",
-      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/MM22125.jpg"
+      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/MM22125.jpg",
+      "tags": [
+        "urban",
+        "americas",
+        "temperate",
+        "garden"
+      ]
     }
   ]
 };
@@ -286,6 +563,7 @@ export const soundPoolMap: Record<string, string> = {
   "forest-ambience": "forest",
   "rain": "rain",
   "stream": "stream",
+  "forest-stream": "stream",
   "quetzal": "quetzal",
   "toucan": "toucan"
 };
@@ -302,26 +580,37 @@ export const artworkAttributions: ArtworkAttribution[] = [
   { file: '/icons/toucan.jpg', title: 'Le Tocan (Toucan)', author: 'Jacques Barraband (Histoire naturelle des perroquets)', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Barraband_No3_Le_Tocan.jpg' },
   { file: '/icons/howler.jpg', title: 'Red howler monkey (Mycetes seniculus)', author: 'Iconographia Zoologica (University of Amsterdam, 1863)', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Mycetes_seniculus_-_1863_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ20200132.tif' },
   { file: '/icons/insects.jpg', title: 'Metamorphosis of a Small Emperor Moth on a Damson Plum (plate 13)', author: 'Maria Sibylla Merian (Getty Museum)', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Metamorphosis_of_a_Small_Emperor_Moth_on_a_Damson_Plum,_plate_13_of_the_Caterpillar_Book,_by_Maria_Sibylla_Merian_(Getty_109Q5N).jpg' },
+  { file: '/icons/quetzal.jpg', title: 'Resplendent Trogon (Resplendent Quetzal, Pharomachrus mocinno)', author: 'Birds and nature (1905), A. W. Mumford — Biodiversity Heritage Library', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Birds_and_nature_(1905)_(14564781960).jpg' },
+  { file: '/icons/forest-stream.jpg', title: 'A Forest Stream', author: 'Peder Mørk Mønsted (1905)', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:A_Forest_Stream_by_Peder_Mork_Monsted.jpg' },
+  { file: '/icons/waldbach.jpg', title: 'Waldbach (Forest stream)', author: 'Eduard Leonhardi (1894)', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Eduard_Leonhardi_-_Waldbach_(1894).jpg' },
+  { file: '/icons/hiroshige-rain.jpg', title: 'A bridge in the rain', author: 'Utagawa Hiroshige', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Hiroshige,_A_bridge_in_the_rain.jpg' },
+  { file: '/icons/bricher-surf.jpg', title: 'Crashing Waves', author: 'Alfred Thompson Bricher', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Crashing_Waves-Alfred_T_Bricher.jpg' },
+  { file: '/icons/wind-trees.jpg', title: 'Wind-Fallen Trees', author: 'Ivan Shishkin', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ivan_Shishkin_-_Wind-Fallen_Trees.JPG' },
   { file: '/icons/met/11908.jpg', title: 'Good Harbor Beach, Cape Ann, Massachusetts', author: 'William Trost Richards — Graphite on tan wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11908' },
   { file: '/icons/met/17053.jpg', title: 'Boys in a Dory', author: 'Winslow Homer — Watercolor and gouache over graphite', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/17053' },
   { file: '/icons/met/339153.jpg', title: 'Fishing Boats on the Beach in Winter', author: 'Anton Mauve — Black chalk, watercolor, and white bodycolor', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/339153' },
   { file: '/icons/met/334086.jpg', title: 'On the Beach', author: 'Eugène Boudin — Graphite and watercolor', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/334086' },
   { file: '/icons/met/460052.jpg', title: 'Beach Scene', author: 'Eugène Boudin — Pastel on gray wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/460052' },
-  { file: '/icons/met/15519.jpg', title: 'Bay, Hill, and Figure on Shore (from Sketchbook X)', author: 'William Trost Richards — Graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/15519' },
-  { file: '/icons/met/824771.jpg', title: 'Marie Antoinette in a Park', author: 'Anonymous (French) — Black chalk, stumped, and white chalk', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/824771' },
+  { file: '/icons/met/11138.jpg', title: 'Shore and Surf, Nassau', author: 'Winslow Homer — Watercolor and graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11138' },
   { file: '/icons/met/11306.jpg', title: 'Birch Tree, Niagara', author: 'John Frederick Kensett — Graphite on smooth textured off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11306' },
   { file: '/icons/met/11124.jpg', title: 'Hurricane, Bahamas', author: 'Winslow Homer — Watercolor and graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11124' },
+  { file: '/icons/met/11131.jpg', title: 'Palm Tree, Nassau', author: 'Winslow Homer — Watercolor and graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11131' },
   { file: '/icons/met/10378.jpg', title: 'Forest Scene', author: 'Johann Hermann Carmiencke — Graphite and watercolor on buff-colored wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/10378' },
   { file: '/icons/met/11306.jpg', title: 'Birch Tree, Niagara', author: 'John Frederick Kensett — Graphite on smooth textured off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11306' },
   { file: '/icons/met/15775.jpg', title: 'Two Sketches: River Bank with Trees; Figure in a Canoe', author: 'Albert Bierstadt — Graphite on wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/15775' },
+  { file: '/icons/met/371022.jpg', title: 'Tropical Coastal Landscape', author: 'Frans Post — Watercolor', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/371022' },
   { file: '/icons/met/11124.jpg', title: 'Hurricane, Bahamas', author: 'Winslow Homer — Watercolor and graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11124' },
-  { file: '/icons/met/13115.jpg', title: 'New York from the Heights near Brooklyn', author: 'William Guy Wall — Watercolor and graphite on white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/13115' },
   { file: '/icons/met/489985.jpg', title: 'Rain Landscape', author: 'Vasily Kandinsky — Watercolor over graphite on paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/489985' },
+  { file: '/icons/met/55433.jpg', title: 'Sudden Shower over Shin-Ōhashi Bridge and Atake', author: 'Utagawa Hiroshige — Woodblock print; ink and color on paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/55433' },
+  { file: '/icons/met/12586.jpg', title: 'Trees and Stream', author: 'Walter Shirlaw — Graphite and watercolor on off-white laid paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/12586' },
+  { file: '/icons/met/12307.jpg', title: 'Stream and Rocks', author: 'John Singer Sargent — Watercolor, gouache, and graphite on white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/12307' },
+  { file: '/icons/met/10770.jpg', title: 'River Scene (from McGuire Scrapbook)', author: 'Thomas Doughty — Graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/10770' },
+  { file: '/icons/met/12392.jpg', title: 'Mountains and Stream, Faido', author: 'John Singer Sargent — Watercolor and graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/12392' },
   { file: '/icons/met/15775.jpg', title: 'Two Sketches: River Bank with Trees; Figure in a Canoe', author: 'Albert Bierstadt — Graphite on wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/15775' },
-  { file: '/icons/met/17053.jpg', title: 'Boys in a Dory', author: 'Winslow Homer — Watercolor and gouache over graphite', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/17053' },
-  { file: '/icons/met/15519.jpg', title: 'Bay, Hill, and Figure on Shore (from Sketchbook X)', author: 'William Trost Richards — Graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/15519' },
+  { file: '/icons/met/286187.jpg', title: 'Tropical Scenery, Cascade, Limon River', author: 'John Moran — Albumen silver print from glass negative', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/286187' },
   { file: '/icons/met/338617.jpg', title: 'Long-Tailed Bird Seen in Profile', author: 'Count Giorgio Durante (Duranti) — Watercolor over graphite', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/338617' },
-  { file: '/icons/met/363843.jpg', title: 'Eclectus Roratus Polychloros', author: 'Edward Lear — Watercolor and gouache over graphite', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/363843' },
+  { file: '/icons/met/751141.jpg', title: 'Monedula, Chouëtte (The Owl), from "Livre d\'Oyseaux" (Book of Birds)', author: 'Albert Flamen — Etching', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/751141' },
+  { file: '/icons/met/393450.jpg', title: 'Snowy Owl', author: 'Henry Emerson Tuttle — Drypoint', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/393450' },
   { file: '/icons/met/363843.jpg', title: 'Eclectus Roratus Polychloros', author: 'Edward Lear — Watercolor and gouache over graphite', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/363843' },
   { file: '/icons/met/339882.jpg', title: 'Sleighing in New York', author: 'Thomas Benecke — Color lithograph with hand-coloring', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/339882' },
   { file: '/icons/met/388212.jpg', title: 'Broadway Circus and Olympic Theatre, Broadway between Howard and Grand Streets, New York', author: 'Anonymous, American, 19th century — Watercolor and ink', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/388212' },
@@ -329,7 +618,5 @@ export const artworkAttributions: ArtworkAttribution[] = [
   { file: '/icons/met/13115.jpg', title: 'New York from the Heights near Brooklyn', author: 'William Guy Wall — Watercolor and graphite on white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/13115' },
   { file: '/icons/met/488326.jpg', title: 'Brooklyn Bridge', author: 'John Marin — Watercolor and charcoal on paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/488326' },
   { file: '/icons/met/853645.jpg', title: 'Rooftops, Brooklyn', author: 'Fidelia Bridges — Watercolor and gouache on tan hot-pressed paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/853645' },
-  { file: '/icons/met/19239.jpg', title: 'Central Park', author: 'Robert Henri — Watercolor on paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/19239' },
   { file: '/icons/met/371952.jpg', title: 'Central Park (Summer)', author: 'Julius Bien — Lithograph, printed in colors', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/371952' },
-  { file: '/icons/met/11804.jpg', title: 'Central Park', author: 'Maurice Brazil Prendergast — Oil on canvas', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11804' },
 ];

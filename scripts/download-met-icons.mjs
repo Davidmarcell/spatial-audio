@@ -16,7 +16,7 @@ const manifestPath = path.join(__dirname, 'icon-manifest.json');
 const iconsDir = path.join(root, 'public/icons');
 const metDir = path.join(iconsDir, 'met');
 const outPath = path.join(root, 'src/data/iconPools.generated.ts');
-const UA = 'SpatialAudio/1.0 (educational; spatial-audio)';
+const UA = 'Saudade/1.0 (educational; saudade)';
 const NYPL_LICENSE =
   'Public domain (NYPL: no known U.S. copyright restrictions). Credit: From The New York Public Library.';
 const NYPL_IIIF = 'https://iiif-prod.nypl.org/index.php';
@@ -116,6 +116,8 @@ function poolEntry(src, item, license, detailSrc) {
     sourceUrl: item.sourceUrl,
   };
   if (detailSrc) entry.detailSrc = detailSrc;
+  // Region/climate flavour tags bias location-aware tile selection (see iconArt.ts).
+  if (Array.isArray(item.tags) && item.tags.length > 0) entry.tags = item.tags;
   return entry;
 }
 
@@ -229,6 +231,8 @@ async function main() {
     '  license: string;',
     '  sourceUrl: string;',
     '  detailSrc?: string;',
+    '  /** Region/climate flavour tags biasing location-aware tile selection. */',
+    '  tags?: string[];',
     '};',
     '',
     `export const fixedIcons: Record<string, string> = ${JSON.stringify(fixedIcons, null, 2)};`,

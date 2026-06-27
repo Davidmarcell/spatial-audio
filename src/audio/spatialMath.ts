@@ -24,9 +24,14 @@ export function scaleFromDistance(distance: number): number {
   return PROXIMITY_SCALE_MAX - eased * (PROXIMITY_SCALE_MAX - PROXIMITY_SCALE_MIN);
 }
 
-/** Higher when closer so near sounds sit visually on top. */
+/** Canvas tile depth band — must stay below UI chrome (z-index >= 20). */
+const CANVAS_TILE_Z_MIN = 2;
+const CANVAS_TILE_Z_MAX = 11;
+
+/** Higher when closer so near sounds sit visually on top of other tiles. */
 export function depthZIndex(distance: number): number {
-  return Math.round(10 + (1 - Math.min(1, distance / PROXIMITY_SCALE_RANGE)) * 90);
+  const t = 1 - Math.min(1, distance / PROXIMITY_SCALE_RANGE);
+  return Math.round(CANVAS_TILE_Z_MIN + t * (CANVAS_TILE_Z_MAX - CANVAS_TILE_Z_MIN));
 }
 
 export function gainFromDistance(distance: number, baseGain = MAX_GAIN): number {

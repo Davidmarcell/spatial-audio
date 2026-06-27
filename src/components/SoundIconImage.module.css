@@ -3,8 +3,15 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #fff;
+  background: var(--surface-solid);
+  /* Inherit the tile's radius so the image corners stay concentric with the
+     tile frame regardless of which tile (canvas / dock / flying) renders it. */
   border-radius: inherit;
+  /* Promote to its own paint layer so the scaled <img> is clipped to the
+     rounded corners. Transformed descendants can otherwise escape
+     overflow:hidden + border-radius, leaving square corners poking past the
+     tile frame. */
+  transform: translateZ(0);
 }
 
 .canvas,
@@ -30,11 +37,14 @@
 
 .detail {
   border-radius: 0;
-  min-height: 280px;
+  min-height: 0;
+  max-height: 100%;
 }
 
 .detail .image {
   image-rendering: auto;
+  object-fit: cover;
+  transform: none;
 }
 
 .image {
@@ -46,4 +56,7 @@
   pointer-events: none;
   user-select: none;
   transform-origin: center center;
+  /* Match the frame/tile radius so the image corners are concentric with the
+     tile, not just relying on the parent's clip. */
+  border-radius: inherit;
 }

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { defaultSpawnPosition } from '../audio/spatialMath';
 import { createDefaultActiveSounds } from '../data/environments';
 import type { ActiveSound, BedSound, SoundDef, SpatialPoint } from '../data/types';
+import { defaultSpawnVolumeForSound } from '../utils/defaultSoundVolume';
 
 function createInstanceId(soundId: string) {
   return `${soundId}-${crypto.randomUUID()}`;
@@ -39,7 +40,15 @@ export function useSpatialSources() {
       const ringTotal = Math.max(current.length + 1, 6);
       const spawn = position ?? defaultSpawnPosition(current.length, ringTotal);
       setSelectedId(instanceId);
-      return [...current, { instanceId, soundId: sound.id, position: spawn, volume: 1 }];
+      return [
+        ...current,
+        {
+          instanceId,
+          soundId: sound.id,
+          position: spawn,
+          volume: defaultSpawnVolumeForSound(sound),
+        },
+      ];
     });
   }, []);
 

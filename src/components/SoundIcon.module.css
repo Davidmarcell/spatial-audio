@@ -5,7 +5,7 @@
   align-items: center;
   gap: 0;
   transform: translate(-50%, -50%);
-  z-index: 2;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -14,7 +14,10 @@
   transform-origin: center center;
   will-change: transform;
   pointer-events: auto;
-  transition: transform 0.12s ease-out;
+}
+
+.iconBodyDragging {
+  transition: none;
 }
 
 .icon {
@@ -22,9 +25,9 @@
   width: 5.25rem;
   height: 5.25rem;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--glass-border-strong);
   border-radius: 1rem;
-  background: #fff;
+  background: var(--surface-solid);
   display: block;
   cursor: grab;
   touch-action: none;
@@ -44,9 +47,7 @@
     box-shadow: var(--shadow-sm);
   }
   50% {
-    box-shadow:
-      0 6px 22px rgba(0, 0, 0, 0.08),
-      0 0 0 1px rgba(17, 17, 17, 0.06);
+    box-shadow: var(--shadow-md);
   }
 }
 
@@ -54,9 +55,20 @@
   animation: none;
 }
 
-.iconBody:hover .icon,
-.selected .icon {
+.iconBody:hover .icon {
   transform: scale(1.06) translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/*
+ * Selected (e.g. tapped to open detail) magnifies in place — no translateY so
+ * the tile never appears to jump upward when tapped, especially on touch where
+ * there is no prior hover state. Higher specificity than :hover so sticky hover
+ * after the scale transition cannot re-apply translateY(-2px).
+ */
+.selected .icon,
+.selected .iconBody:hover .icon {
+  transform: scale(1.06);
   box-shadow: var(--shadow-md);
 }
 
@@ -73,15 +85,7 @@
 .dragging .iconBody:hover .icon {
   transform: scale(1.02);
   cursor: grabbing;
-  box-shadow:
-    0 12px 36px rgba(0, 0, 0, 0.14),
-    0 0 0 2px rgba(17, 17, 17, 0.25);
-}
-
-.selected .icon {
-  box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.1),
-    0 0 0 2px rgba(17, 17, 17, 0.35);
+  box-shadow: var(--shadow-md);
 }
 
 .hoverOverlay {
@@ -107,8 +111,9 @@
   -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid var(--border);
   color: var(--text);
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: var(--shadow-sm);
   transform: scale(0.82);
   transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
@@ -146,7 +151,7 @@
   background: transparent;
   opacity: 0;
   cursor: pointer;
-  z-index: 2;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -160,11 +165,6 @@
 
 .actionHitRight {
   right: 0.18rem;
-}
-
-.actionSvg {
-  width: 0.78rem;
-  height: 0.78rem;
 }
 
 .label {

@@ -7,54 +7,74 @@ import {
   useRef,
   useState,
 } from 'react';
-import { getSoundIconSrc, type RegionArtContext } from '../data/iconArt';
+import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import type { SoundDef } from '../data/types';
 import { dockMagnification } from '../utils/dockMagnification';
+import { getSoundTooltipLines } from '../utils/soundTooltip';
 import { DockMagnetTooltip, type DockTooltipAnchor } from './DockMagnetTooltip';
 import {
   DOCK_BASE_SIZE,
-  getAvailableSounds,
   getDockSlotCenter,
+  getDockSounds,
 } from './soundPaletteLayout';
+import { AddSoundButton } from './AddSoundButton';
 import { SoundIconImage } from './SoundIconImage';
 import styles from './SoundPalette.module.css';
 
 const MAX_SIZE = 82;
-const INFLUENCE = 145;
+const INFLUENCE = 60;
+const HOVER_MAX_SIZE = DOCK_BASE_SIZE + (MAX_SIZE - DOCK_BASE_SIZE) * 0.25;
+const ADD_BUTTON_ID = '__dock-add-sound__';
 
 export type SoundPaletteHandle = {
-  getSlotCenter: (soundId: string, activeSoundIds: string[]) => { x: number; y: number } | null;
+  getSlotCenter: (
+    soundId: string,
+    activeSoundIds: string[],
+    dockDefaultIds?: string[],
+  ) => { x: number; y: number } | null;
 };
 
 type Props = {
   sounds: SoundDef[];
+  dockDefaultIds: string[];
   activeSoundIds: string[];
   draggingSoundId: string | null;
   draggingActive: boolean;
   regionArt: RegionArtContext;
   onDragStart: (sound: SoundDef, event: React.PointerEvent<HTMLButtonElement>) => void;
+  onAddClick: (originRect: DOMRect) => void;
 };
 
 export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function SoundPalette(
-  { sounds, activeSoundIds, draggingSoundId, draggingActive, regionArt, onDragStart },
+  {
+    sounds,
+    dockDefaultIds,
+    activeSoundIds,
+    draggingSoundId,
+    draggingActive,
+    regionArt,
+    onDragStart,
+    onAddClick,
+  },
   ref,
 ) {
   const dockRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const addButtonRef = useRef<HTMLButtonElement | null>(null);
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
   const [scales, setScales] = useState<Map<string, number>>(new Map());
   const [horizontal, setHorizontal] = useState(false);
   const [tooltipAnchor, setTooltipAnchor] = useState<DockTooltipAnchor | null>(null);
 
-  const availableSounds = useMemo(
-    () => getAvailableSounds(sounds, activeSoundIds),
-    [sounds, activeSoundIds],
+  const dockSounds = useMemo(
+    () => getDockSounds(sounds, activeSoundIds, dockDefaultIds),
+    [sounds, activeSoundIds, dockDefaultIds],
   );
 
   useImperativeHandle(
     ref,
     () => ({
-      getSlotCenter(soundId, nextActiveIds) {
+      getSlotCenter(soundId, nextActiveIds, dockDefaultIdsOverride) {
         const dock = dockRef.current;
         if (!dock) return null;
         const measured = itemRefs.current.get(soundId);
@@ -62,10 +82,16 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
           const rect = measured.getBoundingClientRect();
           return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
         }
-        return getDockSlotCenter(dock.getBoundingClientRect(), soundId, sounds, nextActiveIds);
+        return getDockSlotCenter(
+          dock.getBoundingClientRect(),
+          soundId,
+          sounds,
+          nextActiveIds,
+          dockDefaultIdsOverride ?? dockDefaultIds,
+        );
       },
     }),
-    [sounds],
+    [sounds, dockDefaultIds],
   );
 
   useEffect(() => {
@@ -79,30 +105,38 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
   const updateScales = useCallback(
     (point: { x: number; y: number } | null) => {
       const next = new Map<string, number>();
-      for (const sound of availableSounds) {
+      for (const sound of dockSounds) {
         const el = itemRefs.current.get(sound.id);
         if (!el || point === null) {
           next.set(sound.id, DOCK_BASE_SIZE);
           continue;
         }
-        const wrap = el.parentElement;
-        const rect = wrap?.getBoundingClientRect() ?? el.getBoundingClientRect();
-        const centerX = rect.left + DOCK_BASE_SIZE / 2;
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        const distance = horizontal
-          ? Math.abs(point.x - centerX)
-          : Math.abs(point.y - centerY);
-        const size = dockMagnification(distance, DOCK_BASE_SIZE, MAX_SIZE, INFLUENCE);
+        const distance = Math.hypot(point.x - centerX, point.y - centerY);
+        const size = dockMagnification(distance, DOCK_BASE_SIZE, HOVER_MAX_SIZE, INFLUENCE);
         next.set(sound.id, size);
+      }
+      const addButtonEl = addButtonRef.current;
+      if (!addButtonEl || point === null) {
+        next.set(ADD_BUTTON_ID, DOCK_BASE_SIZE);
+      } else {
+        const rect = addButtonEl.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const distance = Math.hypot(point.x - centerX, point.y - centerY);
+        const size = dockMagnification(distance, DOCK_BASE_SIZE, HOVER_MAX_SIZE, INFLUENCE);
+        next.set(ADD_BUTTON_ID, size);
       }
       setScales(next);
     },
-    [availableSounds, horizontal],
+    [dockSounds],
   );
 
   useEffect(() => {
     updateScales(cursor);
-  }, [cursor, availableSounds, updateScales]);
+  }, [cursor, dockSounds, updateScales]);
 
   useEffect(() => {
     if (!draggingSoundId) return;
@@ -115,7 +149,8 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
     (sound: SoundDef, el: HTMLButtonElement) => {
       const rect = el.getBoundingClientRect();
       setTooltipAnchor({
-        sound,
+        id: sound.id,
+        title: getSoundTooltipLines(sound).title,
         centerX: rect.left + rect.width / 2,
         centerY: rect.top + rect.height / 2,
         iconTop: rect.top,
@@ -129,13 +164,31 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
   );
 
   useEffect(() => {
-    const soundId = tooltipAnchor?.sound.id;
-    if (!soundId) return;
-    const el = itemRefs.current.get(soundId);
-    const sound = availableSounds.find((item) => item.id === soundId);
-    if (!el || !sound) return;
+    const anchorId = tooltipAnchor?.id;
+    if (!anchorId) return;
+    if (anchorId === ADD_BUTTON_ID) {
+      const el = addButtonRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setTooltipAnchor({
+        id: ADD_BUTTON_ID,
+        title: 'Add sound',
+        centerX: rect.left + rect.width / 2,
+        centerY: rect.top + rect.height / 2,
+        iconTop: rect.top,
+        iconHeight: rect.height,
+        iconLeft: rect.left,
+        iconWidth: rect.width,
+        horizontal,
+      });
+      return;
+    }
+    const sound = dockSounds.find((item) => item.id === anchorId);
+    if (!sound) return;
+    const el = itemRefs.current.get(sound.id);
+    if (!el) return;
     syncTooltipAnchor(sound, el);
-  }, [scales, tooltipAnchor?.sound.id, availableSounds, syncTooltipAnchor]);
+  }, [scales, tooltipAnchor?.id, dockSounds, horizontal, syncTooltipAnchor]);
 
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
@@ -181,10 +234,17 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
         }`}
       >
         <ul className={styles.list}>
-          {availableSounds.map((sound) => {
+          {dockSounds.map((sound) => {
             const isDragging = draggingSoundId === sound.id;
             const size = scales.get(sound.id) ?? DOCK_BASE_SIZE;
             const hoverScale = size / DOCK_BASE_SIZE;
+            const artwork = getSoundArtworkForRegion(
+              regionArt.id,
+              regionArt.soundIds,
+              sound.id,
+              undefined,
+              regionArt.tags,
+            );
 
             const wrapClass = isDragging
               ? draggingActive
@@ -215,7 +275,9 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
                     aria-label={`Drag ${sound.name} onto the grid`}
                   >
                     <SoundIconImage
-                      src={getSoundIconSrc(sound.id, undefined, regionArt)}
+                      src={artwork.src}
+                      sourceUrl={artwork.sourceUrl}
+                      detailSrc={artwork.detailSrc}
                       alt=""
                       soundId={sound.id}
                       size="palette"
@@ -225,6 +287,44 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
               </li>
             );
           })}
+          <li className={styles.addWrap}>
+            <AddSoundButton
+              ref={addButtonRef}
+              onClick={onAddClick}
+              size={DOCK_BASE_SIZE}
+              scale={(scales.get(ADD_BUTTON_ID) ?? DOCK_BASE_SIZE) / DOCK_BASE_SIZE}
+              onPointerEnter={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setTooltipAnchor({
+                  id: ADD_BUTTON_ID,
+                  title: 'Add sound',
+                  centerX: rect.left + rect.width / 2,
+                  centerY: rect.top + rect.height / 2,
+                  iconTop: rect.top,
+                  iconHeight: rect.height,
+                  iconLeft: rect.left,
+                  iconWidth: rect.width,
+                  horizontal,
+                });
+              }}
+              onPointerLeave={() => setTooltipAnchor(null)}
+              onFocus={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setTooltipAnchor({
+                  id: ADD_BUTTON_ID,
+                  title: 'Add sound',
+                  centerX: rect.left + rect.width / 2,
+                  centerY: rect.top + rect.height / 2,
+                  iconTop: rect.top,
+                  iconHeight: rect.height,
+                  iconLeft: rect.left,
+                  iconWidth: rect.width,
+                  horizontal,
+                });
+              }}
+              onBlur={() => setTooltipAnchor(null)}
+            />
+          </li>
         </ul>
       </div>
       <DockMagnetTooltip anchor={tooltipAnchor} />

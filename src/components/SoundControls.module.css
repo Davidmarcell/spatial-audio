@@ -1,7 +1,7 @@
 .panel {
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface-elevated);
   backdrop-filter: blur(8px);
   padding: 0.85rem 1rem;
   box-shadow: var(--shadow-sm);
@@ -24,8 +24,6 @@
   margin: 0.1rem 0 0;
   font-size: 0.72rem;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .value {

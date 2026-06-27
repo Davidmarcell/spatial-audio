@@ -55,6 +55,21 @@ npm run nypl:search -- "species name audubon"
 
 Each sound id can have a **fixed** illustration (manifest `wikimedia` entries) or draw from a **Met pool** (`iconArt.ts` → `soundPoolMap`). Within a region, the app assigns **unique** images so two sounds never share the same tile.
 
+## Location hero art
+
+Per-location hero/globe thumbnails live in `src/data/locationArt.ts` (separate from the sound-tile pipeline). New Zealand locations use **Auckland War Memorial Museum** open-access images.
+
+| Source | Used for | License |
+|--------|----------|---------|
+| [Auckland Museum Collections Online](https://www.aucklandmuseum.com/collections-research/collections/search?ooc=True) | NZ location hero art (Auckland, North Island forest) | Open / No known copyright restrictions (Auckland Museum CC BY) — attribute the Museum |
+| [Wikimedia Commons](https://commons.wikimedia.org/) | Dolomites location hero art | Public domain (artist died 1921) |
+
+- **Auckland** — *Auckland Domain where the cricket ground is*, Kennett Watkins, c. 1890, watercolour ([record 997763](https://www.aucklandmuseum.com/discover/collections/record/997763), PD-1996-1-3)
+- **North Island forest** — *Silver Tree Fern (Cyathia dealbata), Karori Forest*, William Swainson, 1840–1850, pencil ([record 995546](https://www.aucklandmuseum.com/discover/collections/record/995546), PD-1961-9-31)
+- **Dolomites** — *Der Cimon della Pala in den Dolomiten*, Edward Theodore Compton, 1896, watercolour/gouache ([Wikimedia Commons file](https://commons.wikimedia.org/wiki/File:Edward_Theodore_Compton_Der_Cimon_della_Pala_in_den_Dolomiten_1896.jpg)). Public domain — the artist (1849–1921) has been dead more than 100 years. Source `public/icons/dolomites.jpg` (1200 px hero) + `public/icons/globe/dolomites.jpg` (180 px thumbnail), both produced with `sips`.
+
+Only images marked **Open** with *No known copyright restrictions* (or *© Auckland Museum CC BY*) on the record page are reusable; confirm per record and credit lines go in `src/data/locationArtAttributions.ts` (shown on the in-app **Attributions** page). Reuse terms: [Using our images](https://www.aucklandmuseum.com/discover/collections/using-our-images). Hero ≈ 480–700 px JPEG in `public/icons/`; globe thumbnail ≈ 180 px in `public/icons/globe/` (generated with `sips`).
+
 ## Globe map
 
 - **Renderer** — [globe.gl](https://github.com/vasturiano/globe.gl) / Three.js

@@ -1,13 +1,30 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 .content {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--scale-blur-swap-duration) var(--ease-ios),
+    transform var(--scale-blur-swap-duration) var(--ease-ios);
 }
 
-.panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  height: 100%;
-  overflow: hidden;
+.contentOut {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.contentIn {
+  opacity: 1;
+  transform: translateY(0);
 }

@@ -1,0 +1,213 @@
+/* Frosted glass — flat semi-transparent fill, backdrop blur, soft shadow. No internal shine. */
+
+.base {
+  position: relative;
+  border: 1px solid var(--glass-border);
+  background-color: var(--glass-fill);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  cursor: pointer;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--glass-shadow);
+  transition:
+    transform 0.18s var(--ease-ios),
+    background-color var(--theme-transition-duration) var(--theme-transition-ease),
+    border-color var(--theme-transition-duration) var(--theme-transition-ease),
+    box-shadow var(--theme-transition-duration) var(--theme-transition-ease),
+    color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.base:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  background-color: var(--glass-fill-active);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .base:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.02);
+    background-color: var(--glass-fill-hover);
+    box-shadow: var(--glass-shadow-elevated);
+  }
+}
+
+.base:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.base:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.noShadow,
+.noShadow:hover:not(:disabled),
+.noShadow:active:not(:disabled) {
+  box-shadow: none;
+}
+
+.surface {
+  position: relative;
+  border: 1px solid var(--glass-border);
+  background-color: var(--glass-fill-elevated);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  box-shadow: var(--glass-shadow-elevated);
+  transition:
+    background-color var(--theme-transition-duration) var(--theme-transition-ease),
+    border-color var(--theme-transition-duration) var(--theme-transition-ease),
+    box-shadow var(--theme-transition-duration) var(--theme-transition-ease),
+    color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.panel {
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background-color: var(--glass-panel-bg);
+  backdrop-filter: var(--blur-glass-panel);
+  -webkit-backdrop-filter: var(--blur-glass-panel);
+  box-shadow: var(--glass-panel-shadow);
+  transition:
+    background-color var(--theme-transition-duration) var(--theme-transition-ease),
+    border-color var(--theme-transition-duration) var(--theme-transition-ease),
+    box-shadow var(--theme-transition-duration) var(--theme-transition-ease),
+    color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      180deg,
+      var(--glass-shine-top) 0%,
+      var(--glass-shine-mid) 26%,
+      transparent 60%
+    ),
+    linear-gradient(135deg, var(--glass-shine-angle) 0%, transparent 40%);
+  opacity: calc(var(--glass-shine-opacity) * 0.65);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.icon {
+  composes: base;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  padding: 0;
+  color: var(--text-muted);
+  line-height: 0;
+}
+
+.icon:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.pill {
+  composes: base;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 3rem;
+  min-height: 3rem;
+  padding: 0 1.15rem;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.15;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.pillCompact {
+  composes: base;
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 0.5rem 0.95rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.pillCompact:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.iconSm {
+  composes: base;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  padding: 0;
+  color: var(--text-muted);
+  line-height: 0;
+}
+
+.iconSm:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.closeIcon {
+  /* sizing via UiIcon sm */
+}
+
+.tile {
+  composes: base;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 0.85rem;
+  color: var(--text-muted);
+  box-shadow: var(--glass-shadow-subtle);
+  line-height: 0;
+}
+
+.tile:hover:not(:disabled) {
+  color: var(--text);
+  box-shadow: var(--glass-shadow);
+}
+
+.chip {
+  composes: base;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-weight: 500;
+  box-shadow: var(--glass-shadow-subtle);
+}
+
+.chip:hover:not(:disabled) {
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base {
+    transition: none;
+  }
+}
