@@ -19,6 +19,7 @@ import { PlayCluster } from './components/PlayCluster';
 import { SearchSpotlightAnimationTuner } from './components/SearchSpotlightAnimationTuner';
 import { ShareButton } from './components/ShareButton';
 import { SoundArtDetailSheet, type DetailTarget } from './components/SoundArtDetailSheet';
+import { SoundTileDesignTuner } from './components/SoundTileDesignTuner';
 import {
   CANVAS_TILE_SIZE,
   DOCK_BASE_SIZE,
@@ -1474,6 +1475,7 @@ export default function App() {
         onChange={setLandingEntranceConfig}
         onReplay={handleReplayLandingEntrance}
       />
+      <SoundTileDesignTuner regionArt={regionArt} sampleTarget={detailTarget} />
     </SheetStack.Root>
   );
 }

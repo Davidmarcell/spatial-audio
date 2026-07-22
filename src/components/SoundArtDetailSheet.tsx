@@ -1,8 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { RegionArtContext } from '../data/iconArt';
 import type { OriginRectSnapshot } from '../utils/overlayOriginAnimation';
 import { ScaleBlurOverlay } from './ScaleBlurOverlay';
 import { SoundArtDetailContent, type DetailTarget } from './SoundArtDetail';
+import {
+  loadSoundTileDesign,
+  soundTileDesignToCssVars,
+} from './soundTileDesign';
 import styles from './SoundArtDetailSheet.module.css';
 
 const CONTENT_SWAP_MS = 460;
@@ -73,6 +77,13 @@ export function SoundArtDetailSheet({
     .filter(Boolean)
     .join(' ');
 
+  // Re-read on each open so the DEV SoundTile tuner knobs apply immediately.
+  const panelStyle = useMemo(
+    () => soundTileDesignToCssVars(loadSoundTileDesign()) as CSSProperties,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh when sheet opens
+    [open, target?.instanceId],
+  );
+
   return (
     <ScaleBlurOverlay
       open={open}
@@ -81,8 +92,12 @@ export function SoundArtDetailSheet({
       titleId="art-detail-overlay-title"
       closeLabel={`Close ${name} details`}
       wide
+      hideTitle
       lockBodyScroll
       bodyClassName={styles.body}
+      extraPanelClassName={styles.panel}
+      headerClassName={styles.header}
+      panelStyle={panelStyle}
       originRect={originRect}
       swapKey={target?.instanceId ?? null}
     >
