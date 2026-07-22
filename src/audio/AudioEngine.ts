@@ -152,6 +152,76 @@ export class AudioEngine {
     source.start(0);
   }
 
+  /** Non-spatial looping UI beds (e.g. quiet globe browse ambience). */
+  private uiLoops = new Map<string, { source: AudioBufferSourceNode; gain: GainNode }>();
+
+  async playLoop(
+    id: string,
+    src: string,
+    options?: { volume?: number; fadeInSeconds?: number },
+  ): Promise<void> {
+    await this.unlock();
+    const ctx = this.context!;
+    const master = this.masterGain;
+    if (!master) return;
+
+    this.stopLoop(id);
+
+    const buffer = await this.loadBuffer(src);
+    if (!this.context || !this.masterGain) return;
+
+    const volume = Math.max(0, Math.min(1, options?.volume ?? 0.2));
+    const fadeIn = Math.max(0, options?.fadeInSeconds ?? 0.8);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(gain);
+    gain.connect(master);
+    source.start(0);
+    if (fadeIn > 0) {
+      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + fadeIn);
+    } else {
+      gain.gain.value = volume;
+    }
+    this.uiLoops.set(id, { source, gain });
+  }
+
+  stopLoop(id: string, fadeOutSeconds = 0.45): void {
+    const entry = this.uiLoops.get(id);
+    if (!entry || !this.context) return;
+    this.uiLoops.delete(id);
+    const { source, gain } = entry;
+    const ctx = this.context;
+    const fade = Math.max(0.05, fadeOutSeconds);
+    try {
+      gain.gain.cancelScheduledValues(ctx.currentTime);
+      gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + fade);
+    } catch {
+      // Ignore scheduling races on teardown.
+    }
+    window.setTimeout(() => {
+      try {
+        source.stop();
+      } catch {
+        // Already stopped.
+      }
+      try {
+        source.disconnect();
+      } catch {
+        // Already disconnected.
+      }
+      try {
+        gain.disconnect();
+      } catch {
+        // Already disconnected.
+      }
+    }, fade * 1000 + 30);
+  }
+
   async preloadSounds(sounds: SoundDef[]): Promise<void> {
     await this.preloadVariants(sounds.map((sound) => sound.src));
   }

@@ -8,10 +8,17 @@ import { audioAttributionsFromPools } from './soundPools';
 export const uiAudioAttributions: Attribution[] = [
   {
     file: 'public/audio/ui/enter-whoosh.mp3',
-    title: 'Swooshes, whoosh, short, deep (trimmed)',
+    title: 'Swooshes, whoosh, short, deep (trimmed ~1.35s)',
     author: 'susssounds',
     license: 'CC0 1.0',
     sourceUrl: 'https://freesound.org/people/susssounds/sounds/752068/',
+  },
+  {
+    file: 'public/audio/ui/globe-ambient.mp3',
+    title: 'Wind in tall grass (quiet globe bed)',
+    author: 'Joseph SARDIN / BigSoundBank',
+    license: 'CC0 1.0',
+    sourceUrl: 'https://bigsoundbank.com/wind-in-tall-grass-s0908.html',
   },
 ];
 

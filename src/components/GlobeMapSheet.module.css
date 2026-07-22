@@ -51,7 +51,8 @@
    the landing's curved edge during the transition. */
 .exiting {
   pointer-events: none;
-  animation: globeExitLift 0.86s var(--ease-in-out-strong) both;
+  /* Match SHEET_RISE_DURATION_MS (1300). */
+  animation: globeExitLift 1.3s var(--ease-in-out-strong) both;
 }
 
 @keyframes globeExitLift {
@@ -59,7 +60,7 @@
     transform: translate3d(0, 0, 0) scale(1);
   }
   to {
-    transform: translate3d(0, -34px, 0) scale(0.986);
+    transform: translate3d(0, -18vh, 0) scale(0.96);
   }
 }
 

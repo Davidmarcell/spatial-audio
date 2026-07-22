@@ -9,8 +9,8 @@
  * z-stacked above the outgoing one) share one curve, clock and easing.
  */
 
-/** Rise length. Kept in the ~0.8-1.0s "quick but buttery" band. */
-export const SHEET_RISE_DURATION_MS = 860;
+/** Rise length. Kept in the ~1.2-1.4s band so the enter whoosh can breathe. */
+export const SHEET_RISE_DURATION_MS = 1300;
 /**
  * Short cross-fade once the cover panel has fully risen, so the reveal of the
  * destination beneath it is soft even when its surface differs from the panel's

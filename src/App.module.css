@@ -69,11 +69,18 @@
   transition: opacity 0.2s var(--ease-ios, ease);
 }
 
-.brandHome:hover {
+/* Non-interactive brand mark (globe open / detail sheet): look the same, no
+   pointer affordance, so clicks cannot fall through to go-home. */
+span.brandHome {
+  cursor: default;
+  pointer-events: none;
+}
+
+button.brandHome:hover {
   opacity: 0.62;
 }
 
-.brandHome:focus-visible {
+button.brandHome:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;

@@ -89,10 +89,14 @@ type ReturnFlight = {
   to: { x: number; y: number };
 };
 
-/** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~860ms). */
+/** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~1300ms). */
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
 /** One-shot level relative to master headroom (baseMasterLevel 0.9). */
-const ENTER_WHOOSH_VOLUME = 0.6;
+const ENTER_WHOOSH_VOLUME = 0.55;
+/** Quiet wind bed while browsing the globe from the landing. */
+const GLOBE_AMBIENT_SRC = '/audio/ui/globe-ambient.mp3';
+const GLOBE_AMBIENT_ID = 'ui:globe-ambient';
+const GLOBE_AMBIENT_VOLUME = 0.16;
 
 export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
@@ -203,8 +207,17 @@ export default function App() {
   // not leave an orphaned, never-cleaned-up preview source playing.
   const dragPreviewGenRef = useRef(0);
 
-  const { engine, unlock, play, playOneShot, togglePlay, isPlaying, isUnlocked } =
-    useAudioEngine();
+  const {
+    engine,
+    unlock,
+    play,
+    playOneShot,
+    playLoop,
+    stopLoop,
+    togglePlay,
+    isPlaying,
+    isUnlocked,
+  } = useAudioEngine();
   const {
     activeSounds,
     selectedId,
@@ -341,10 +354,25 @@ export default function App() {
     [engine, play, recipeForSound, unlock],
   );
 
-  // Warm the enter-to-globe whoosh so the first Enter click is not cold-fetch delayed.
+  // Warm enter whoosh + globe ambient so first Enter is not cold-fetch delayed.
   useEffect(() => {
-    void engine.preloadVariants([ENTER_WHOOSH_SRC]);
+    void engine.preloadVariants([ENTER_WHOOSH_SRC, GLOBE_AMBIENT_SRC]);
   }, [engine]);
+
+  // Soft ambient while browsing the world map from the landing. Stop when the
+  // globe closes or a place is picked (hasEntered / browsing ends).
+  useEffect(() => {
+    const shouldPlay = showGlobe && browsingFromLanding && !prefersReducedMotion();
+    if (shouldPlay) {
+      void playLoop(GLOBE_AMBIENT_ID, GLOBE_AMBIENT_SRC, {
+        volume: GLOBE_AMBIENT_VOLUME,
+        fadeInSeconds: 1.1,
+      });
+    } else {
+      stopLoop(GLOBE_AMBIENT_ID);
+    }
+    return () => stopLoop(GLOBE_AMBIENT_ID);
+  }, [browsingFromLanding, playLoop, showGlobe, stopLoop]);
 
   // Lazy-load: only fetch the variants the current scene actually plays, not
   // the whole catalog. Palette additions load on demand inside addSource.
@@ -1141,11 +1169,15 @@ export default function App() {
   }, [activeSounds, customGlobeLocation, environmentId, headerLocationLabel, regionId]);
 
   useEffect(() => {
-    engine.setDuckingGain(showGlobe ? GLOBE_DUCK_GAIN : 1);
+    // Duck in-scene beds when opening the map from a location. Skip ducking
+    // while browsing from the landing: there is no soundscape yet, and the
+    // enter whoosh + globe ambient ride the unducked master bus.
+    const duck = showGlobe && !browsingFromLanding ? GLOBE_DUCK_GAIN : 1;
+    engine.setDuckingGain(duck);
     return () => {
       engine.setDuckingGain(1);
     };
-  }, [engine, showGlobe]);
+  }, [browsingFromLanding, engine, showGlobe]);
 
   useEffect(() => {
     if (showGlobe) {
@@ -1195,7 +1227,12 @@ export default function App() {
               backdrop={false}
               enlarged
               recenterOnExpand
-              riseWithGate={landingEntering}
+              // Hide during globe browse so the landing pill cannot flash for a
+              // frame above the rising sheet; keep it for home-return rise.
+              blocked={showGlobe && !landingEntering}
+              // Track the gate on both exit (Enter -> globe) and enter (home)
+              // so the portalled pill moves with the stacked sheet.
+              riseWithGate={landingEntering || landingExiting}
             />
           }
         />
@@ -1215,14 +1252,24 @@ export default function App() {
       <header className={styles.header}>
         <div className={styles.brand}>
           <h1 className={styles.title}>
-            <button
-              type="button"
-              className={styles.brandHome}
-              onClick={handleGoHome}
-              aria-label="Saudade, go home"
-            >
-              Saudade
-            </button>
+            {/* While the globe is open (or rising/exiting), the brand is display-
+                only: clip-path on the globe otherwise lets clicks fall through
+                to this header and unexpectedly fire go-home. Same while a sound
+                detail sheet is open so tile interactions near the top are safe. */}
+            {showGlobe || globeExiting || detailTarget ? (
+              <span className={styles.brandHome} aria-label="Saudade">
+                Saudade
+              </span>
+            ) : (
+              <button
+                type="button"
+                className={styles.brandHome}
+                onClick={handleGoHome}
+                aria-label="Saudade, go home"
+              >
+                Saudade
+              </button>
+            )}
           </h1>
         </div>
       </header>

@@ -33,7 +33,9 @@
    through the page during the Enter transition. */
 .gate[data-exiting='true'] {
   pointer-events: none;
-  animation: landingExitLift 0.86s var(--ease-in-out-strong) both;
+  /* Match SHEET_RISE_DURATION_MS (1300). Stronger lift so the homepage push
+     reads under the rising globe instead of a tiny -34px nudge. */
+  animation: landingExitLift 1.3s var(--ease-in-out-strong) both;
 }
 
 @keyframes landingExitLift {
@@ -41,7 +43,7 @@
     transform: translate3d(0, 0, 0) scale(1);
   }
   to {
-    transform: translate3d(0, -34px, 0) scale(0.986);
+    transform: translate3d(0, -18vh, 0) scale(0.96);
   }
 }
 
