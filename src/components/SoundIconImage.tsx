@@ -10,7 +10,7 @@ type Props = {
   soundId?: string;
   sourceUrl?: string;
   detailSrc?: string;
-  size?: 'canvas' | 'compact' | 'palette' | 'detail';
+  size?: 'canvas' | 'compact' | 'palette' | 'detail' | 'detailNatural';
   crop?: { scale: number; x?: string; y?: string };
 };
 
@@ -23,15 +23,20 @@ export function SoundIconImage({
   size = 'canvas',
   crop,
 }: Props) {
+  const usesDetailAsset = size === 'detail' || size === 'detailNatural';
   const fallbackChain = useMemo(
     () =>
-      iconSrcFallbackChain({ src, sourceUrl, detailSrc }, size === 'detail' ? 'detail' : 'tile'),
-    [detailSrc, size, sourceUrl, src],
+      iconSrcFallbackChain(
+        { src, sourceUrl, detailSrc },
+        usesDetailAsset ? 'detail' : 'tile',
+      ),
+    [detailSrc, sourceUrl, src, usesDetailAsset],
   );
   const [chainIndex, setChainIndex] = useState(0);
   const imageSrc = fallbackChain[chainIndex] ?? FALLBACK_ICON_SRC;
-  const resolvedCrop = crop ?? getIconCrop(soundId ?? '', src, size);
-  const isDetail = size === 'detail';
+  const resolvedCrop = crop ?? getIconCrop(soundId ?? '', src, size === 'detailNatural' ? 'detail' : size);
+  const isDetail = usesDetailAsset;
+  const isNatural = size === 'detailNatural';
 
   useEffect(() => {
     setChainIndex(0);
@@ -53,7 +58,7 @@ export function SoundIconImage({
           });
         }}
         style={
-          isDetail
+          isDetail || isNatural
             ? undefined
             : {
                 transform: `scale(${resolvedCrop.scale})`,

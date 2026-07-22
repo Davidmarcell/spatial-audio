@@ -49,6 +49,24 @@
   transform: none;
 }
 
+/* Sound-tile card: show the full illustration; height follows aspect ratio. */
+.detailNatural {
+  width: 100%;
+  height: auto;
+  border-radius: inherit;
+  overflow: hidden;
+  background: transparent;
+}
+
+.detailNatural .image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  transform: none;
+  image-rendering: auto;
+}
+
 .image {
   width: 100%;
   height: 100%;

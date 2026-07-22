@@ -50,9 +50,9 @@ export function SoundArtDetailContent({
           src={artwork.src}
           sourceUrl={artwork.sourceUrl}
           detailSrc={artwork.detailSrc}
-          alt={target.name}
+          alt={artwork.title}
           soundId={target.soundId}
-          size="detail"
+          size="detailNatural"
         />
       </div>
 
@@ -62,43 +62,51 @@ export function SoundArtDetailContent({
 
           <dl className={styles.meta}>
             <div className={styles.metaRow}>
-              <dt className={styles.metaLabel}>Illustration</dt>
+              <dt className={styles.metaLabel}>Title</dt>
               <dd className={styles.metaValue}>{artwork.title}</dd>
+            </div>
+            <div className={styles.metaRow}>
+              <dt className={styles.metaLabel}>Artist</dt>
+              <dd className={styles.metaValue}>{artwork.author}</dd>
             </div>
             <div className={styles.metaRow}>
               <dt className={styles.metaLabel}>Source</dt>
               <dd className={styles.metaValue}>
                 <a
+                  className={styles.sourceLink}
                   href={artwork.sourceUrl}
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  {sourceLabel}
+                  <span>{sourceLabel}</span>
+                  <span className={styles.sourceArrow} aria-hidden>
+                    →
+                  </span>
                 </a>
               </dd>
             </div>
           </dl>
-
-          <section className={styles.volumeBlock}>
-            <div className={styles.volumeHeader}>
-              <p className={styles.volumeLabel}>Volume</p>
-              <span className={styles.volumeValue}>{percent}%</span>
-            </div>
-            <input
-              type="range"
-              className={styles.slider}
-              min={0}
-              max={100}
-              step={1}
-              value={percent}
-              aria-label={`${target.name} volume`}
-              onChange={(event) =>
-                onVolumeChange(target.instanceId, Number(event.target.value) / 100)
-              }
-            />
-          </section>
         </div>
       </div>
+
+      <section className={styles.volumeBlock}>
+        <div className={styles.volumeHeader}>
+          <p className={styles.volumeLabel}>Volume</p>
+          <span className={styles.volumeValue}>{percent}%</span>
+        </div>
+        <input
+          type="range"
+          className={styles.slider}
+          min={0}
+          max={100}
+          step={1}
+          value={percent}
+          aria-label={`${target.name} volume`}
+          onChange={(event) =>
+            onVolumeChange(target.instanceId, Number(event.target.value) / 100)
+          }
+        />
+      </section>
     </div>
   );
 }
