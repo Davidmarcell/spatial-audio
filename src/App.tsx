@@ -767,6 +767,7 @@ export default function App() {
       if (!item) return;
       const sound = soundMap.get(item.soundId);
       setDetailOriginRect(snapshotOriginRect(originRect));
+      setLocationSearchOpen(false);
       setDetailTarget({
         instanceId,
         soundId: item.soundId,
@@ -1306,7 +1307,7 @@ export default function App() {
 
       <nav
         ref={bottomBarRef}
-        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe ? styles.bottomBarHidden : ''}`}
+        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe ? styles.bottomBarHidden : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
         aria-label="Main controls"
         onPointerMove={(event) => syncBottomBarTooltip(event.target)}
         onPointerLeave={() => setBottomBarTooltip(null)}
@@ -1341,6 +1342,7 @@ export default function App() {
               onOpenChange={setLocationSearchOpen}
               resetToken={locationSearchResetToken}
               blocked={showGlobe}
+              recessed={detailTarget !== null}
               riseWithBar={sceneRising}
             />
           )}

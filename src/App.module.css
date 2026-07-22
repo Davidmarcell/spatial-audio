@@ -249,6 +249,13 @@
   pointer-events: none;
 }
 
+/* Sound tile open: push the whole bottom chrome behind the overlay so the
+   search pill and action buttons do not sit at the same visual level. */
+.bottomBarRecessed {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
 .bottomBarSearchOpen .bottomBarPlay {
   opacity: 0;
   transform: translateY(6px) scale(0.96);

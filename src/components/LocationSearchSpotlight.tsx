@@ -37,6 +37,12 @@ type Props = {
   ) => void;
   onOpenChange?: (open: boolean) => void;
   blocked?: boolean;
+  /**
+   * Soft-recede the portalled pill under a higher overlay (e.g. sound tile).
+   * Unlike `blocked`, the pill stays mounted for layout continuity, but it is
+   * dimmed, non-interactive, and forced below the overlay scrim.
+   */
+  recessed?: boolean;
   resetToken?: number;
   /**
    * Overrides the collapsed pill's resting label (normally the current region
@@ -363,6 +369,7 @@ export function LocationSearchSpotlight({
   onChange,
   onOpenChange,
   blocked = false,
+  recessed = false,
   resetToken = 0,
   idleLabel,
   expandDirection = 'up',
@@ -536,7 +543,7 @@ export function LocationSearchSpotlight({
   }, []);
 
   const open = useCallback(() => {
-    if (blocked) return;
+    if (blocked || recessed) return;
     setPhase((currentPhase) => {
       if (
         currentPhase === 'closed' ||
@@ -549,12 +556,17 @@ export function LocationSearchSpotlight({
     });
     setQuery('');
     setHighlightIndex(-1);
-  }, [blocked]);
+  }, [blocked, recessed]);
 
   useEffect(() => {
     if (!blocked) return;
     hardResetClosed();
   }, [blocked, hardResetClosed]);
+
+  useEffect(() => {
+    if (!recessed) return;
+    hardResetClosed();
+  }, [hardResetClosed, recessed]);
 
   useEffect(() => {
     hardResetClosed();
@@ -1153,6 +1165,7 @@ export function LocationSearchSpotlight({
             data-size={enlarged ? 'lg' : undefined}
             data-landing-entrance={landingEntranceArmed ? 'in' : undefined}
             data-rising={riseWithGate ? 'true' : undefined}
+            data-recessed={recessed ? 'true' : undefined}
             data-theme={theme}
             style={
               {

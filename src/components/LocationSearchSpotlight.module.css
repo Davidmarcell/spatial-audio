@@ -230,6 +230,16 @@
   z-index: 451;
 }
 
+/* Sound-tile (and similar) overlays sit at z-index 500+. Keep the portalled
+   search pill in the page chrome layer and visually recessed so it cannot
+   compete with the open tile. */
+.panelAnchor[data-recessed='true'] {
+  z-index: 20;
+  opacity: 0.38;
+  pointer-events: none;
+  transition: opacity var(--search-duration-fast, 180ms) var(--ease-ios, ease);
+}
+
 .panelAnchor[data-expand='down'] {
   transform-origin: 50% 0%;
 }
