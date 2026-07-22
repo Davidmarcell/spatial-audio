@@ -80,7 +80,13 @@ export function loadSoundTileDesign(): SoundTileDesignConfig {
 
 export function saveSoundTileDesign(config: SoundTileDesignConfig): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      ...config,
+      panelWidthPx: clampPanelWidthPx(config.panelWidthPx),
+    }),
+  );
 }
 
 export function isSoundTileTunerVisible(): boolean {
