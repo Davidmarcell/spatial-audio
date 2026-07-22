@@ -156,6 +156,7 @@ export function SoundTileDesignTuner({ regionArt, sampleTarget = null }: Props) 
                 }}
                 regionArt={regionArt}
                 designConfig={config}
+                onClose={hidePanel}
               />
             </div>
           </div>

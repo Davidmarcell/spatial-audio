@@ -96,7 +96,7 @@ export function SoundArtDetailSheet({
       lockBodyScroll
       bodyClassName={styles.body}
       extraPanelClassName={styles.panel}
-      headerClassName={styles.header}
+      headerClassName={styles.headerHidden}
       panelStyle={panelStyle}
       originRect={originRect}
       swapKey={target?.instanceId ?? null}
@@ -107,6 +107,7 @@ export function SoundArtDetailSheet({
             target={displayTarget}
             onVolumeChange={onVolumeChange}
             regionArt={regionArt}
+            onClose={() => onOpenChange(false)}
           />
         </div>
       )}

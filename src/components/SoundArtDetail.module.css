@@ -5,12 +5,10 @@
   --sound-tile-image-size: 280px;
   --sound-tile-column-gap: 28px;
 
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, var(--sound-tile-image-size)) minmax(0, 1fr);
-  grid-template-areas:
-    'art info'
-    'volume volume';
-  gap: var(--sound-tile-column-gap) var(--sound-tile-column-gap);
+  gap: var(--sound-tile-column-gap);
   align-items: start;
   flex: 1;
   min-height: 0;
@@ -21,8 +19,39 @@
   color: #121212;
 }
 
+.close {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #333;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.close:hover {
+  color: #111;
+  background: #fff;
+}
+
+.closeIcon {
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
 .artwork {
-  grid-area: art;
   width: 100%;
   max-width: var(--sound-tile-image-size);
   height: auto;
@@ -34,17 +63,18 @@
 }
 
 .infoColumn {
-  grid-area: info;
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: 0.1rem 1.75rem 0 0;
+  /* Room for the absolute close control. */
+  padding: 0.1rem 2rem 0 0;
 }
 
 .scroll {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 0.85rem;
   min-width: 0;
 }
@@ -104,13 +134,13 @@
 }
 
 .volumeBlock {
-  grid-area: volume;
+  margin-top: auto;
   width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  padding-top: 0.15rem;
+  padding-top: 0.35rem;
 }
 
 .volumeHeader {
@@ -135,29 +165,28 @@
 }
 
 .slider {
+  --sound-tile-slider-size: 12px;
   width: 100%;
   max-width: 100%;
   appearance: none;
-  height: 2px;
+  height: var(--sound-tile-slider-size);
   border-radius: 999px;
   background: #ddd8d1;
   outline: none;
   accent-color: #111;
 }
 
-.slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #111;
-  border: none;
-  cursor: pointer;
+.slider::-webkit-slider-runnable-track {
+  height: var(--sound-tile-slider-size);
+  border-radius: 999px;
+  background: #ddd8d1;
 }
 
-.slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--sound-tile-slider-size);
+  height: var(--sound-tile-slider-size);
+  margin-top: 0;
   border-radius: 50%;
   background: #111;
   border: none;
@@ -165,18 +194,24 @@
 }
 
 .slider::-moz-range-track {
-  height: 2px;
+  height: var(--sound-tile-slider-size);
+  border-radius: 999px;
   background: #ddd8d1;
   border: none;
+}
+
+.slider::-moz-range-thumb {
+  width: var(--sound-tile-slider-size);
+  height: var(--sound-tile-slider-size);
+  border-radius: 50%;
+  background: #111;
+  border: none;
+  cursor: pointer;
 }
 
 @media (max-width: 760px) {
   .root {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      'art'
-      'info'
-      'volume';
     gap: 1rem;
   }
 
