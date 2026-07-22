@@ -29,6 +29,14 @@ export function useAudioEngine() {
     setIsUnlocked(true);
   }, []);
 
+  const playOneShot = useCallback(
+    async (src: string, options?: { volume?: number }) => {
+      await audioEngine.playOneShot(src, options);
+      setIsUnlocked(true);
+    },
+    [],
+  );
+
   const pause = useCallback(() => {
     audioEngine.pause();
     setIsPlaying(false);
@@ -49,10 +57,11 @@ export function useAudioEngine() {
       preloadSounds,
       unlock,
       play,
+      playOneShot,
       pause,
       togglePlay,
       engine: audioEngine,
     }),
-    [isPlaying, isUnlocked, preloadSounds, unlock, play, pause, togglePlay],
+    [isPlaying, isUnlocked, preloadSounds, unlock, play, playOneShot, pause, togglePlay],
   );
 }

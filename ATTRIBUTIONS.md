@@ -57,6 +57,12 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 | `public/audio/pool/bells/bells-gong-temple.mp3` | Gong, sweet | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1482](https://bigsoundbank.com/gong-sweet-s1482.html) |
 | `public/audio/pool/traffic/traffic-highway.mp3` | Highway | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0122](https://bigsoundbank.com/highway-s0122.html) |
 
+## UI transitions
+
+| File | Title | Author | License | Source |
+|------|-------|--------|---------|--------|
+| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (trimmed ~860ms) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
+
 ## Re-downloading assets
 
 ```bash

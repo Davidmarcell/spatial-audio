@@ -84,24 +84,72 @@ export class AudioEngine {
     return [...this.sources.keys()];
   }
 
-  async unlock(): Promise<void> {
-    if (!this.context) {
-      this.context = new AudioContext();
-      this.masterGain = this.context.createGain();
-      this.masterGain.gain.value = this.effectiveMasterGain();
-      this.masterGain.connect(this.context.destination);
-    }
+  /** Create the AudioContext graph if needed (may stay suspended until a gesture). */
+  private ensureGraph(): void {
+    if (this.context) return;
+    this.context = new AudioContext();
+    this.masterGain = this.context.createGain();
+    this.masterGain.gain.value = this.effectiveMasterGain();
+    this.masterGain.connect(this.context.destination);
+  }
 
-    if (this.context.state === 'suspended') {
-      await this.context.resume();
+  async unlock(): Promise<void> {
+    this.ensureGraph();
+    if (this.context!.state === 'suspended') {
+      await this.context!.resume();
     }
   }
 
   /** Preload only the given variant files (lazy: a scene's chosen clips). */
   async preloadVariants(srcs: Iterable<string>): Promise<void> {
-    await this.unlock();
+    // Decode works while suspended; do not fail preload before a user gesture.
+    this.ensureGraph();
+    if (this.context!.state === 'suspended') {
+      try {
+        await this.context!.resume();
+      } catch {
+        // Autoplay policy: stay suspended until unlock() on a gesture.
+      }
+    }
     const unique = [...new Set([...srcs].filter(Boolean))];
     await Promise.all(unique.map((src) => this.loadBuffer(src)));
+  }
+
+  /**
+   * Play a non-spatial one-shot (UI transitions). Routes Source → Gain → master
+   * and bypasses PannerNode so the clip stays centered.
+   */
+  async playOneShot(src: string, options?: { volume?: number }): Promise<void> {
+    await this.unlock();
+    const ctx = this.context!;
+    const master = this.masterGain;
+    if (!master) return;
+
+    const buffer = await this.loadBuffer(src);
+    if (!this.context || !this.masterGain) return;
+
+    const volume = Math.max(0, Math.min(1, options?.volume ?? 0.6));
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = false;
+    source.connect(gain);
+    gain.connect(master);
+    source.onended = () => {
+      try {
+        source.disconnect();
+      } catch {
+        // Already disconnected.
+      }
+      try {
+        gain.disconnect();
+      } catch {
+        // Already disconnected.
+      }
+    };
+    source.start(0);
   }
 
   async preloadSounds(sounds: SoundDef[]): Promise<void> {

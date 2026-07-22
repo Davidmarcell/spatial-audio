@@ -89,6 +89,11 @@ type ReturnFlight = {
   to: { x: number; y: number };
 };
 
+/** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~860ms). */
+const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
+/** One-shot level relative to master headroom (baseMasterLevel 0.9). */
+const ENTER_WHOOSH_VOLUME = 0.6;
+
 export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
   const [detailTarget, setDetailTarget] = useState<DetailTarget | null>(null);
@@ -198,7 +203,8 @@ export default function App() {
   // not leave an orphaned, never-cleaned-up preview source playing.
   const dragPreviewGenRef = useRef(0);
 
-  const { engine, unlock, play, togglePlay, isPlaying, isUnlocked } = useAudioEngine();
+  const { engine, unlock, play, playOneShot, togglePlay, isPlaying, isUnlocked } =
+    useAudioEngine();
   const {
     activeSounds,
     selectedId,
@@ -334,6 +340,11 @@ export default function App() {
     },
     [engine, play, recipeForSound, unlock],
   );
+
+  // Warm the enter-to-globe whoosh so the first Enter click is not cold-fetch delayed.
+  useEffect(() => {
+    void engine.preloadVariants([ENTER_WHOOSH_SRC]);
+  }, [engine]);
 
   // Lazy-load: only fetch the variants the current scene actually plays, not
   // the whole catalog. Palette additions load on demand inside addSource.
@@ -929,6 +940,11 @@ export default function App() {
   // Closing the globe (X) returns to the landing; picking a place enters it.
   const handleEnterExperience = useCallback(() => {
     void unlock();
+    // Calm airy whoosh swells with the ~860ms sheet rise. Skip under reduced
+    // motion so audio does not outlast the near-instant visual (~140ms).
+    if (!prefersReducedMotion()) {
+      void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+    }
     // Approach A: the globe is naturally above the landing, so it rises as its
     // real self ON TOP of the landing (no cover panel). Lift the landing and keep
     // it mounted + visible beneath the rising globe so the two read as stacked
@@ -938,7 +954,7 @@ export default function App() {
     setLandingExiting(true);
     setBrowsingFromLanding(true);
     setShowGlobe(true);
-  }, [unlock]);
+  }, [playOneShot, unlock]);
 
   // Close handler for the full-screen globe. Opening always just shows it; the
   // interesting case is closing. When the globe was opened from the landing to
