@@ -26,6 +26,13 @@ export const MAX_DOCK_SOUNDS = 5;
  */
 export function getMaxDockSounds(): number {
   if (typeof window === 'undefined') return 12;
+  // Mobile dock scrolls horizontally — allow a fuller tray of tiles.
+  if (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(max-width: 768px)').matches
+  ) {
+    return 24;
+  }
   const reserved = DOCK_SLOT_HEIGHT + 200;
   const available = window.innerHeight - reserved;
   const fit = Math.floor(available / (DOCK_SLOT_HEIGHT + DOCK_SLOT_GAP));

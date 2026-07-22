@@ -23,6 +23,8 @@ type Props = {
   /** Optional live design tokens (DEV tuner). Falls back to saved defaults. */
   designConfig?: SoundTileDesignConfig;
   onClose?: () => void;
+  /** Mobile iOS bottom-sheet presentation (taller, edge-to-edge). */
+  presentation?: 'card' | 'sheet';
 };
 
 export function SoundArtDetailContent({
@@ -31,6 +33,7 @@ export function SoundArtDetailContent({
   regionArt,
   designConfig,
   onClose,
+  presentation = 'card',
 }: Props) {
   const artwork = getSoundArtworkForRegion(
     regionArt.id,
@@ -46,7 +49,10 @@ export function SoundArtDetailContent({
   ) as CSSProperties;
 
   return (
-    <div className={styles.root} style={designStyle}>
+    <div
+      className={`${styles.root} ${presentation === 'sheet' ? styles.sheetPresentation : ''}`}
+      style={designStyle}
+    >
       {onClose && (
         <button
           type="button"

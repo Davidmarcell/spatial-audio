@@ -49,6 +49,7 @@ import {
   type LandingEntranceConfig,
 } from './utils/landingEntranceAnimation';
 import { AboutButton } from './components/AboutButton';
+import { MobileControlsMenu } from './components/MobileControlsMenu';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ProjectInfoSheet } from './components/ProjectInfoSheet';
 import { appStackingAnimation } from './components/sheetDepth';
@@ -1245,6 +1246,35 @@ export default function App() {
       <div className={styles.topFabGroup}>
         <ThemeToggle />
         <AboutButton onClick={() => setShowProjectInfo(true)} />
+      </div>
+
+      <div className={styles.mobileTopLeft}>
+        <MobileControlsMenu
+          actions={
+            hasEntered ? (
+              <>
+                <UseMyLocationButton onMatch={handleGeoMatch} />
+                <RandomizeLocationButton
+                  appLocations={appLocations}
+                  worldLocations={worldLocations}
+                  onPick={handleRandomRegion}
+                />
+                <MapButton onClick={() => handleGlobeOpenChange(true)} />
+                <ShareButton onShare={handleShare} />
+              </>
+            ) : null
+          }
+          extras={
+            <>
+              <ThemeToggle />
+              <AboutButton
+                onClick={() => {
+                  setShowProjectInfo(true);
+                }}
+              />
+            </>
+          }
+        />
       </div>
 
       <header

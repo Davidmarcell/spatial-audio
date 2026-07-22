@@ -233,3 +233,34 @@
     padding-right: 0;
   }
 }
+
+/* iOS bottom-sheet: edge-to-edge, taller art, no card padding chrome. */
+.sheetPresentation {
+  grid-template-columns: 1fr;
+  gap: 1.1rem;
+  padding: 0.2rem 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  overflow: visible;
+}
+
+.sheetPresentation .artworkWrap {
+  max-width: none;
+  filter: none;
+}
+
+.sheetPresentation .artwork {
+  border-radius: 18px;
+}
+
+.sheetPresentation .infoColumn {
+  padding-right: 0;
+}
+
+.sheetPresentation .close {
+  top: 0.1rem;
+  right: 0.15rem;
+}
+
+.sheetPresentation .title {
+  font-size: 1.55rem;
+}
