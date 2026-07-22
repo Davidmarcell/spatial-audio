@@ -9,7 +9,7 @@ This app mixes **real field recordings** and **historical illustrations** so eac
 | [Wikimedia Commons](https://commons.wikimedia.org/) | Bird calls and songs (OGG), including Bed-Stuy catbird, cardinal, blue jay | Mostly CC BY-SA; some public domain |
 | [Xeno-canto](https://xeno-canto.org/) | Recordings re-hosted on Commons (e.g. cardinal, blue jay) | CC BY-SA 3.0 on file pages |
 | [BigSoundBank](https://bigsoundbank.com/) | Wind, forest bed, rain, streams (CC0 loops) | CC0 1.0 |
-| [Freesound](https://freesound.org/) | Enter-to-globe UI whoosh (`public/audio/ui/enter-whoosh.mp3`, trimmed from ~39s of susssounds #752068) | CC0 1.0 |
+| [Freesound](https://freesound.org/) | Enter-to-globe UI whoosh (`public/audio/ui/enter-whoosh.mp3`, trimmed 38s-41s from susssounds #752068) | CC0 1.0 |
 
 **Bed-Stuy birds** (`public/audio/bed-stuy/`):
 

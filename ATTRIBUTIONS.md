@@ -61,7 +61,7 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 
 | File | Title | Author | License | Source |
 |------|-------|--------|---------|--------|
-| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (trimmed ~0.9s from ~39s of pack) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
+| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (trimmed 38s-41s) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
 
 ## Re-downloading assets
 

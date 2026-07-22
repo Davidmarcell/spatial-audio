@@ -91,8 +91,8 @@ type ReturnFlight = {
 
 /** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~860ms). */
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
-/** One-shot level relative to master headroom (baseMasterLevel 0.9). Softer than the first ship. */
-const ENTER_WHOOSH_VOLUME = 0.35;
+/** One-shot level relative to master headroom (baseMasterLevel 0.9). Soft 38s-41s cut. */
+const ENTER_WHOOSH_VOLUME = 0.28;
 
 export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
