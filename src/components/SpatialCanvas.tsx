@@ -32,6 +32,8 @@ type Props = {
   dropHighlight?: boolean;
   dockHitTest?: (clientX: number, clientY: number) => boolean;
   returningId?: string | null;
+  /** Instance currently featured in the sound-tile card expand (hide source). */
+  detailExpandInstanceId?: string | null;
   regionArt: RegionArtContext;
   ringVariant: RadarRingVariant;
   isPlaying?: boolean;
@@ -82,6 +84,7 @@ export function SpatialCanvas({
   dropHighlight = false,
   dockHitTest,
   returningId = null,
+  detailExpandInstanceId = null,
   regionArt,
   ringVariant,
   isPlaying = false,
@@ -538,6 +541,7 @@ export function SpatialCanvas({
               entering={entering}
               entranceDelayMs={entranceDelaysRef.current.get(item.instanceId) ?? 0}
               hiddenForGhost={isDragging && dockGhost !== null}
+              hiddenForDetailExpand={detailExpandInstanceId === item.instanceId}
               selected={selectedId === item.instanceId}
               onSelect={onSelect}
               onRemove={onRemove}

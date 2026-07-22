@@ -103,6 +103,8 @@ export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
   const [detailTarget, setDetailTarget] = useState<DetailTarget | null>(null);
   const [detailOriginRect, setDetailOriginRect] = useState<OriginRectSnapshot | null>(null);
+  /** Keeps the source canvas tile hidden through the card-expand close flight. */
+  const [detailExpandInstanceId, setDetailExpandInstanceId] = useState<string | null>(null);
   const [dockDefaultIds, setDockDefaultIds] = useState<string[]>([]);
   const [environmentId, setEnvironmentId] = useState(environments[0].id);
   const [regionId, setRegionId] = useState(environments[0].regions[0].id);
@@ -768,6 +770,7 @@ export default function App() {
       const sound = soundMap.get(item.soundId);
       setDetailOriginRect(snapshotOriginRect(originRect));
       setLocationSearchOpen(false);
+      setDetailExpandInstanceId(instanceId);
       setDetailTarget({
         instanceId,
         soundId: item.soundId,
@@ -781,6 +784,10 @@ export default function App() {
   const handleCloseDetail = useCallback(() => {
     setDetailTarget(null);
     setDetailOriginRect(null);
+  }, []);
+
+  const handleDetailExpandExited = useCallback(() => {
+    setDetailExpandInstanceId(null);
   }, []);
 
   const handleDetailVolumeChange = useCallback(
@@ -1288,6 +1295,7 @@ export default function App() {
             soundMap={soundMap}
             selectedId={selectedId}
             returningId={returningId}
+            detailExpandInstanceId={detailExpandInstanceId}
             onSelect={setSelectedId}
             onRemove={beginReturnToDock}
             onOpenDetail={handleOpenDetail}
@@ -1402,6 +1410,7 @@ export default function App() {
         target={detailTarget}
         onVolumeChange={handleDetailVolumeChange}
         regionArt={regionArt}
+        onExpandExited={handleDetailExpandExited}
       />
 
       <GlobeMapSheet

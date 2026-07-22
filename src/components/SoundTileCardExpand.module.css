@@ -1,0 +1,75 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--overlay-backdrop-open, rgba(0, 0, 0, 0.48));
+  opacity: 0;
+  transition: opacity 300ms var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+.backdropOpen {
+  opacity: 1;
+}
+
+.sheet {
+  position: fixed;
+  z-index: 501;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #fff;
+  color: #121212;
+  /* Drop shadow matches the settled sound tile; kept light during flight. */
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.1))
+    drop-shadow(0 32px 32px rgba(0, 0, 0, 0.09))
+    drop-shadow(0 73px 44px rgba(0, 0, 0, 0.05));
+  will-change: left, top, width, height, border-radius;
+}
+
+.face {
+  position: absolute;
+  overflow: hidden;
+  background: #f3efe8;
+  pointer-events: none;
+}
+
+.faceImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.faceImage > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.faceImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bodyVisible {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .sheet,
+  .bodyVisible {
+    transition: none !important;
+  }
+}

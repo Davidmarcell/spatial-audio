@@ -32,6 +32,11 @@ type Props = {
    * mirror can still measure its position/size.
    */
   hiddenForGhost?: boolean;
+  /**
+   * Hide while the shared-element card expand is in flight / open for this
+   * instance, so the clone is the only visible tile.
+   */
+  hiddenForDetailExpand?: boolean;
   regionArt: RegionArtContext;
   onSelect: (instanceId: string) => void;
   onRemove: (instanceId: string, iconRect: DOMRect, dropPoint?: { x: number; y: number }) => void;
@@ -50,6 +55,7 @@ export function SoundIcon({
   entranceDelayMs = 0,
   selected,
   hiddenForGhost = false,
+  hiddenForDetailExpand = false,
   onSelect,
   onRemove,
   onOpenDetail,
@@ -99,7 +105,7 @@ export function SoundIcon({
         left,
         top,
         zIndex: isDragging ? 470 : depthZIndex(distance),
-        visibility: hiddenForGhost ? 'hidden' : undefined,
+        visibility: hiddenForGhost || hiddenForDetailExpand ? 'hidden' : undefined,
         ...(entering
           ? ({
               '--entrance-dx': `${entranceDx}cqw`,
