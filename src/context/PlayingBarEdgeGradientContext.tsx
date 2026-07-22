@@ -11,13 +11,14 @@ import {
   applyPlayingBarEdgeGradient,
   DEFAULT_PLAYING_BAR_EDGE_GRADIENT,
   loadPlayingBarEdgeGradient,
-  savePlayingBarEdgeGradient,
+  savePlayingBarEdgeGradientSavedDefault,
   type PlayingBarEdgeGradientConfig,
 } from '../utils/playingBarEdgeGradient';
 
 type PlayingBarEdgeGradientContextValue = {
   config: PlayingBarEdgeGradientConfig;
   setConfig: (patch: Partial<PlayingBarEdgeGradientConfig>) => void;
+  saveConfigAsDefault: () => void;
   resetConfig: () => void;
 };
 
@@ -32,20 +33,23 @@ export function PlayingBarEdgeGradientProvider({ children }: { children: ReactNo
 
   useEffect(() => {
     applyPlayingBarEdgeGradient(config);
-    savePlayingBarEdgeGradient(config);
   }, [config]);
 
   const setConfig = useCallback((patch: Partial<PlayingBarEdgeGradientConfig>) => {
     setConfigState((current) => ({ ...current, ...patch }));
   }, []);
 
+  const saveConfigAsDefault = useCallback(() => {
+    savePlayingBarEdgeGradientSavedDefault(config);
+  }, [config]);
+
   const resetConfig = useCallback(() => {
     setConfigState(DEFAULT_PLAYING_BAR_EDGE_GRADIENT);
   }, []);
 
   const value = useMemo(
-    () => ({ config, setConfig, resetConfig }),
-    [config, resetConfig, setConfig],
+    () => ({ config, setConfig, saveConfigAsDefault, resetConfig }),
+    [config, resetConfig, saveConfigAsDefault, setConfig],
   );
 
   return (

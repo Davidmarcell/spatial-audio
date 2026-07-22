@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { UiIcon } from './UiIcon';
+import { UiIcon, type UiIconName } from './UiIcon';
 import glass from '../styles/glassButton.module.css';
 import styles from './PlayBar.module.css';
 
@@ -17,6 +17,45 @@ const LABEL_SIZER = PAUSE_LABEL;
 const LETTER_STAGGER_MS = 24;
 const LETTER_ENTER_LAG_MS = 34;
 const LETTER_DURATION_MS = 280;
+
+/** Springy icon crossfade — old icon shrinks/fades out as the new one pops/fades in. */
+const ICON_MORPH_MS = 320;
+
+function MorphIcon({ icon, reducedMotion }: { icon: UiIconName; reducedMotion: boolean }) {
+  const [current, setCurrent] = useState(icon);
+  const [exiting, setExiting] = useState<UiIconName | null>(null);
+  const prevIconRef = useRef(icon);
+
+  useEffect(() => {
+    if (icon === prevIconRef.current) return;
+
+    const outgoing = prevIconRef.current;
+    prevIconRef.current = icon;
+
+    if (reducedMotion) {
+      setExiting(null);
+      setCurrent(icon);
+      return;
+    }
+
+    setExiting(outgoing);
+    setCurrent(icon);
+
+    const timer = window.setTimeout(() => setExiting(null), ICON_MORPH_MS);
+    return () => window.clearTimeout(timer);
+  }, [icon, reducedMotion]);
+
+  return (
+    <span className={styles.iconSlot} aria-hidden>
+      {exiting ? <UiIcon key={`exit-${exiting}`} icon={exiting} className={styles.iconExit} /> : null}
+      <UiIcon
+        key={`enter-${current}`}
+        icon={current}
+        className={exiting ? styles.iconEnter : undefined}
+      />
+    </span>
+  );
+}
 
 type LabelVariant = 'enter' | 'exit' | 'static';
 
@@ -88,7 +127,7 @@ export function PlayBar({ isPlaying, onToggle }: Props) {
       onClick={onToggle}
       aria-label={targetLabel}
     >
-      <UiIcon icon={isPlaying ? 'pause' : 'play'} />
+      <MorphIcon icon={isPlaying ? 'pause' : 'play'} reducedMotion={reducedMotion} />
       <span className={styles.labelSlot}>
         <span className={styles.labelSizer}>{LABEL_SIZER}</span>
         {showMorph ? (

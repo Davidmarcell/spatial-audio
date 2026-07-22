@@ -35,9 +35,8 @@ export function getResolvedTheme(): ResolvedTheme {
   return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 }
 
-export function toggleTheme(): ResolvedTheme {
-  const next: ResolvedTheme = getResolvedTheme() === 'dark' ? 'light' : 'dark';
-  localStorage.setItem(STORAGE_KEY, next);
-  applyTheme(next);
-  return next;
+export function setStoredTheme(theme: ResolvedTheme): ResolvedTheme {
+  localStorage.setItem(STORAGE_KEY, theme);
+  applyTheme(theme);
+  return theme;
 }

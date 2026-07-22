@@ -56,8 +56,8 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  /* Room above the globe so top polaroids aren't clipped by the modal header edge. */
-  padding-top: 0.65rem;
+  /* Room above/beside the globe so polaroids are not clipped when zoomed. */
+  padding: 1.1rem 0.85rem 0.35rem;
   overflow: visible;
 }
 
@@ -67,14 +67,27 @@
   min-height: 0;
   overflow: visible;
   isolation: isolate;
-  /* Size container so the square globe viewport can be sized from the smaller
-     of the host's own width/height via cqw/cqh below. */
   container-type: size;
-  /* Transparent — the shared .root gradient shows through so the globe and
-     places column read as one continuous surface (no boxed-off panel). */
   background: transparent;
-  padding-top: 0.85rem;
+  padding: 0.5rem 0.75rem 0.85rem;
   box-sizing: border-box;
+}
+
+/*
+ * Zoom/pan layer. Holds the globe canvas AND the anchored polaroids so a single
+ * CSS transform (`translate(...) scale(...)`, set imperatively each frame)
+ * scales the whole globe as a circle — nothing is clipped, unlike cobe's own
+ * `scale`, which enlarges the sphere inside the fixed square canvas buffer and
+ * clips it to the rectangle. The pins ride along via CSS anchor positioning.
+ * Kept overflow: visible so the enlarged globe is never cut at this level.
+ */
+.zoomLayer {
+  position: absolute;
+  inset: 0;
+  transform-origin: center center;
+  transform: translate(0px, 0px) scale(1);
+  will-change: transform;
+  overflow: visible;
 }
 
 /*
@@ -88,17 +101,114 @@
   position: absolute;
   inset: 0;
   margin: auto;
-  width: min(92cqw, 92cqh);
-  height: min(92cqw, 92cqh);
+  /* Base (unzoomed) diameter, enlarged by +60px from the previous
+     `min(70cqw, 74cqh)` so the globe renders bigger by default. To keep the
+     CSS-transform-scaled globe (plus its polaroid pins, which ride above the
+     sphere) fitting entirely inside the modal card at max zoom, SCALE_MAX in
+     GlobeExplorer.tsx was lowered from 1.4 → 1.22 in step with this bump, so the
+     fully-zoomed footprint is essentially unchanged and nothing is cut off at
+     the top/bottom edges. cqh is the limiting term on the wide desktop modal;
+     cqw guards narrow/portrait sheets. */
+  width: calc(min(70cqw, 74cqh) + 60px);
+  height: calc(min(70cqw, 74cqh) + 60px);
   aspect-ratio: 1 / 1;
   opacity: 0;
   visibility: hidden;
-  overflow: hidden;
+  overflow: visible;
+  /* Entrance reveal: start slightly small + faded, then scale/fade up once the
+     globe has painted its first frame (.globeViewportReady). transform-origin is
+     centred so it grows out of the middle. The transform here is independent of
+     the zoom layer's own transform (this element is nested inside it). */
+  transform: scale(0.9);
+  transform-origin: center center;
+  transition:
+    opacity 0.55s var(--ease-premium-enter),
+    transform 0.55s var(--ease-premium-enter);
 }
 
 .globeViewportReady {
   opacity: 1;
   visibility: visible;
+  transform: scale(1);
+}
+
+/* ── Loading shimmer ──────────────────────────────────────────────────────────
+ * Sits exactly where the globe will appear (same centred square footprint) and
+ * shows a soft pulsing disc + expanding rings until cobe paints its first frame,
+ * at which point it cross-fades out (.globeLoaderHidden) as the globe scales in.
+ */
+.globeLoader {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: calc(min(70cqw, 74cqh) + 60px);
+  height: calc(min(70cqw, 74cqh) + 60px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.45s var(--ease-premium-exit);
+}
+
+.globeLoaderHidden {
+  opacity: 0;
+}
+
+.globeLoaderDisc {
+  grid-area: 1 / 1;
+  width: 62%;
+  height: 62%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 42%,
+    var(--surface-elevated) 0%,
+    color-mix(in srgb, var(--surface-elevated) 55%, transparent) 62%,
+    transparent 100%
+  );
+  animation: globeLoaderBreathe 1.8s var(--ease-premium-enter) infinite;
+}
+
+.globeLoaderRing {
+  grid-area: 1 / 1;
+  width: 46%;
+  height: 46%;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  opacity: 0;
+  animation: globeLoaderPulse 1.8s var(--ease-premium-enter) infinite;
+}
+
+/* Stagger the second ring so the pulses read as a gentle, continuous ripple. */
+.globeLoaderRing:nth-of-type(3) {
+  animation-delay: 0.9s;
+}
+
+@keyframes globeLoaderBreathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+@keyframes globeLoaderPulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.7);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
 }
 
 .cobeCanvas {
@@ -110,92 +220,202 @@
 }
 
 /*
- * Polaroids attach to cobe's per-marker anchors via CSS Anchor Positioning.
- * cobe exposes `--cobe-{id}` (anchor-name) for each marker with an id, so the
- * cards follow the globe with zero per-frame React work.
+ * Pin overlay. Sits above the globe canvas but is NOT inside the zoom layer, so
+ * pins stay a constant screen size while the globe scales. The frame loop in
+ * GlobeExplorer.tsx positions each pin (translate), fades it near the limb, and
+ * toggles `.pinExpanded` on the least-crowded pins to declutter dense clusters.
  */
-.polaroid {
+.pinLayer {
   position: absolute;
-  bottom: anchor(top);
-  left: anchor(center);
-  translate: -50% 0;
-  margin-bottom: 6px;
+  inset: 0;
   z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.pinLayerReady {
+  opacity: 1;
+}
+
+/*
+ * Each pin is a zero-size anchor point placed over its marker. Its two children
+ * are absolutely positioned relative to that point: `.pinHit` (an invisible
+ * touch/hover/click target sitting on cobe's on-sphere dot) and `.pinCard` (the
+ * frosted polaroid, revealed only when the pin is expanded).
+ */
+.pin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
   border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
   cursor: pointer;
-  background: #ffffff;
-  padding: 3px 3px 11px;
-  border-radius: 6px;
-  box-shadow:
-    0 1px 6px rgba(41, 55, 76, 0.16),
-    0 1px 2px rgba(41, 55, 76, 0.1);
-  transform: rotate(var(--polaroid-rotate, 0deg));
-  transform-origin: 50% 100%;
-  transition:
-    opacity 0.3s,
-    filter 0.3s,
-    box-shadow 0.18s ease,
-    scale 0.18s ease;
+  /* transform (translate) is set imperatively each frame. */
+  will-change: transform;
+}
+
+/* Collapsed hit target: generous, invisible circle over the marker dot so dense
+   clusters stay easy to point at while reading as clean dots (cobe draws the
+   visible dot on the sphere). */
+.pinHit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 28px;
+  height: 28px;
+  translate: -50% -50%;
+  border-radius: 50%;
   pointer-events: auto;
 }
 
-.polaroid:hover {
-  scale: 1.05;
+.pin:focus-visible {
+  outline: none;
+}
+
+.pin:focus-visible .pinHit {
+  outline: 2px solid var(--text);
+  outline-offset: -8px;
+  border-radius: 50%;
+}
+
+/* Expanded polaroid card — hidden by default, cross-fades in when the pin wins
+   space in the declutter pass or is hovered/focused/selected. */
+.pinCard {
+  position: absolute;
+  left: 0;
+  bottom: 9px; /* CARD_STEM: lift the card off the marker point */
+  /* --card-dx/--card-dy are the declutter slot offset set each frame by the
+     frame loop, nudging a clustered card to a free slot near its marker. */
+  translate: calc(-50% + var(--card-dx, 0px)) var(--card-dy, 0px);
+  transform: rotate(var(--polaroid-rotate, 0deg)) scale(0.6);
+  transform-origin: 50% 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 56px;
+  padding: 3px 3px 4px;
+  border-radius: 7px;
+  /* The polaroid frame stays a light photo card in both themes (its caption is
+     always dark text on white, so it never goes white-on-white). The border is
+     themed so the card's edge reads on the white light-mode globe and on the
+     dark-mode surface alike. */
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    0 1px 6px rgba(41, 55, 76, 0.16),
+    0 1px 2px rgba(41, 55, 76, 0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.18s ease;
+}
+
+.pinExpanded .pinCard {
+  opacity: 1;
+  transform: rotate(var(--polaroid-rotate, 0deg)) scale(1);
+  pointer-events: auto;
+}
+
+.pinExpanded .pinHit {
+  /* The card owns interaction once expanded; keep a small point target too. */
+  width: 18px;
+  height: 18px;
+}
+
+.pin:hover .pinCard,
+.pin:focus-visible .pinCard {
   box-shadow:
     0 6px 18px rgba(24, 36, 58, 0.3),
     0 2px 6px rgba(24, 36, 58, 0.14);
 }
 
-.polaroidActive {
-  outline: 2px solid rgba(17, 17, 17, 0.7);
+.pinExpanded:hover .pinCard {
+  transform: rotate(var(--polaroid-rotate, 0deg)) scale(1.06);
+}
+
+.pinActive .pinCard {
+  outline: 2px solid var(--text);
   outline-offset: 1px;
 }
 
-.polaroidImage,
-.polaroidFallback {
+.pinImage,
+.pinFallback {
   display: block;
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
+  /* Fill the polaroid's inner content box exactly (card width minus its 1px
+     border and 3px side padding) rather than a fixed 50px that overran the
+     ~48px content box and left the image anchored left, so it drifted ~1px
+     off-centre. A percentage width is sub-pixel-safe: both side margins always
+     stay equal regardless of border/padding rounding. */
+  width: 100%;
+  height: 50px;
+  border-radius: 5px;
   object-fit: cover;
+  object-position: center;
 }
 
-/* Unified cool-blue tint so every pin reads as one family on the globe. */
-.polaroidImage {
-  background: linear-gradient(145deg, #c8d8ec 0%, #e2eaf5 100%);
-  filter: grayscale(1) sepia(0.12) saturate(1.4) hue-rotate(185deg) brightness(1.04);
+.pinImage {
+  background: linear-gradient(145deg, #e8e8ed 0%, #f5f5f7 100%);
+  filter: saturate(1.02) contrast(1.03);
 }
 
-.polaroidFallback {
+.pinFallback {
   display: grid;
   place-items: center;
   background: linear-gradient(145deg, #c8d8ec 0%, #e2eaf5 100%);
   color: #3d5270;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.03em;
 }
 
-.polaroidCaption {
-  position: absolute;
-  bottom: 2px;
-  left: 0;
-  right: 0;
+.pinCaption {
+  margin-top: 3px;
   text-align: center;
   font: inherit;
-  font-size: 0.44rem;
+  font-size: 0.46rem;
   font-weight: 600;
   color: #333;
-  line-height: 1.1;
-  white-space: nowrap;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 2px;
+  padding: 0 1px;
 }
 
-/* Hide polaroids where CSS Anchor Positioning is unsupported (globe + list still work). */
-@supports not (anchor-name: --test) {
-  .polaroid {
+@media (prefers-reduced-motion: reduce) {
+  .pinLayer,
+  .pinCard {
+    transition: none;
+  }
+
+  /* Skip the scale-up reveal and the pulsing shimmer: the globe just fades in and
+     the loader is a still, faint disc while it initialises. */
+  .globeViewport {
+    transform: none;
+    transition: opacity 0.25s linear;
+  }
+
+  .globeViewportReady {
+    transform: none;
+  }
+
+  .globeLoaderDisc {
+    animation: none;
+    opacity: 0.4;
+  }
+
+  .globeLoaderRing {
     display: none;
   }
 }
@@ -254,7 +474,7 @@
 
 .searchField:focus-within,
 .searchFieldActive {
-  border-color: rgba(17, 17, 17, 0.28);
+  border-color: var(--text-muted);
 }
 
 .searchFieldIcon {
@@ -384,8 +604,8 @@
   object-fit: cover;
   object-position: center;
   display: block;
-  background: linear-gradient(145deg, #c8d8ec 0%, #e2eaf5 100%);
-  filter: grayscale(1) sepia(0.12) saturate(1.4) hue-rotate(185deg) brightness(1.04);
+  background: linear-gradient(145deg, #e8e8ed 0%, #f5f5f7 100%);
+  filter: saturate(1.02) contrast(1.03);
 }
 
 .rowThumbFallback {

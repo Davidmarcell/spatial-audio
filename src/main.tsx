@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import '@silk-hq/components/unlayered-styles.css';
 import './styles/fontawesome.css';
+import './styles/romie.css';
 import './index.css';
 import { PlayingBarEdgeGradientProvider } from './context/PlayingBarEdgeGradientContext';
 import { SearchSpotlightAnimationProvider } from './context/SearchSpotlightAnimationContext';

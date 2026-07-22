@@ -2,8 +2,10 @@
   position: fixed;
   z-index: 15;
   pointer-events: none;
-  border: 1px solid var(--glass-border-strong);
-  border-radius: 0.85rem;
+  /* Shared image-tile radius + hairline stroke, matching the palette / canvas
+     tiles it animates between. */
+  border: 1px solid var(--glass-border);
+  border-radius: var(--tile-radius);
   background: var(--surface-solid);
   overflow: hidden;
   box-shadow:
@@ -14,6 +16,18 @@
 
 .elevated {
   z-index: 460;
+}
+
+.overlayElevated {
+  z-index: 520;
+}
+
+.pickedUp {
+  transition:
+    width 0.16s cubic-bezier(0.34, 1.2, 0.64, 1),
+    height 0.16s cubic-bezier(0.34, 1.2, 0.64, 1),
+    box-shadow 0.16s ease,
+    transform 0.14s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 
 .dragFollow {
@@ -31,13 +45,19 @@
     transform 0.12s ease-out;
 }
 
+/*
+ * One continuous, eased settle into the dock slot. A pure decelerating curve
+ * (no overshoot) so the tile shrinks smoothly to the slot size without a bounce
+ * or size pop at the end.
+ */
 .animating {
   transition:
-    left 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    top 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.42s ease;
+    left 0.46s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.46s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.46s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.46s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.42s ease,
+    opacity 0.32s ease;
 }
 
 .label {

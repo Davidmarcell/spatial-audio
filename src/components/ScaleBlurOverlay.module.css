@@ -121,6 +121,35 @@
   font-size: 1.05rem;
   font-weight: 650;
   letter-spacing: -0.02em;
+  /* Give ascenders and descenders headroom so the title is never clipped by
+     the panel's overflow: hidden. */
+  line-height: 1.35;
+  padding-block: 0.08em;
+}
+
+.headerCompact {
+  justify-content: flex-end;
+  padding: 0.65rem 0.85rem 0.35rem;
+  border-bottom: none;
+}
+
+.headerMinimal {
+  justify-content: stretch;
+  padding: 0.45rem 0.85rem 0;
+  border-bottom: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .close {

@@ -27,7 +27,15 @@ export type SoundType =
   | 'bells'
   | 'fire'
   | 'frogs'
-  | 'jazz';
+  | 'jazz'
+  | 'bossa-nova'
+  | 'kookaburra'
+  | 'tram'
+  | 'fado'
+  | 'adhan'
+  | 'ney'
+  | 'lion'
+  | 'musette';
 
 /**
  * Flavour tags used to bias variant selection toward a location's context
@@ -50,6 +58,14 @@ export type SoundClip = {
   src: string;
   /** Relative weight in weighted selection (default 1). */
   weight?: number;
+  /**
+   * When true, this clip is only ever used when a sound explicitly pins it via
+   * `fixedClipId`; it is excluded from the location-seeded dispersion/weighted
+   * pools. Used for signature species (e.g. a Redwoods raven) so a distinctive
+   * recording stays unique to its intended pin instead of dispersing onto
+   * unrelated same-continent pins.
+   */
+  pinnedOnly?: boolean;
   title: string;
   author: string;
   license: string;
@@ -68,6 +84,13 @@ export type SoundDef = {
   loop: boolean;
   /** Pool key — links this sound to a pool of interchangeable variant clips. */
   type?: SoundType;
+  /**
+   * Pin this sound to a specific clip from its `type` pool. Used for marquee
+   * native species (e.g. the Tui) where a scene has more same-type tiles than
+   * distinct native recordings, so the iconic voice is guaranteed rather than
+   * losing its clip to dispersion. Ignored if the clip isn't in the pool.
+   */
+  fixedClipId?: string;
   /** Flavour tags that bias which variant is picked for this sound. */
   variantTags?: VariantTag[];
   description?: string;

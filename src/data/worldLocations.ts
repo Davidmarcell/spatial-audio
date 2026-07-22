@@ -41,6 +41,28 @@ function proceduralPin(def: ProceduralPin): WorldLocation {
   };
 }
 
+function labelPartIncluded(name: string, part: string): boolean {
+  if (!part) return true;
+  const normalizedName = name.toLowerCase();
+  const normalizedPart = part.toLowerCase();
+  if (normalizedName === normalizedPart) return true;
+  if (normalizedName.endsWith(`, ${normalizedPart}`)) return true;
+  return normalizedName
+    .split(',')
+    .map((segment) => segment.trim())
+    .includes(normalizedPart);
+}
+
+/** Display label in "City, Country" form (British English). */
+export function formatWorldLocationLabel(
+  location: Pick<WorldLocation, 'name' | 'subtitle'>,
+): string {
+  const name = location.name.trim();
+  const subtitle = location.subtitle.trim();
+  if (!subtitle || labelPartIncluded(name, subtitle)) return name;
+  return `${name}, ${subtitle}`;
+}
+
 /**
  * Curated globe pins for the Radio Garden–style explorer.
  * Also the geo registry for nearest-region matching ("Use my location").
@@ -56,20 +78,17 @@ export const worldLocations: WorldLocation[] = [
     regionId: 'auckland',
   },
   proceduralPin({
-    id: 'new-york',
-    name: 'New York',
-    subtitle: 'United States',
-    lat: 40.7128,
-    lng: -74.006,
-    geocode: { addresstype: 'city', class: 'place', countryCode: 'us' },
-  }),
-  proceduralPin({
-    id: 'new-orleans',
-    name: 'New Orleans',
-    subtitle: 'United States',
-    lat: 29.9511,
-    lng: -90.0715,
-    geocode: { addresstype: 'city', class: 'place', countryCode: 'us' },
+    id: 'queenstown',
+    name: 'Queenstown',
+    subtitle: 'New Zealand',
+    lat: -45.0312,
+    lng: 168.6626,
+    geocode: {
+      addresstype: 'town',
+      class: 'place',
+      countryCode: 'nz',
+      displayName: 'Queenstown, Lake Wakatipu, Southern Alps high country, Otago',
+    },
   }),
   proceduralPin({
     id: 'havana',
@@ -89,20 +108,30 @@ export const worldLocations: WorldLocation[] = [
     regionId: 'rio-de-janeiro',
   },
   proceduralPin({
-    id: 'amazon-rainforest',
-    name: 'Amazon rainforest',
-    subtitle: 'Brazil',
-    lat: -3.4653,
-    lng: -62.2159,
-    geocode: { addresstype: 'forest', class: 'natural', countryCode: 'br' },
+    id: 'monteverde',
+    name: 'Monteverde',
+    subtitle: 'Costa Rica',
+    lat: 10.301,
+    lng: -84.825,
+    geocode: {
+      addresstype: 'forest',
+      class: 'natural',
+      countryCode: 'cr',
+      displayName: 'Monteverde cloud forest reserve',
+    },
   }),
   proceduralPin({
-    id: 'banff',
-    name: 'Banff',
-    subtitle: 'Canada',
-    lat: 51.1784,
-    lng: -115.5708,
-    geocode: { addresstype: 'town', class: 'place', countryCode: 'ca' },
+    id: 'redwoods',
+    name: 'Redwoods',
+    subtitle: 'California',
+    lat: 41.2132,
+    lng: -124.0046,
+    geocode: {
+      addresstype: 'forest',
+      class: 'natural',
+      countryCode: 'us',
+      displayName: 'Redwood National and State Parks, coast redwood forest, Pacific coast of Northern California',
+    },
   }),
   proceduralPin({
     id: 'paris',
@@ -113,14 +142,6 @@ export const worldLocations: WorldLocation[] = [
     geocode: { addresstype: 'city', class: 'place', countryCode: 'fr' },
   }),
   proceduralPin({
-    id: 'venice',
-    name: 'Venice',
-    subtitle: 'Italy',
-    lat: 45.4408,
-    lng: 12.3155,
-    geocode: { addresstype: 'city', class: 'place', countryCode: 'it' },
-  }),
-  proceduralPin({
     id: 'swiss-alps',
     name: 'Swiss Alps',
     subtitle: 'Switzerland',
@@ -129,20 +150,20 @@ export const worldLocations: WorldLocation[] = [
     geocode: { addresstype: 'mountain', class: 'natural', countryCode: 'ch' },
   }),
   proceduralPin({
-    id: 'seville',
-    name: 'Seville',
-    subtitle: 'Spain',
-    lat: 37.3891,
-    lng: -5.9845,
-    geocode: { addresstype: 'city', class: 'place', countryCode: 'es' },
+    id: 'lisbon',
+    name: 'Lisbon',
+    subtitle: 'Portugal',
+    lat: 38.7223,
+    lng: -9.1393,
+    geocode: { addresstype: 'city', class: 'place', countryCode: 'pt' },
   }),
   proceduralPin({
-    id: 'marrakech',
-    name: 'Marrakech',
-    subtitle: 'Morocco',
-    lat: 31.6295,
-    lng: -7.9811,
-    geocode: { addresstype: 'city', class: 'place', countryCode: 'ma' },
+    id: 'istanbul',
+    name: 'Istanbul',
+    subtitle: 'Turkey',
+    lat: 41.0082,
+    lng: 28.9784,
+    geocode: { addresstype: 'city', class: 'place', countryCode: 'tr' },
   }),
   proceduralPin({
     id: 'serengeti',
@@ -169,20 +190,30 @@ export const worldLocations: WorldLocation[] = [
     geocode: { addresstype: 'city', class: 'place', countryCode: 'jp' },
   }),
   proceduralPin({
-    id: 'tokyo',
-    name: 'Tokyo',
-    subtitle: 'Japan',
-    lat: 35.6762,
-    lng: 139.6503,
-    geocode: { addresstype: 'city', class: 'place', countryCode: 'jp' },
+    id: 'oaxaca',
+    name: 'Oaxaca',
+    subtitle: 'Mexico',
+    lat: 17.0732,
+    lng: -96.7266,
+    geocode: {
+      addresstype: 'city',
+      class: 'place',
+      countryCode: 'mx',
+      displayName: 'Oaxaca de Juárez, Central Valleys, Sierra Madre de Oaxaca dry forest',
+    },
   }),
   proceduralPin({
-    id: 'bangkok',
-    name: 'Bangkok',
-    subtitle: 'Thailand',
-    lat: 13.7563,
-    lng: 100.5018,
-    geocode: { addresstype: 'city', class: 'place', countryCode: 'th' },
+    id: 'bariloche',
+    name: 'Bariloche',
+    subtitle: 'Argentina',
+    lat: -41.133,
+    lng: -71.31,
+    geocode: {
+      addresstype: 'town',
+      class: 'place',
+      countryCode: 'ar',
+      displayName: 'San Carlos de Bariloche, Nahuel Huapi lake, Patagonian Andes',
+    },
   }),
   proceduralPin({
     id: 'himalayas',
@@ -218,48 +249,21 @@ export const worldLocations: WorldLocation[] = [
   }),
   {
     id: 'bed-stuy',
-    name: 'Bedford-Stuyvesant',
-    subtitle: 'Brooklyn, New York',
+    name: 'Brooklyn',
+    subtitle: 'New York',
     lat: 40.6872,
     lng: -73.9418,
     environmentId: 'urban-americas',
     regionId: 'bed-stuy',
   },
   {
-    id: 'dolomites',
-    name: 'Dolomites',
-    subtitle: 'South Tyrol, Italy',
-    lat: 46.541,
-    lng: 11.844,
-    environmentId: 'alpine-europe',
-    regionId: 'dolomites',
-  },
-  {
-    id: 'chiang-mai',
-    name: 'Chiang Mai',
-    subtitle: 'Northern Thailand',
-    lat: 18.7883,
-    lng: 98.9853,
+    id: 'bangkok',
+    name: 'Bangkok',
+    subtitle: 'Thailand',
+    lat: 13.7563,
+    lng: 100.5018,
     environmentId: 'southeast-asia',
-    regionId: 'chiang-mai',
-  },
-  {
-    id: 'nz-forest-general',
-    name: 'North Island Forest',
-    subtitle: 'New Zealand',
-    lat: -38.5,
-    lng: 176.2,
-    environmentId: 'nz-forest',
-    regionId: 'nz-forest-general',
-  },
-  {
-    id: 'costa-rica-pacific',
-    name: 'Pacific Slope',
-    subtitle: 'Costa Rica',
-    lat: 10.2,
-    lng: -84.8,
-    environmentId: 'costa-rica-rainforest',
-    regionId: 'pacific-slope',
+    regionId: 'bangkok',
   },
 ];
 

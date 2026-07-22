@@ -1,0 +1,477 @@
+.gate {
+  position: fixed;
+  inset: 0;
+  /* Above the header (20), top FABs (21) and dock (25), but below the bottom
+     bar (30) and its search portal (341) so the existing search pill stays the
+     alternate entry point, reachable at the foot of the landing. */
+  z-index: 28;
+  display: grid;
+  place-items: center;
+  /* The search now lives in the landing column (below the body copy) rather
+     than in the bottom bar, so the old tall bottom reservation is gone. */
+  padding: max(1.5rem, env(safe-area-inset-top, 0px)) 1.25rem
+    max(1.75rem, env(safe-area-inset-bottom, 0px));
+  /* Opaque from the very first paint (no opacity fade-in), so the workspace /
+     soundscape canvas behind it is never revealed on refresh. The individual
+     hero elements still rise in below via their own transform animations. */
+  background: var(--bg-page);
+}
+
+/* Outgoing landing (Enter -> globe, or landing -> location): it STAYS mounted
+   and visible and lifts UPWARD as a whole sheet (a parallax push, gently scaled),
+   beneath the incoming sheet (the globe rising as its real self, or the rising
+   cover panel) rather than above it, so the old page visibly rises and pushes up
+   rather than only nudging its centred content. This mirrors the globe's own exit
+   lift (see GlobeMapSheet `globeExitLift`) so both outgoing pages read as the
+   same stacked-sheet motion, on the shared sheet clock/easing.
+   It keeps its normal z-index (28), below the globe (400) and the cover panel
+   (500), so the incoming sheet rises up ON TOP of it. `pointer-events: none` so
+   it never blocks the incoming view; the host unmounts it once the incoming
+   sheet has fully arrived. It stays fully OPAQUE the whole way up (no opacity
+   dim): the landing background is what hides the always-mounted workspace /
+   soundscape canvas behind it, so any dim would let those tiles bleed faintly
+   through the page during the Enter transition. */
+.gate[data-exiting='true'] {
+  pointer-events: none;
+  animation: landingExitLift 0.86s var(--ease-in-out-strong) both;
+}
+
+@keyframes landingExitLift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(0, -34px, 0) scale(0.986);
+  }
+}
+
+/* Incoming landing returning home (map close -> landing, or the wordmark home):
+   the whole gate RISES up from below the viewport over the lifting outgoing page
+   (the globe, or the workspace) with the shared curved top edge, driven from JS
+   (transform + clip-path written per frame in LandingGate.tsx). It is briefly
+   raised above the globe (400) while it rises so it lands on top; the inline
+   styles clear and this raised stacking drops back to rest once it has arrived.
+   No cover panel and no cross-fade: the real home page is what rises. */
+.gate[data-entering='true'] {
+  z-index: 450;
+  pointer-events: none;
+}
+
+/* Soft editorial glow so the frosted page never reads as a flat wash. */
+.gate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 90% at 50% 32%,
+    var(--accent-soft),
+    transparent 62%
+  );
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Single source of truth for the vertical rhythm: the gap between wordmark,
+     fan and body copy (and copy to search) is driven by this one value so the
+     stack reads as evenly spaced. Per-element margins are zeroed and the fan
+     reserves its own arc room with padding (no negative margins), so the
+     wordmark -> fan and fan -> copy gaps both equal this gap. */
+  gap: 2rem;
+  /* Roughly 900px content column, capped to the viewport on smaller screens. */
+  width: 100%;
+  max-width: min(900px, 92vw);
+  text-align: center;
+}
+
+.wordmark {
+  margin: 0;
+  /* Match the header wordmark: self-hosted Romie Regular, natural weight and
+     slightly open tracking. Only the display size changes for the hero moment. */
+  font-family: 'Romie', Georgia, 'Times New Roman', serif;
+  /* Scaled to suit the ~900px hero column, still responsive down to phones. */
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  padding-block: 0.08em;
+  color: var(--text);
+  /* The entrance now lives on the per-letter spans (each glyph cascades in on
+     its own beat). The wordmark itself keeps only the search-open dim: no
+     entrance animation here means opacity is never pinned, so the dim below can
+     take the whole wordmark to 0.4 via this transition. */
+  transition: opacity 0.32s var(--ease-premium-enter);
+}
+
+/* Per-letter cascade: each glyph fades in and rises into place, staggered one
+   behind the next left to right, echoing the fan of tiles. `backwards` fill
+   holds the hidden start-state from the first paint (so nothing flashes) and,
+   crucially, does not pin opacity to 1 afterwards, so the wordmark's search-open
+   dim still reaches every letter. */
+.wordmarkLetter {
+  /* inline-block gives each letter its own transformable box while keeping the
+     inherited tall line-box (line-height 1.3 + the wordmark's padding-block), so
+     the Romie ascenders/descenders are never shaved top or bottom. */
+  display: inline-block;
+  line-height: inherit;
+  /* Preserve any literal spaces in the wordmark should the text ever change. */
+  white-space: pre;
+  /* Per-group rise distance for the shared `gateRise` keyframe; delay/duration/
+     stagger are driven live from the entrance config (dev tuner). Fallbacks
+     equal the hand-authored defaults so the entrance is unchanged out of the box. */
+  --gate-rise: var(--landing-wordmark-rise, 12px);
+  animation: gateRise var(--landing-wordmark-duration, 0.62s) var(--ease-premium-enter) backwards;
+  animation-delay: calc(
+    var(--landing-wordmark-delay, 0.05s) + var(--letter-index) * var(--landing-wordmark-stagger, 0.06s)
+  );
+}
+
+/* Body copy now reads *below* the tile row (order: wordmark → tiles → copy →
+   search), so its entrance is timed after the tiles have risen in. A touch
+   smaller and lighter than before, understated beneath the fan. */
+.tagline {
+  margin: 0;
+  max-width: 34rem;
+  /* Deliberately smaller than the wordmark so the copy stays understated
+     beneath the fan, scaled to suit the wider ~900px hero. */
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-weight: 450;
+  line-height: 1.5;
+  color: var(--text-muted);
+  animation: gateRise var(--landing-tagline-duration, 0.62s) var(--ease-premium-enter) both;
+  animation-delay: var(--landing-tagline-delay, 0.6s);
+}
+
+.searchSlot {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  /* Deliberately NOT animated. The search pill is portalled out to <body> and
+     anchored by measuring this row every frame across a short settle window on
+     mount; any transform here would move the measured anchor and make the pill
+     jump/realign on later re-measures (e.g. when a fan tile's hover transition
+     ends and re-triggers the measure). Keeping this wrapper perfectly still
+     commits the resting anchor immediately, so the pill sits rock-steady. The
+     pill's own fade-up entrance is owned by the spotlight (landing variant),
+     and the Enter button below carries its own transform-only rise. */
+}
+
+/* Search pill + Explore button sit on one centred row below the body copy. */
+.searchRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+/* Enters the experience (resumes audio, opens the full-screen world map).
+   Deliberately matched to the landing search pill so the two read as a pair:
+   same pill shape, height, themed surface, softened shadow and input font. */
+.enterButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 3.5rem;
+  padding: 0 1.7rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background-color: var(--search-panel-bg, var(--glass-panel-bg));
+  color: var(--text);
+  font: inherit;
+  /* Match the landing body/tagline copy exactly, so the Enter label reads at
+     the same size as the surrounding prose rather than larger. */
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Same softened drop shadow as the search panel. */
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.096),
+    0 7px 20px rgba(0, 0, 0, 0.056);
+  /* Final beat of the hero sequence: fade + rise in just after the tagline,
+     one stagger step (0.06s, matching the wordmark/fan rhythm) behind the search
+     pill. `backwards` fill holds the hidden start-state from the first paint and,
+     unlike `both`, releases the transform when it ends so the press/active scale
+     still works afterwards. Transform + opacity only, so nothing reflows. */
+  animation: gateRise var(--landing-enter-duration, 0.6s) var(--ease-premium-enter)
+    var(--landing-enter-delay, 0.72s) backwards;
+  transition:
+    transform 0.26s var(--ease-premium-enter),
+    opacity 0.26s var(--ease-premium-enter),
+    color 0.2s var(--ease-ios);
+}
+
+/* As the landing search expands it recentres on the page; fade and slip the
+   Enter button away so it does not sit off to one side of the centred panel.
+   Kept in layout (no reflow) so the collapsed pill's measured centre never
+   moves, which is what keeps the recentre and the collapse jump-free. It
+   returns when the search collapses. */
+.inner[data-search-open='true'] .enterButton {
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  pointer-events: none;
+}
+
+/* No hover-darken, matching the search field. */
+.enterButton:active {
+  transform: scale(0.97);
+}
+
+.enterButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Tied to the tagline and pulled up close beneath it so it reads as a
+   continuation of the same line. Shares the tagline's exact typographic
+   treatment (font-size, weight, line-height and colour) rather than reading as
+   a smaller muted caption. */
+.headphones {
+  margin: -1.7rem 0 0;
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-weight: 450;
+  line-height: 1.5;
+  color: var(--text-muted);
+  animation: gateRise 0.62s var(--ease-premium-enter) both;
+  animation-delay: 0.64s;
+}
+
+/* When the search expands, the wordmark and fan tiles recede to a soft
+   background presence (kept visible, not hidden) so the search is the focus. */
+.inner[data-search-open='true'] .wordmark,
+.inner[data-search-open='true'] .locationRow {
+  opacity: 0.4;
+}
+
+.locationRow {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: flex-start;
+  /* Tiles overlap heavily (deep negative margin between neighbours) so they
+     layer like a spread hand of cards; the gap is 0 and the overlap is done
+     per-item. Rather than cancel padding with negative margins, the row now
+     reserves real space below the fan (`--fan-pad-bottom`, computed from the
+     arc depth + the rotated tiles' lowest corners) so the lowest tile always
+     clears the tagline. With margins zeroed, the wordmark -> fan and
+     fan -> copy gaps both equal the `.inner` gap. */
+  gap: 0;
+  margin: 0;
+  padding: 0 0 var(--fan-pad-bottom, 3.2rem);
+  list-style: none;
+  transition: opacity 0.32s var(--ease-premium-enter);
+}
+
+.locationItem {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  /* Reserve the tile's space but stay invisible until the art has decoded (the
+     row gains `data-tiles-ready`). This keeps late-decoding images from popping
+     in after layout: by the time a tile rises its image is ready to paint. */
+  opacity: 0;
+}
+
+/* Play the staggered fan entrance only once the tile art has decoded, so the
+   whole row rises in cleanly as one beat rather than each image snapping in. */
+.locationRow[data-tiles-ready] .locationItem {
+  --gate-rise: var(--landing-fan-rise, 12px);
+  animation: gateRise var(--landing-fan-duration, 0.6s) var(--ease-premium-enter) both;
+  animation-delay: calc(
+    var(--landing-fan-delay, 0.2s) + var(--landing-index) * var(--landing-fan-stagger, 0.06s)
+  );
+}
+
+/* Horizontal overlap between adjacent tiles, layering like a spread deck while
+   each tile's face stays readable (tiles are 150px wide). The amount is driven
+   per-preset by the `--overlap` custom property set on the row. */
+.locationItem + .locationItem {
+  margin-left: calc(var(--overlap, 2.85rem) * -1);
+}
+
+/* Hovering/focusing a tile lifts it above its overlapping neighbours. */
+.locationItem:hover,
+.locationItem:focus-within {
+  z-index: 5;
+}
+
+.locationButton {
+  composes: withTooltip from './bottomBarTooltip.module.css';
+  /* Grid + place-items centres the image within the frame regardless of any
+     sub-pixel sizing, so the art can never drift off-centre. */
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--tile-radius);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Compose the pieces of the transform through custom properties so the
+     resting tilt is always preserved while the magnet nudge, hover lift and
+     press scale stack on top of it. */
+  --magnet-x: 0px;
+  --magnet-y: 0px;
+  --lift: 0px;
+  --arc-y: 0px;
+  --rest-scale: 1;
+  --tile-scale: 1;
+  /* Resting transform = fan rotation + arc drop + per-preset edge scale; the
+     magnet nudge, hover lift and press scale all stack on top without disturbing
+     the fan angle (hover/press multiply into --tile-scale). */
+  transform: translate3d(
+      var(--magnet-x),
+      calc(var(--magnet-y) + var(--lift) + var(--arc-y)),
+      0
+    )
+    rotate(var(--rest-rot, 0deg))
+    scale(calc(var(--rest-scale, 1) * var(--tile-scale)));
+  transition:
+    transform 0.28s var(--ease-premium-enter),
+    filter 0.28s var(--ease-premium-enter);
+}
+
+.locationButton:hover,
+.locationButton:focus-visible {
+  --lift: -6px;
+  --tile-scale: 1.04;
+}
+
+.locationButton:focus-visible {
+  outline: none;
+}
+
+.locationButton:focus-visible .locationImage {
+  box-shadow: var(--shadow-md);
+}
+
+.locationButton:active {
+  --lift: -1px;
+  --tile-scale: 0.985;
+}
+
+/* Hover/focus stroke painted directly ON the image edge, as an inset ring on an
+   overlay that shares the tile's exact box and border-radius. This traces the
+   image corners cleanly with no sub-pixel gap. An outer box-shadow ring rounds
+   to (radius + spread) and, sitting outside the image's 1px border, left a
+   hairline sliver at the rounded corners where the two radii did not match.
+   Uses ::before because the tooltip (composed withTooltip) owns ::after. */
+.locationButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: var(--tile-radius);
+  box-shadow: inset 0 0 0 2px var(--tile-stroke, #ffffff);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s var(--ease-premium-enter);
+}
+
+.locationButton:hover::before,
+.locationButton:focus-visible::before {
+  opacity: 1;
+}
+
+.locationButton:focus-visible::before {
+  --tile-stroke: var(--focus-ring);
+}
+
+.locationImage {
+  display: block;
+  /* Tiles scaled to suit the ~900px hero column. */
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  object-position: center;
+  /* Shared tile radius + shared hairline stroke, matching every other image
+     tile across the app. */
+  border-radius: var(--tile-radius);
+  border: 1px solid var(--glass-border);
+  /* Intended subtle drop shadow on the landing images (buttons stay flat). */
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.28s var(--ease-premium-enter);
+}
+
+/* Hover deepens the drop shadow; the crisp white edge stroke is drawn by the
+   .locationButton::before overlay so it hugs the image radius exactly. */
+.locationButton:hover .locationImage {
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes gateRise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--gate-rise, 12px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gate,
+  .wordmark,
+  .wordmarkLetter,
+  .tagline,
+  .headphones,
+  .searchSlot,
+  .enterButton,
+  .locationItem,
+  .locationRow[data-tiles-ready] .locationItem {
+    animation: none;
+  }
+
+  /* Skip the lift/dim entirely; the landing simply stays in place until it is
+     unmounted, and the incoming home swaps in instantly (the JS rise is skipped
+     for reduced motion in LandingGate.tsx). */
+  .gate[data-exiting='true'] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Enter button hides instantly (opacity only) as the search expands. */
+  .enterButton {
+    transition: none;
+  }
+
+  .inner[data-search-open='true'] .enterButton {
+    transform: none;
+  }
+
+  /* No staggered rise, so reveal the tiles the instant their art is ready. */
+  .locationRow[data-tiles-ready] .locationItem {
+    opacity: 1;
+  }
+
+  .locationButton,
+  .locationButton::before,
+  .locationImage {
+    transition: none;
+  }
+
+  /* Keep the static fanned arc readable, but drop the magnet follow, the hover
+     lift and the press scale (the pointer-follow JS is also skipped). */
+  .locationButton,
+  .locationButton:hover,
+  .locationButton:focus-visible,
+  .locationButton:active {
+    --magnet-x: 0px;
+    --magnet-y: 0px;
+    --lift: 0px;
+    --tile-scale: 1;
+    transform: translateY(var(--arc-y, 0px)) rotate(var(--rest-rot, 0deg))
+      scale(var(--rest-scale, 1));
+  }
+}

@@ -1,7 +1,9 @@
-/* Frosted glass — flat semi-transparent fill, backdrop blur, soft shadow. No internal shine. */
+/* Frosted glass — backdrop blur with theme-aware fill. */
 
 .base {
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   border: 1px solid var(--glass-border);
   background-color: var(--glass-fill);
   backdrop-filter: var(--blur-glass);
@@ -18,9 +20,28 @@
     color var(--theme-transition-duration) var(--theme-transition-ease);
 }
 
+.base::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-button-overlay, transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.base > * {
+  position: relative;
+  z-index: 1;
+}
+
 .base:active:not(:disabled) {
   transform: translateY(0) scale(0.97);
   background-color: var(--glass-fill-active);
+}
+
+.base:active:not(:disabled)::before {
+  background: var(--glass-button-overlay-active, var(--glass-button-overlay, transparent));
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -28,6 +49,10 @@
     transform: translateY(-1px) scale(1.02);
     background-color: var(--glass-fill-hover);
     box-shadow: var(--glass-shadow-elevated);
+  }
+
+  .base:hover:not(:disabled)::before {
+    background: var(--glass-button-overlay-hover, var(--glass-button-overlay, transparent));
   }
 }
 
@@ -49,16 +74,33 @@
 
 .surface {
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   border: 1px solid var(--glass-border);
   background-color: var(--glass-fill-elevated);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
-  box-shadow: var(--glass-shadow-elevated);
+  box-shadow: none;
   transition:
     background-color var(--theme-transition-duration) var(--theme-transition-ease),
     border-color var(--theme-transition-duration) var(--theme-transition-ease),
     box-shadow var(--theme-transition-duration) var(--theme-transition-ease),
     color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-button-overlay-elevated, var(--glass-button-overlay, transparent));
+  pointer-events: none;
+  z-index: 0;
+}
+
+.surface > * {
+  position: relative;
+  z-index: 1;
 }
 
 .panel {

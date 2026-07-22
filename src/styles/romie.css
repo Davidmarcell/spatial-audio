@@ -1,0 +1,20 @@
+/*
+ * Romie — Regular (400)
+ *
+ * Licensed retail font by Claudetype (Margot Lévêque). Self-hosted for the
+ * "Saudade" wordmark only. Converted from the purchased OTF to woff2.
+ *
+ * Note: before any public/live deploy, confirm the Romie licence permits web
+ * embedding / self-hosting — the file is served publicly under the prototype URL.
+ *
+ * Root-relative url() mirrors the Font Awesome self-host pattern; Vite rewrites
+ * it with the configured `base` at build time so it works under the subpath.
+ */
+
+@font-face {
+  font-family: 'Romie';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/romie/Romie-Regular.woff2') format('woff2');
+}

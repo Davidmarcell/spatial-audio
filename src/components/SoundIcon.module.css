@@ -16,6 +16,39 @@
   pointer-events: auto;
 }
 
+/*
+ * Entrance ("radiate out"): the tile begins small and faded at the listener
+ * centre, then glides to its resting spot. The offset is composed on top of the
+ * wrapper's own centring translate, and the extra scale multiplies the resting,
+ * distance-based scale (set on .iconBody), so it lands at exactly the right size
+ * and position. Transform/opacity only, so there is no layout thrash.
+ */
+.entering {
+  will-change: transform, opacity;
+  animation: soundIconRadiate var(--entrance-duration, 640ms) var(--entrance-delay, 0ms)
+    var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1)) both;
+}
+
+@keyframes soundIconRadiate {
+  from {
+    transform: translate(-50%, -50%)
+      translate(var(--entrance-dx, 0), var(--entrance-dy, 0)) scale(0.32);
+    opacity: 0;
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  /* Glide straight to the resting position and final size on the shared ease-out,
+     with no overshoot: the tile decelerates smoothly into place and settles there
+     rather than drifting past it and wobbling back. */
+  to {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
 .iconBodyDragging {
   transition: none;
 }
@@ -25,8 +58,9 @@
   width: 5.25rem;
   height: 5.25rem;
   padding: 0;
-  border: 1px solid var(--glass-border-strong);
-  border-radius: 1rem;
+  /* Shared image-tile radius + hairline stroke, matching every other tile. */
+  border: 1px solid var(--glass-border);
+  border-radius: var(--tile-radius);
   background: var(--surface-solid);
   display: block;
   cursor: grab;
@@ -61,7 +95,7 @@
 }
 
 /*
- * Selected (e.g. tapped to open detail) magnifies in place — no translateY so
+ * Selected (e.g. tapped to open detail) magnifies in place. No translateY so
  * the tile never appears to jump upward when tapped, especially on touch where
  * there is no prior hover state. Higher specificity than :hover so sticky hover
  * after the scale transition cannot re-apply translateY(-2px).
@@ -192,7 +226,8 @@
   .icon,
   .hoverOverlay,
   .actionButton,
-  .dismissing .icon {
+  .dismissing .icon,
+  .entering {
     animation: none;
     transition: none;
   }

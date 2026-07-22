@@ -15,6 +15,10 @@ type Props = {
   onComplete?: () => void;
   regionArt?: RegionArtContext;
   elevated?: boolean;
+  /** Above modal overlays (ScaleBlurOverlay panel is z-index 501). */
+  overlayElevated?: boolean;
+  /** Lift and scale on pointerdown before drag threshold (library sheet pick-up). */
+  pickedUp?: boolean;
   /** When true, apply canvas-style drag tilt and lift. */
   dragPhysics?: boolean;
 };
@@ -38,6 +42,8 @@ export function FlyingSoundTile({
   onComplete,
   regionArt,
   elevated = false,
+  overlayElevated = false,
+  pickedUp = false,
   dragPhysics = false,
 }: Props) {
   const completedRef = useRef(false);
@@ -114,11 +120,17 @@ export function FlyingSoundTile({
       return;
     }
 
-    const id = requestAnimationFrame(() => {
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
       setTransitioning(true);
-      setFrame(animateTo);
+      raf2 = requestAnimationFrame(() => {
+        setFrame(animateTo);
+      });
     });
-    return () => cancelAnimationFrame(id);
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
   }, [animateTo, isGuidedFlight, onComplete]);
 
   const handleTransitionEnd = () => {
@@ -132,13 +144,16 @@ export function FlyingSoundTile({
     isGuidedFlight ? (transitioning ? styles.animating : '') : styles.dragFollow,
     dragPhysics ? styles.dragPhysics : '',
     elevated ? styles.elevated : '',
+    overlayElevated ? styles.overlayElevated : '',
+    pickedUp && !dragPhysics ? styles.pickedUp : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   const swayDeg = (sway * 180) / Math.PI;
-  const dragStyle = dragPhysics && !isGuidedFlight
-    ? { transform: `translate(-50%, -50%) rotate(${swayDeg}deg) scale(1.06)` }
+  const liftScale = dragPhysics ? 1.06 : pickedUp ? 1.08 : 1;
+  const dragStyle = (dragPhysics || pickedUp) && !isGuidedFlight
+    ? { transform: `translate(-50%, -50%) rotate(${swayDeg}deg) scale(${liftScale})` }
     : undefined;
   const artwork = regionArt
     ? getSoundArtworkForRegion(regionArt.id, regionArt.soundIds, soundId, instanceId, regionArt.tags)

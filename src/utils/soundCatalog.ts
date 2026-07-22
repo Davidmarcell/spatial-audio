@@ -1,5 +1,6 @@
 import { globalAmbientLibrary } from '../data/globalAmbientLibrary';
-import type { AddSoundTab, Season, SoundCategory, SoundDef } from '../data/types';
+import type { AddSoundTab, Season, SoundCategory, SoundDef, SoundType } from '../data/types';
+import { inferSoundType } from './soundTypeInference';
 
 const AMBIENT_TAB_CATEGORIES: SoundCategory[] = ['ambient', 'water'];
 const WILDLIFE_TAB_CATEGORIES: SoundCategory[] = ['bird', 'insect'];
@@ -10,6 +11,30 @@ const CATEGORY_LABELS: Record<SoundCategory, string> = {
   bird: 'Bird',
   insect: 'Insect',
 };
+
+/** Short display labels for generic ambience types (no location prefix). */
+const GENERIC_TYPE_LABELS: Partial<Record<SoundType, string>> = {
+  rain: 'Rain',
+  wind: 'Wind',
+  waves: 'Surf',
+  stream: 'Stream',
+  forest: 'Forest',
+  insects: 'Insects',
+  thunder: 'Thunder',
+  'city-hum': 'City hum',
+  traffic: 'Traffic',
+  jazz: 'Jazz',
+  'bossa-nova': 'Bossa nova',
+  kookaburra: 'Kookaburra',
+};
+
+export function displaySoundName(sound: SoundDef): string {
+  const type = sound.type ?? inferSoundType(sound);
+  if (type && GENERIC_TYPE_LABELS[type]) {
+    return GENERIC_TYPE_LABELS[type]!;
+  }
+  return sound.name;
+}
 
 /** Query term → related words checked against sound name, description, and keywords. */
 const SEARCH_SYNONYMS: Record<string, string[]> = {

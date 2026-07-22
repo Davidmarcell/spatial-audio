@@ -16,11 +16,17 @@
   overflow: hidden;
 }
 
-.launcher {
+.launcherDock {
   position: fixed;
   left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
   z-index: 499;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.launcher {
   padding: 0.45rem 0.75rem;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
@@ -48,6 +54,62 @@
 .launcherActive {
   color: var(--text);
   border-color: rgba(17, 17, 17, 0.22);
+}
+
+.landingChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-panel-bg) 90%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.landingChip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.landingChipDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--text-muted);
+  transition: background 0.15s ease;
+}
+
+.landingChipState {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.landingChipOn {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.landingChipOn .landingChipDot {
+  background: var(--accent);
+}
+
+.landingChipOn .landingChipState {
+  color: var(--accent);
 }
 
 .panelCollapsed {
@@ -221,8 +283,14 @@
   border-top: 1px solid var(--search-divider);
 }
 
+.footerActions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.saveButton,
 .resetButton {
-  width: 100%;
+  flex: 1;
   padding: 0.45rem 0.65rem;
   border: 1px solid var(--glass-border);
   border-radius: 0.55rem;
@@ -234,6 +302,7 @@
   cursor: pointer;
 }
 
+.saveButton:hover,
 .resetButton:hover {
   background: var(--glass-fill-hover);
 }

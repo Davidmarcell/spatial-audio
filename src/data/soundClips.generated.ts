@@ -4,6 +4,20 @@ import type { SoundClip } from './types';
 
 export const soundClips: SoundClip[] = [
   {
+    "id": "adhan-1",
+    "type": "adhan",
+    "tags": [
+      "urban",
+      "calm"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/adhan/adhan-1.ogg",
+    "title": "Adhan",
+    "author": "Aishatu98 (Wikimedia Commons)",
+    "license": "CC0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Adhan.ogg"
+  },
+  {
     "id": "bells-4-church",
     "type": "bells",
     "tags": [
@@ -44,6 +58,21 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/church-bell-s0135.html"
   },
   {
+    "id": "bells-gong-temple",
+    "type": "bells",
+    "tags": [
+      "asian",
+      "temple",
+      "calm"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/bells/bells-gong-temple.mp3",
+    "title": "Gong, sweet",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/gong-sweet-s1482.html"
+  },
+  {
     "id": "bells-tibetan",
     "type": "bells",
     "tags": [
@@ -59,6 +88,23 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/tibetan-bowl-singing-s1109.html"
   },
   {
+    "id": "bossa-nova-migfus",
+    "type": "bossa-nova",
+    "tags": [
+      "americas",
+      "neotropical",
+      "brazil",
+      "music",
+      "mellow"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/bossa-nova/bossa-nova-migfus.ogg",
+    "title": "609562 migfus20 background-music",
+    "author": "Freesound user Migfus20 (Wikimedia Commons)",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:609562 migfus20 background-music.ogg"
+  },
+  {
     "id": "city-cheerful-street",
     "type": "city-hum",
     "tags": [
@@ -71,6 +117,34 @@ export const soundClips: SoundClip[] = [
     "author": "Joseph SARDIN — BigSoundBank.com",
     "license": "CC0 1.0",
     "sourceUrl": "https://bigsoundbank.com/cheerful-street-s2372.html"
+  },
+  {
+    "id": "city-latam-aguascalientes",
+    "type": "city-hum",
+    "tags": [
+      "americas",
+      "urban"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/city-hum/city-latam-aguascalientes.ogg",
+    "title": "Paisaje sonoro del centro de la ciudad",
+    "author": "PamStan (Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paisaje sonoro del centro de la ciudad.ogg"
+  },
+  {
+    "id": "city-night-murmur",
+    "type": "city-hum",
+    "tags": [
+      "urban",
+      "temperate"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/city-hum/city-night-murmur.mp3",
+    "title": "Paris by Night",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/paris-by-night-s0680.html"
   },
   {
     "id": "city-pedestrian",
@@ -88,18 +162,151 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/small-pedestrian-street-s0527.html"
   },
   {
-    "id": "city-street-roads",
-    "type": "city-hum",
+    "id": "carrion-crow-1",
+    "type": "corvid",
     "tags": [
-      "urban",
-      "temperate"
+      "european",
+      "woodland"
     ],
-    "sustained": true,
-    "src": "/audio/pool/city-hum/city-street-roads.mp3",
-    "title": "Street and roads",
-    "author": "Joseph SARDIN — BigSoundBank.com",
-    "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/street-and-roads-s0608.html"
+    "sustained": false,
+    "src": "/audio/pool/corvid/carrion-crow-1.mp3",
+    "title": "Corvus corone - Carrion Crow XC511945",
+    "author": "Marie-Lan Taÿ Pamart",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Corvus corone - Carrion Crow XC511945.mp3"
+  },
+  {
+    "id": "carrion-crow-2",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "woodland"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/carrion-crow-2.mp3",
+    "title": "Corvus corone - Carrion Crow XC491082",
+    "author": "Marie-Lan Taÿ Pamart",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Corvus corone - Carrion Crow XC491082.mp3"
+  },
+  {
+    "id": "corvid-common-raven",
+    "type": "corvid",
+    "tags": [
+      "americas",
+      "nearctic",
+      "forest",
+      "woodland"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/corvid-common-raven.mp3",
+    "title": "Yellowstone sound library - Common Raven - 001",
+    "author": "NPS / David Restivo (Wikimedia Commons)",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Yellowstone sound library - Common Raven - 001.mp3",
+    "pinnedOnly": true
+  },
+  {
+    "id": "corvid-large-billed-crow",
+    "type": "corvid",
+    "tags": [
+      "asian",
+      "mountain",
+      "forest"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/corvid-large-billed-crow.ogg",
+    "title": "20190712-1226 himalayan crow",
+    "author": "Shyamal L.",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:20190712-1226 himalayan crow.ogg"
+  },
+  {
+    "id": "corvid-stellers-jay",
+    "type": "corvid",
+    "tags": [
+      "americas",
+      "nearctic",
+      "forest",
+      "woodland"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/corvid-stellers-jay.mp3",
+    "title": "Cyanocitta stelleri - Steller's Jay XC109653",
+    "author": "Jonathon Jongsma (xeno-canto XC109653, via Wikimedia Commons)",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cyanocitta stelleri - Steller's Jay XC109653.mp3",
+    "pinnedOnly": true
+  },
+  {
+    "id": "jackdaw-1",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "urban"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/jackdaw-1.ogg",
+    "title": "Corvus monedula calls",
+    "author": "Veljo Runnel",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Corvus monedula calls.ogg"
+  },
+  {
+    "id": "jackdaw-2",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "urban"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/jackdaw-2.mp3",
+    "title": "Coloeus monedula - Western Jackdaw XC436939",
+    "author": "Joost van Bruggen",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Coloeus monedula - Western Jackdaw XC436939.mp3"
+  },
+  {
+    "id": "jackdaw-3",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "urban"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/jackdaw-3.ogg",
+    "title": "European Jackdaw's croaking",
+    "author": "QWerk",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:European Jackdaw's croaking.ogg"
+  },
+  {
+    "id": "jay-1",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "woodland"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/jay-1.mp3",
+    "title": "Garrulus glandarius - Eurasian Jay XC461843",
+    "author": "Marie-Lan Taÿ Pamart",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Garrulus glandarius - Eurasian Jay XC461843.mp3"
+  },
+  {
+    "id": "jay-2",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "woodland"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/jay-2.mp3",
+    "title": "Garrulus glandarius - Eurasian Jay XC395872",
+    "author": "Alvaro Ortiz Troncoso",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Garrulus glandarius - Eurasian Jay XC395872.mp3"
   },
   {
     "id": "legacy-blue-jay",
@@ -114,6 +321,78 @@ export const soundClips: SoundClip[] = [
     "author": "Jonathon Jongsma / Xeno-canto",
     "license": "CC BY-SA 3.0",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cyanocitta_cristata_-_Blue_Jay_-_XC86756.ogg"
+  },
+  {
+    "id": "magpie-1",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "garden"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/magpie-1.mp3",
+    "title": "Pica pica - Eurasian Magpie XC432921",
+    "author": "Joost van Bruggen",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pica pica - Eurasian Magpie XC432921.mp3"
+  },
+  {
+    "id": "magpie-2",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "garden"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/magpie-2.mp3",
+    "title": "Pica pica - Eurasian Magpie XC537413",
+    "author": "Benoît Van Hecke",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pica pica - Eurasian Magpie XC537413.mp3"
+  },
+  {
+    "id": "rook-1",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "farmland"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/rook-1.ogg",
+    "title": "Corvus frugilegus",
+    "author": "Vladimir Yu. Arkhipov, Arkhivov",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Corvus frugilegus.ogg"
+  },
+  {
+    "id": "rook-2",
+    "type": "corvid",
+    "tags": [
+      "european",
+      "farmland"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/corvid/rook-2.ogg",
+    "title": "Грач в Лаздинае",
+    "author": "Кашеед",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Грач в Лаздинае.ogg"
+  },
+  {
+    "id": "fado-tic-tac",
+    "type": "fado",
+    "tags": [
+      "european",
+      "portugal",
+      "music",
+      "mellow"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/fado/fado-tic-tac.ogg",
+    "title": "Tic Tac Fado Instrumental",
+    "author": "PRS (Wikimedia Commons)",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tic Tac Fado Instrumental.ogg"
   },
   {
     "id": "fire-branching-1",
@@ -245,6 +524,22 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/frogs-2-s0998.html"
   },
   {
+    "id": "frogs-kajika",
+    "type": "frogs",
+    "tags": [
+      "asian",
+      "temperate",
+      "night",
+      "summer"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/frogs/frogs-kajika.ogg",
+    "title": "Buergeria buergeri",
+    "author": "リトルスター",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Buergeria buergeri.ogg"
+  },
+  {
     "id": "insects-cicada-1",
     "type": "insects",
     "tags": [
@@ -286,6 +581,23 @@ export const soundClips: SoundClip[] = [
     "author": "Joseph SARDIN — BigSoundBank.com",
     "license": "CC0 1.0",
     "sourceUrl": "https://bigsoundbank.com/field-cricket-s1020.html"
+  },
+  {
+    "id": "insects-higurashi-2",
+    "type": "insects",
+    "tags": [
+      "asian",
+      "temperate",
+      "forest",
+      "summer",
+      "night"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/insects/insects-higurashi-2.ogg",
+    "title": "Higurashi 20180728 1902",
+    "author": "あおもりくま",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Higurashi 20180728 1902.ogg"
   },
   {
     "id": "insects-nocturnal",
@@ -407,6 +719,52 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:What can i say.ogg"
   },
   {
+    "id": "kookaburra-1",
+    "type": "kookaburra",
+    "tags": [
+      "pacific",
+      "australia",
+      "forest"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/kookaburra/kookaburra-1.ogg",
+    "title": "LaughingKookaburra",
+    "author": "Kuco (Wikimedia Commons)",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:LaughingKookaburra.ogg"
+  },
+  {
+    "id": "lion-roar-1",
+    "type": "lion",
+    "tags": [
+      "african",
+      "savanna",
+      "arid"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/lion/lion-roar-1.ogg",
+    "title": "Lion raring-sound1TamilNadu178",
+    "author": "தகவலுழவன் (Wikimedia Commons)",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lion raring-sound1TamilNadu178.ogg"
+  },
+  {
+    "id": "market-cebu-night",
+    "type": "market",
+    "tags": [
+      "asian",
+      "seasian",
+      "urban",
+      "night"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/market/market-cebu-night.ogg",
+    "title": "Carbon Market at Night in Cebu City",
+    "author": "Bim24 (Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Carbon Market at Night in Cebu City.ogg"
+  },
+  {
     "id": "market-covered-1",
     "type": "market",
     "tags": [
@@ -434,6 +792,20 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/crowd-of-50-60-people-1-s3515.html"
   },
   {
+    "id": "market-lagos-idumota",
+    "type": "market",
+    "tags": [
+      "african",
+      "urban"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/market/market-lagos-idumota.ogg",
+    "title": "Idumota Market (Emeka Ogboh)",
+    "author": "Emeka Ogboh (Wikimedia Commons)",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Idumota Market (Emeka Ogboh).ogg"
+  },
+  {
     "id": "market-spanish-crowd",
     "type": "market",
     "tags": [
@@ -449,19 +821,125 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/spanish-crowd-s0825.html"
   },
   {
+    "id": "musette-duet",
+    "type": "musette",
+    "tags": [
+      "european",
+      "french",
+      "music",
+      "mellow"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/musette/musette-duet.mp3",
+    "title": "Duet Musette (ISRC USUAN1100250)",
+    "author": "Kevin MacLeod (incompetech.com, via Wikimedia Commons)",
+    "license": "CC BY 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Duet Musette (ISRC USUAN1100250).mp3"
+  },
+  {
+    "id": "ney-taksim-hicaz",
+    "type": "ney",
+    "tags": [
+      "music",
+      "mellow",
+      "calm"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/ney/ney-taksim-hicaz.ogg",
+    "title": "Taxim Hicaz (c. 1928)",
+    "author": "Ahmed Djewdet (c. 1928), via Wikimedia Commons",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taxim Hicaz (c. 1928).ogg"
+  },
+  {
+    "id": "eagle-owl-1",
+    "type": "owl",
+    "tags": [
+      "european",
+      "woodland",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/eagle-owl-1.mp3",
+    "title": "Bubo bubo - Eurasian Eagle-Owl XC604112",
+    "author": "Robert Petersen",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bubo bubo - Eurasian Eagle-Owl XC604112.mp3"
+  },
+  {
+    "id": "eagle-owl-2",
+    "type": "owl",
+    "tags": [
+      "european",
+      "woodland",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/eagle-owl-2.ogg",
+    "title": "BuboBuboMariankaSlovakia2012",
+    "author": "Michal Noga",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:BuboBuboMariankaSlovakia2012.ogg"
+  },
+  {
     "id": "legacy-morepork",
     "type": "owl",
     "tags": [
-      "pacific",
-      "nz",
+      "americas",
+      "neotropical",
       "night"
     ],
     "sustained": false,
     "src": "/audio/nz/morepork-call.ogg",
-    "title": "Pacific Pygmy Owl call",
+    "title": "Peruvian Pygmy Owl call (Glaucidium peruanum)",
     "author": "Wikimedia Commons contributor",
     "license": "CC BY-SA 4.0",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pacific_Pygmy_Owl_call_(Glaucidium_peruanum).ogg"
+  },
+  {
+    "id": "little-owl-1",
+    "type": "owl",
+    "tags": [
+      "european",
+      "farmland",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/little-owl-1.mp3",
+    "title": "Athene noctua - Little Owl XC432927",
+    "author": "Joost van Bruggen",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Athene noctua - Little Owl XC432927.mp3"
+  },
+  {
+    "id": "long-eared-owl-1",
+    "type": "owl",
+    "tags": [
+      "european",
+      "woodland",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/long-eared-owl-1.mp3",
+    "title": "Asio otus - Long-eared Owl XC108293",
+    "author": "Alexander Kurthy",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Asio otus - Long-eared Owl XC108293.mp3"
+  },
+  {
+    "id": "long-eared-owl-2",
+    "type": "owl",
+    "tags": [
+      "european",
+      "woodland",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/long-eared-owl-2.mp3",
+    "title": "Asio otus - Long-eared Owl XC513604",
+    "author": "JACOB Hervé",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Asio otus - Long-eared Owl XC513604.mp3"
   },
   {
     "id": "owl-barn",
@@ -479,6 +957,53 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/barn-owl-s1400.html"
   },
   {
+    "id": "owl-brown-hawk-owl",
+    "type": "owl",
+    "tags": [
+      "asian",
+      "tropical",
+      "forest",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/owl-brown-hawk-owl.mp3",
+    "title": "Ninox scutulata - Brown Hawk-Owl XC382468",
+    "author": "Manoj Karingamadathil",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ninox scutulata - Brown Hawk-Owl XC382468.mp3"
+  },
+  {
+    "id": "owl-collared-scops-owl",
+    "type": "owl",
+    "tags": [
+      "asian",
+      "tropical",
+      "forest",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/owl-collared-scops-owl.ogg",
+    "title": "CollaredScopsOwl-BirdCall",
+    "author": "AnupreetBorkar",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:CollaredScopsOwl-BirdCall.ogg"
+  },
+  {
+    "id": "owl-morepork-ruru",
+    "type": "owl",
+    "tags": [
+      "pacific",
+      "nz",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/owl-morepork-ruru.mp3",
+    "title": "Ninox boobook - Southern Boobook XC442607",
+    "author": "James Ray (xeno-canto XC442607, via Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ninox boobook - Southern Boobook XC442607.mp3"
+  },
+  {
     "id": "owl-night-birds",
     "type": "owl",
     "tags": [
@@ -491,6 +1016,21 @@ export const soundClips: SoundClip[] = [
     "author": "Joseph SARDIN — BigSoundBank.com",
     "license": "CC0 1.0",
     "sourceUrl": "https://bigsoundbank.com/birds-at-night-s0315.html"
+  },
+  {
+    "id": "owl-pearl-spotted-owlet",
+    "type": "owl",
+    "tags": [
+      "african",
+      "savanna",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/owl-pearl-spotted-owlet.mp3",
+    "title": "Glaucidium perlatum, twee roep te Hartbeesfontein, 2022-06-25 15h35, a",
+    "author": "JMK",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Glaucidium perlatum, twee roep te Hartbeesfontein, 2022-06-25 15h35, a.mp3"
   },
   {
     "id": "owl-tawny-1",
@@ -523,11 +1063,43 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/tawny-owl-2-s1764.html"
   },
   {
+    "id": "tawny-owl-xc-1",
+    "type": "owl",
+    "tags": [
+      "european",
+      "woodland",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/tawny-owl-xc-1.mp3",
+    "title": "Strix aluco - Tawny Owl XC494801",
+    "author": "Alvaro Ortiz Troncoso",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Strix aluco - Tawny Owl XC494801.mp3"
+  },
+  {
+    "id": "tawny-owl-xc-2",
+    "type": "owl",
+    "tags": [
+      "european",
+      "woodland",
+      "night"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/owl/tawny-owl-xc-2.mp3",
+    "title": "Strix aluco - Tawny Owl XC563348",
+    "author": "Alvaro Ortiz Troncoso",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Strix aluco - Tawny Owl XC563348.mp3"
+  },
+  {
     "id": "legacy-howler",
     "type": "primates",
     "tags": [
       "tropical",
-      "jungle"
+      "jungle",
+      "americas",
+      "neotropical"
     ],
     "sustained": true,
     "src": "/audio/costa-rica/howler-distant.mp3",
@@ -535,6 +1107,66 @@ export const soundClips: SoundClip[] = [
     "author": "Joseph SARDIN — BigSoundBank.com",
     "license": "CC0 1.0",
     "sourceUrl": "https://bigsoundbank.com/hall-of-the-monkeys-of-the-menagerie-of-paris-s1004.html"
+  },
+  {
+    "id": "primates-lar-gibbon",
+    "type": "primates",
+    "tags": [
+      "asian",
+      "tropical",
+      "forest"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/primates/primates-lar-gibbon.ogg",
+    "title": "Lar Gibbon hoots",
+    "author": "FunkMonk",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lar Gibbon hoots.ogg"
+  },
+  {
+    "id": "primates-mantled-howler",
+    "type": "primates",
+    "tags": [
+      "americas",
+      "neotropical",
+      "tropical",
+      "forest"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/primates/primates-mantled-howler.ogg",
+    "title": "Mantled Howler Monkey (Alouatta palliata) (W ALOUATTA PALLIATA R1 C2)",
+    "author": "Richard Ranft",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mantled Howler Monkey (Alouatta palliata) (W ALOUATTA PALLIATA R1 C2).ogg"
+  },
+  {
+    "id": "primates-siamang",
+    "type": "primates",
+    "tags": [
+      "asian",
+      "tropical",
+      "forest"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/primates/primates-siamang.ogg",
+    "title": "Hylobates syndactylus calling 3588",
+    "author": "Dori",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hylobates syndactylus calling 3588.ogg"
+  },
+  {
+    "id": "primates-vervet",
+    "type": "primates",
+    "tags": [
+      "african",
+      "savanna"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/primates/primates-vervet.ogg",
+    "title": "Vervet Monkey (Chlorocebus pygerythrus) (W CERCOPITHECUS AETHIOPS R2 C2)",
+    "author": "British Library",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vervet Monkey (Chlorocebus pygerythrus) (W CERCOPITHECUS AETHIOPS R2 C2).ogg"
   },
   {
     "id": "legacy-rain-canopy",
@@ -621,6 +1253,106 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/rain-under-an-umbrella-s2679.html"
   },
   {
+    "id": "arctic-tern-1",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal",
+      "cold"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/seabird/arctic-tern-1.mp3",
+    "title": "Sterna paradisaea - Arctic Tern XC564600",
+    "author": "Doug Hynes",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sterna paradisaea - Arctic Tern XC564600.mp3"
+  },
+  {
+    "id": "arctic-tern-2",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal",
+      "cold"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/seabird/arctic-tern-2.wav",
+    "title": "Holm of Papa Sterna paradisaea",
+    "author": "Gunther Tschuch",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Holm of Papa Sterna paradisaea.wav"
+  },
+  {
+    "id": "common-tern-1",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/seabird/common-tern-1.ogg",
+    "title": "Sterna-hirundo-002",
+    "author": "Mdf",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sterna-hirundo-002.ogg"
+  },
+  {
+    "id": "gannet-1",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/seabird/gannet-1.ogg",
+    "title": "Northern Gannet (Morus bassanus) (W1CDR0001422 BD11)",
+    "author": "British Library",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Northern Gannet (Morus bassanus) (W1CDR0001422 BD11).ogg"
+  },
+  {
+    "id": "herring-gull-1",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/seabird/herring-gull-1.mp3",
+    "title": "Larus argentatus - European Herring Gull XC436943",
+    "author": "Joost van Bruggen",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Larus argentatus - European Herring Gull XC436943.mp3"
+  },
+  {
+    "id": "herring-gull-2",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/seabird/herring-gull-2.mp3",
+    "title": "XC707075 - European Herring Gull - Larus argentatus",
+    "author": "Sonothèque ADVL",
+    "license": "CC0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:XC707075 - European Herring Gull - Larus argentatus.mp3"
+  },
+  {
+    "id": "kittiwake-1",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/seabird/kittiwake-1.ogg",
+    "title": "Kittiwake (Rissa tridactyla) (W1CDR0001389 BD30)",
+    "author": "British Library",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kittiwake (Rissa tridactyla) (W1CDR0001389 BD30).ogg"
+  },
+  {
     "id": "legacy-gull",
     "type": "seabird",
     "tags": [
@@ -633,6 +1365,21 @@ export const soundClips: SoundClip[] = [
     "author": "British Library / Wikimedia Commons",
     "license": "CC BY-SA 4.0",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Herring_Gull_(Larus_argentatus)_(W1CDR0001420_BD12).ogg"
+  },
+  {
+    "id": "puffin-1",
+    "type": "seabird",
+    "tags": [
+      "european",
+      "coastal",
+      "cold"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/seabird/puffin-1.ogg",
+    "title": "Atlantic Puffin (Fratercula arctica) (W1CDR0001416 BD3)",
+    "author": "British Library",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Atlantic Puffin (Fratercula arctica) (W1CDR0001416 BD3).ogg"
   },
   {
     "id": "seabird-gulls-harbour",
@@ -661,6 +1408,118 @@ export const soundClips: SoundClip[] = [
     "author": "Joseph SARDIN — BigSoundBank.com",
     "license": "CC0 1.0",
     "sourceUrl": "https://bigsoundbank.com/sea-waves-and-seagulls-s0267.html"
+  },
+  {
+    "id": "bee-eater-1",
+    "type": "songbird",
+    "tags": [
+      "mediterranean",
+      "arid"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/songbird/bee-eater-1.mp3",
+    "title": "Merops apiaster - European Bee-eater XC477953",
+    "author": "Pascal Christe",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Merops apiaster - European Bee-eater XC477953.mp3"
+  },
+  {
+    "id": "blackcap-1",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "woodland"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/blackcap-1.mp3",
+    "title": "Sylvia atricapilla - Eurasian Blackcap XC576666",
+    "author": "Benoît Van Hecke",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sylvia atricapilla - Eurasian Blackcap XC576666.mp3"
+  },
+  {
+    "id": "blackcap-2",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "woodland"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/blackcap-2.mp3",
+    "title": "Sylvia atricapilla - Eurasian Blackcap XC282805",
+    "author": "Alexander Kurthy",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sylvia atricapilla - Eurasian Blackcap XC282805.mp3"
+  },
+  {
+    "id": "chaffinch-1",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "woodland"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/chaffinch-1.mp3",
+    "title": "Fringilla coelebs - Common Chaffinch XC477912",
+    "author": "Marie-Lan Taÿ Pamart",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fringilla coelebs - Common Chaffinch XC477912.mp3"
+  },
+  {
+    "id": "chaffinch-2",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "woodland"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/chaffinch-2.mp3",
+    "title": "Fringilla coelebs - Common Chaffinch XC489896",
+    "author": "Hannu Varkki",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fringilla coelebs - Common Chaffinch XC489896.mp3"
+  },
+  {
+    "id": "goldfinch-1",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/goldfinch-1.oga",
+    "title": "Carduelis carduelis - Spring call",
+    "author": "Ewithu",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Carduelis carduelis - Spring call.oga"
+  },
+  {
+    "id": "laughing-dove-1",
+    "type": "songbird",
+    "tags": [
+      "mediterranean",
+      "arid"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/laughing-dove-1.ogg",
+    "title": "Spilopelia senegalensis call in Tehran",
+    "author": "MRG90",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Spilopelia senegalensis call in Tehran.ogg"
+  },
+  {
+    "id": "laughing-dove-2",
+    "type": "songbird",
+    "tags": [
+      "mediterranean",
+      "arid"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/laughing-dove-2.ogg",
+    "title": "S-senegalensis",
+    "author": "L. Shyamal",
+    "license": "CC BY 2.5",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:S-senegalensis.ogg"
   },
   {
     "id": "legacy-bellbird",
@@ -738,6 +1597,107 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tui_song_-_Trelissick_Park_-8_March_2021.ogg"
   },
   {
+    "id": "nightingale-1",
+    "type": "songbird",
+    "tags": [
+      "mediterranean",
+      "european",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/nightingale-1.mp3",
+    "title": "Luscinia megarhynchos - Common Nightingale XC546171",
+    "author": "Benoît Van Hecke",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Luscinia megarhynchos - Common Nightingale XC546171.mp3"
+  },
+  {
+    "id": "nightingale-2",
+    "type": "songbird",
+    "tags": [
+      "mediterranean",
+      "european",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/nightingale-2.mp3",
+    "title": "Luscinia megarhynchos - Common Nightingale XC473316",
+    "author": "Marie-Lan Taÿ Pamart",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Luscinia megarhynchos - Common Nightingale XC473316.mp3"
+  },
+  {
+    "id": "robin-1",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/robin-1.mp3",
+    "title": "Erithacus rubecula - European Robin XC507779",
+    "author": "Marie-Lan Taÿ Pamart",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Erithacus rubecula - European Robin XC507779.mp3"
+  },
+  {
+    "id": "robin-2",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/robin-2.mp3",
+    "title": "Erithacus rubecula - European Robin XC542842",
+    "author": "Benoît Van Hecke",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Erithacus rubecula - European Robin XC542842.mp3"
+  },
+  {
+    "id": "song-thrush-1",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/song-thrush-1.mp3",
+    "title": "Turdus philomelos - Song Thrush XC541754",
+    "author": "Benoît Van Hecke",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Turdus philomelos - Song Thrush XC541754.mp3"
+  },
+  {
+    "id": "song-thrush-2",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/song-thrush-2.mp3",
+    "title": "Turdus philomelos - Song Thrush XC436363",
+    "author": "Joost van Bruggen",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Turdus philomelos - Song Thrush XC436363.mp3"
+  },
+  {
+    "id": "songbird-australian-magpie",
+    "type": "songbird",
+    "tags": [
+      "pacific",
+      "australia",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-australian-magpie.ogg",
+    "title": "Magpiesong",
+    "author": "Meganesia (Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Magpiesong.ogg"
+  },
+  {
     "id": "songbird-blackbird-10",
     "type": "songbird",
     "tags": [
@@ -796,6 +1756,189 @@ export const soundClips: SoundClip[] = [
     "author": "ezwa (Wikimedia Commons)",
     "license": "Public domain",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gentle_breeze_and_birds_singing.ogg"
+  },
+  {
+    "id": "songbird-brown-eared-bulbul",
+    "type": "songbird",
+    "tags": [
+      "asian",
+      "temperate",
+      "garden"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/songbird/songbird-brown-eared-bulbul.ogg",
+    "title": "Hypsipetes-amaurotis-2025-05-20-282617142",
+    "author": "karliatje",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hypsipetes-amaurotis-2025-05-20-282617142.ogg"
+  },
+  {
+    "id": "songbird-cape-robin-chat",
+    "type": "songbird",
+    "tags": [
+      "african",
+      "garden",
+      "mountain"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-cape-robin-chat.ogg",
+    "title": "Cossypha caffra, 2 sing voor sonop, Pretoria, a",
+    "author": "JMK",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cossypha caffra, 2 sing voor sonop, Pretoria, a.ogg"
+  },
+  {
+    "id": "songbird-cape-turtle-dove",
+    "type": "songbird",
+    "tags": [
+      "african",
+      "savanna",
+      "arid"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-cape-turtle-dove.mp3",
+    "title": "Streptopelia capicola abunda, roep, 17 s, Bronberg, a",
+    "author": "JMK",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Streptopelia capicola abunda, roep, 17 s, Bronberg, a.mp3"
+  },
+  {
+    "id": "songbird-common-myna",
+    "type": "songbird",
+    "tags": [
+      "asian",
+      "urban",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-common-myna.mp3",
+    "title": "Acridotheres tristis - Common Myna XC508591",
+    "author": "James Ray (xeno-canto XC508591, via Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Acridotheres tristis - Common Myna XC508591.mp3"
+  },
+  {
+    "id": "songbird-common-swift",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "mediterranean",
+      "urban",
+      "garden",
+      "summer"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-common-swift.mp3",
+    "title": "Apus apus - Common Swift XC554033",
+    "author": "Luis Alvarez Menendez (xeno-canto XC554033, via Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Apus apus - Common Swift XC554033.mp3"
+  },
+  {
+    "id": "songbird-house-sparrow",
+    "type": "songbird",
+    "tags": [
+      "european",
+      "urban",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-house-sparrow.mp3",
+    "title": "Passer domesticus - House Sparrow XC543237",
+    "author": "Benoît Van Hecke (xeno-canto XC543237, via Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Passer domesticus - House Sparrow XC543237.mp3"
+  },
+  {
+    "id": "songbird-japanese-bush-warbler-2",
+    "type": "songbird",
+    "tags": [
+      "asian",
+      "temperate",
+      "forest",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-japanese-bush-warbler-2.ogg",
+    "title": "Japanese nightingale note01",
+    "author": "Unknown",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Japanese nightingale note01.ogg"
+  },
+  {
+    "id": "songbird-japanese-bush-warbler-uguisu",
+    "type": "songbird",
+    "tags": [
+      "asian",
+      "temperate",
+      "forest",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-japanese-bush-warbler-uguisu.ogg",
+    "title": "Uguisu5707",
+    "author": "Jnn",
+    "license": "CC BY 2.1 jp",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Uguisu5707.ogg"
+  },
+  {
+    "id": "songbird-rufous-collared-sparrow",
+    "type": "songbird",
+    "tags": [
+      "americas",
+      "neotropical"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-rufous-collared-sparrow.ogg",
+    "title": "Canto de un Zonotrichia capensis",
+    "author": "Santga",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Canto de un Zonotrichia capensis.ogg"
+  },
+  {
+    "id": "songbird-southern-lapwing",
+    "type": "songbird",
+    "tags": [
+      "americas",
+      "neotropical"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/songbird/songbird-southern-lapwing.ogg",
+    "title": "Vanellus Chilensis",
+    "author": "Eurico Zimbres",
+    "license": "CC BY-SA 2.5",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vanellus Chilensis.ogg"
+  },
+  {
+    "id": "songbird-tree-sparrow",
+    "type": "songbird",
+    "tags": [
+      "asian",
+      "urban",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-tree-sparrow.mp3",
+    "title": "Passer montanus - Eurasian Tree Sparrow XC347806",
+    "author": "Derek Paulo (xeno-canto XC347806, via Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Passer montanus - Eurasian Tree Sparrow XC347806.mp3"
+  },
+  {
+    "id": "songbird-white-throated-sparrow",
+    "type": "songbird",
+    "tags": [
+      "americas",
+      "nearctic",
+      "boreal",
+      "woodland"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/songbird/songbird-white-throated-sparrow.ogg",
+    "title": "Zonotrichia albicollis - White-throated Sparrow XC138634",
+    "author": "Jonathon Jongsma (xeno-canto XC138634, via Wikimedia Commons)",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zonotrichia albicollis - White-throated Sparrow XC138634.ogg"
   },
   {
     "id": "legacy-stream-distant",
@@ -935,11 +2078,70 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/children-in-the-street-s0370.html"
   },
   {
+    "id": "traffic-highway",
+    "type": "traffic",
+    "tags": [
+      "urban"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/traffic/traffic-highway.mp3",
+    "title": "Highway",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/highway-s0122.html"
+  },
+  {
+    "id": "traffic-lagos-obalende",
+    "type": "traffic",
+    "tags": [
+      "african",
+      "urban"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/traffic/traffic-lagos-obalende.ogg",
+    "title": "Obalende bus park, Lagos Nigeria (Emeka Ogboh)",
+    "author": "Emeka Ogboh (Wikimedia Commons)",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Obalende bus park, Lagos Nigeria (Emeka Ogboh).ogg"
+  },
+  {
+    "id": "traffic-manila-jeepney",
+    "type": "traffic",
+    "tags": [
+      "asian",
+      "seasian",
+      "urban"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/traffic/traffic-manila-jeepney.ogg",
+    "title": "Jeepney Makati-Pasay",
+    "author": "YoeriMeulemans (Wikimedia Commons)",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jeepney Makati-Pasay.ogg"
+  },
+  {
+    "id": "tram-lisboa-bica",
+    "type": "tram",
+    "tags": [
+      "european",
+      "urban",
+      "lisbon"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/tram/tram-lisboa-bica.ogg",
+    "title": "Lisboa Elevador da Bica",
+    "author": "Pixelkaspar (Wikimedia Commons)",
+    "license": "Public domain",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lisboa Elevador da Bica.ogg"
+  },
+  {
     "id": "legacy-quetzal",
     "type": "tropical-bird",
     "tags": [
       "tropical",
-      "cloud-forest"
+      "cloud-forest",
+      "americas",
+      "neotropical"
     ],
     "sustained": true,
     "src": "/audio/costa-rica/quetzal-song.ogg",
@@ -953,7 +2155,9 @@ export const soundClips: SoundClip[] = [
     "type": "tropical-bird",
     "tags": [
       "tropical",
-      "jungle"
+      "jungle",
+      "americas",
+      "neotropical"
     ],
     "sustained": false,
     "src": "/audio/costa-rica/toucan-call.ogg",
@@ -961,6 +2165,110 @@ export const soundClips: SoundClip[] = [
     "author": "Wikimedia Commons contributor",
     "license": "CC BY-SA 4.0",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Toco_Toucan_call_(Ramphastos_toco).ogg"
+  },
+  {
+    "id": "tropical-bird-african-fish-eagle",
+    "type": "tropical-bird",
+    "tags": [
+      "african",
+      "savanna"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/tropical-bird/tropical-bird-african-fish-eagle.ogg",
+    "title": "En-us-African fish eagle",
+    "author": "Paul2520",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:En-us-African fish eagle.ogg"
+  },
+  {
+    "id": "tropical-bird-asian-koel",
+    "type": "tropical-bird",
+    "tags": [
+      "asian",
+      "tropical",
+      "forest",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/tropical-bird/tropical-bird-asian-koel.mp3",
+    "title": "Eudynamys scolopaceus - Asian Koel XC476378",
+    "author": "Manoj Karingamadathil",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Eudynamys scolopaceus - Asian Koel XC476378.mp3"
+  },
+  {
+    "id": "tropical-bird-chestnut-headed-oropendola",
+    "type": "tropical-bird",
+    "tags": [
+      "americas",
+      "neotropical",
+      "tropical",
+      "forest"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/tropical-bird/tropical-bird-chestnut-headed-oropendola.mp3",
+    "title": "Psarocolius wagleri - Chestnut-headed Oropendola XC251419",
+    "author": "Niels Krabbe",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Psarocolius wagleri - Chestnut-headed Oropendola XC251419.mp3"
+  },
+  {
+    "id": "tropical-bird-great-blue-turaco",
+    "type": "tropical-bird",
+    "tags": [
+      "african",
+      "forest"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/tropical-bird/tropical-bird-great-blue-turaco.ogg",
+    "title": "Great Blue Turaco (Corythaeola cristata) (022A-WA03044X0043-0035M0)",
+    "author": "A.R. Gregory",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Great Blue Turaco (Corythaeola cristata) (022A-WA03044X0043-0035M0).ogg"
+  },
+  {
+    "id": "tropical-bird-great-hornbill",
+    "type": "tropical-bird",
+    "tags": [
+      "asian",
+      "tropical",
+      "forest"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/tropical-bird/tropical-bird-great-hornbill.wav",
+    "title": "Great hornbill , Buceros bicornis,call",
+    "author": "Shino jacob koottanad",
+    "license": "CC BY-SA 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Great hornbill , Buceros bicornis,call.wav"
+  },
+  {
+    "id": "tropical-bird-hadada-ibis",
+    "type": "tropical-bird",
+    "tags": [
+      "african",
+      "savanna"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/tropical-bird/tropical-bird-hadada-ibis.ogg",
+    "title": "Hadada Ibis (Bostrychia hagedash) (022A-WA03044X0019-0013M0)",
+    "author": "A.R. Gregory",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hadada Ibis (Bostrychia hagedash) (022A-WA03044X0019-0013M0).ogg"
+  },
+  {
+    "id": "tropical-bird-racket-tailed-drongo",
+    "type": "tropical-bird",
+    "tags": [
+      "asian",
+      "tropical",
+      "forest"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/tropical-bird/tropical-bird-racket-tailed-drongo.ogg",
+    "title": "Dicrurus paradiseus - Greater Racket-tailed Drongo XC124717",
+    "author": "Sudipto Roy",
+    "license": "CC BY-SA 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dicrurus paradiseus - Greater Racket-tailed Drongo XC124717.ogg"
   },
   {
     "id": "legacy-surf",
@@ -1062,33 +2370,20 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://bigsoundbank.com/beach-small-waves-s0265.html"
   },
   {
-    "id": "legacy-wind",
+    "id": "wind-fir-forest",
     "type": "wind",
     "tags": [
+      "forest",
       "temperate",
-      "open"
+      "calm"
     ],
     "sustained": true,
-    "src": "/audio/nz/wind-loop.mp3",
-    "title": "Wind",
-    "author": "Joseph SARDIN — BigSoundBank.com",
-    "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/wind-s0595.html"
-  },
-  {
-    "id": "wind-howling",
-    "type": "wind",
-    "tags": [
-      "cold",
-      "storm",
-      "alpine"
-    ],
-    "sustained": true,
-    "src": "/audio/pool/wind/wind-howling.ogg",
-    "title": "Howling wind",
-    "author": "Tvabutzku1234 (Wikimedia Commons)",
-    "license": "CC0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Howling_wind.ogg"
+    "src": "/audio/pool/wind/wind-fir-forest.mp3",
+    "title": "Wind in the spruces, Vijlenerbos (transcoded 64 kbps MP3 of the CC BY 3.0 original)",
+    "author": "luc de bruijn (Wikimedia Commons)",
+    "license": "CC BY 3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Wind_in_sparren_in_het_Vijlenerbos_-_SoundCloud_-_luc_de_bruijn.ogg",
+    "weight": 5
   },
   {
     "id": "wind-in-tree",
@@ -1102,36 +2397,8 @@ export const soundClips: SoundClip[] = [
     "title": "Wind in a tree",
     "author": "Joseph SARDIN — BigSoundBank.com",
     "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/wind-in-a-tree-s0659.html"
-  },
-  {
-    "id": "wind-open",
-    "type": "wind",
-    "tags": [
-      "temperate",
-      "open"
-    ],
-    "sustained": true,
-    "src": "/audio/pool/wind/wind-open.mp3",
-    "title": "Wind",
-    "author": "Joseph SARDIN — BigSoundBank.com",
-    "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/wind-s0595.html"
-  },
-  {
-    "id": "wind-strong-1",
-    "type": "wind",
-    "tags": [
-      "coastal",
-      "open",
-      "storm"
-    ],
-    "sustained": true,
-    "src": "/audio/pool/wind/wind-strong-1.mp3",
-    "title": "Strong wind #1",
-    "author": "Joseph SARDIN — BigSoundBank.com",
-    "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/strong-wind-1-s0146.html"
+    "sourceUrl": "https://bigsoundbank.com/wind-in-a-tree-s0659.html",
+    "weight": 1.5
   },
   {
     "id": "wind-tall-grass",
@@ -1146,35 +2413,7 @@ export const soundClips: SoundClip[] = [
     "title": "Wind in tall grass",
     "author": "Joseph SARDIN — BigSoundBank.com",
     "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/wind-in-tall-grass-s0908.html"
-  },
-  {
-    "id": "wind-trees-1",
-    "type": "wind",
-    "tags": [
-      "forest",
-      "temperate"
-    ],
-    "sustained": true,
-    "src": "/audio/pool/wind/wind-trees-1.mp3",
-    "title": "Strong wind and trees #1",
-    "author": "Joseph SARDIN — BigSoundBank.com",
-    "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/strong-wind-and-trees-1-s1450.html"
-  },
-  {
-    "id": "wind-whistling",
-    "type": "wind",
-    "tags": [
-      "alpine",
-      "cold",
-      "open"
-    ],
-    "sustained": true,
-    "src": "/audio/pool/wind/wind-whistling.mp3",
-    "title": "Whistling of the wind #1",
-    "author": "Joseph SARDIN — BigSoundBank.com",
-    "license": "CC0 1.0",
-    "sourceUrl": "https://bigsoundbank.com/whistling-of-the-wind-1-s0147.html"
+    "sourceUrl": "https://bigsoundbank.com/wind-in-tall-grass-s0908.html",
+    "weight": 1.5
   }
 ];

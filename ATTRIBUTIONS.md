@@ -40,6 +40,23 @@ All bundled sounds are royalty-free or Creative Commons licensed. Some clips are
 |------|-------|--------|---------|--------|
 | `public/audio/london/street-jazz-busker.mp3` | Fake Jazz Trio | Antti Luode / Wikimedia Commons | CC BY 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Fake_Jazz_Trio_(Antti_Luode).mp3) |
 
+## Regional pool variants (Phase 0/1 sourcing)
+
+Registered in `src/data/soundClips.generated.ts` and credited automatically on the in-app credits page. Added to widen the regional city, market and urban-bird pools so searched cities land a region-true bed rather than a European stand-in.
+
+| File | Title | Author | License | Source |
+|------|-------|--------|---------|--------|
+| `public/audio/pool/traffic/traffic-manila-jeepney.ogg` | Jeepney Makati-Pasay | YoeriMeulemans | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Jeepney_Makati-Pasay.ogg) |
+| `public/audio/pool/traffic/traffic-lagos-obalende.ogg` | Obalende bus park, Lagos Nigeria | Emeka Ogboh | CC BY-SA 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Obalende_bus_park,_Lagos_Nigeria_(Emeka_Ogboh).ogg) |
+| `public/audio/pool/market/market-cebu-night.ogg` | Carbon Market at Night in Cebu City | Bim24 | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Carbon_Market_at_Night_in_Cebu_City.ogg) |
+| `public/audio/pool/market/market-lagos-idumota.ogg` | Idumota Market | Emeka Ogboh | CC BY-SA 3.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Idumota_Market_(Emeka_Ogboh).ogg) |
+| `public/audio/pool/city-hum/city-latam-aguascalientes.ogg` | Paisaje sonoro del centro de la ciudad | PamStan | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Paisaje_sonoro_del_centro_de_la_ciudad.ogg) |
+| `public/audio/pool/tropical-bird/tropical-bird-asian-koel.mp3` | Eudynamys scolopaceus - Asian Koel XC476378 | Manoj Karingamadathil | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Eudynamys_scolopaceus_-_Asian_Koel_XC476378.mp3) |
+| `public/audio/pool/songbird/songbird-common-myna.mp3` | Acridotheres tristis - Common Myna XC508591 | James Ray (xeno-canto) | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Acridotheres_tristis_-_Common_Myna_XC508591.mp3) |
+| `public/audio/pool/songbird/songbird-tree-sparrow.mp3` | Passer montanus - Eurasian Tree Sparrow XC347806 | Derek Paulo (xeno-canto) | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Passer_montanus_-_Eurasian_Tree_Sparrow_XC347806.mp3) |
+| `public/audio/pool/bells/bells-gong-temple.mp3` | Gong, sweet | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1482](https://bigsoundbank.com/gong-sweet-s1482.html) |
+| `public/audio/pool/traffic/traffic-highway.mp3` | Highway | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0122](https://bigsoundbank.com/highway-s0122.html) |
+
 ## Re-downloading assets
 
 ```bash

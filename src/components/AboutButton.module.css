@@ -1,5 +1,8 @@
 .aboutButton {
   composes: pill from '../styles/glassButton.module.css';
+  /* Flat, like the light/dark toggle — keep frosted fill, border and blur,
+     but drop the shadow in rest/hover/active. Scoped to this button only. */
+  composes: noShadow from '../styles/glassButton.module.css';
 }
 
 .label {

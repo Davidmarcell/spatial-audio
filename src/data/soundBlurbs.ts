@@ -18,8 +18,10 @@ export const soundBlurbs: Record<string, string> = {
     'Wind threading through treetops and leaves, deeper in the bush than open coastal breeze.',
   'forest-ambience':
     'The quiet rustle and texture of forest floor and understory — distant life without a single focal call.',
-  howler:
-    'Deep howls from neotropical primates, often heard at dawn and dusk across rainforest canopy.',
+  lion:
+    'The far-carrying roar of a lion drifting across the savanna at dusk and through the night — a low, resonant series of calls that can be heard for miles over the open plains.',
+  'global-lion':
+    'The far-carrying roar of a lion drifting across the savanna at dusk and through the night — a low, resonant series of calls that can be heard for miles over the open plains.',
   toucan:
     'Large-billed forest birds whose croaks and clacks carry through humid lowland rainforest.',
   quetzal:
@@ -38,6 +40,10 @@ export const soundBlurbs: Record<string, string> = {
     'Cicadas and warm-climate insects — the constant hum of subtropical afternoons.',
   'city-hum':
     'A soft urban bed — distant rhythm of a city that never fully falls silent.',
+  'global-street-traffic':
+    'The dense pulse of a busy street: motorbikes, jeepneys, horns and pavement crowds that give a warm developing-world city its everyday roar.',
+  'global-street-birds':
+    'The ubiquitous city songbirds of warmer regions: mynas, sparrows and their neighbours chattering from wires, eaves and street trees.',
   'street-bird':
     'Passerines in Brooklyn trees and backyards — sparrows, robins, and neighbours singing from rooftops.',
   'gray-catbird':
@@ -52,10 +58,6 @@ export const soundBlurbs: Record<string, string> = {
   'street-jazz-busker':
     'A loose jazz trio on the corner — guitar, brushed rhythm, and saxophone carrying down the street.',
   'distant-traffic': 'Far-off traffic hiss — the low shimmer of a borough awake.',
-  'alpine-wind': 'Cold wind through high passes and limestone peaks of the Dolomites.',
-  'mountain-stream': 'Meltwater over stone — bright streams in alpine valleys.',
-  'forest-valley': 'Larch and pine forest quiet between sheer mountain walls.',
-  'alpine-bird': 'Birdsong from high meadows and cliff faces — choughs and meadow pipits.',
   'jungle-insects':
     'Layered insect chorus of northern Thai foothills — cicadas at dusk and dawn.',
   'hill-bird':

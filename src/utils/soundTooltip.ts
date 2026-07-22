@@ -1,4 +1,5 @@
 import type { SoundCategory, SoundDef } from '../data/types';
+import { displaySoundName } from '../utils/soundCatalog';
 
 const CATEGORY_HINTS: Record<SoundCategory, string> = {
   bird: 'Bird call',
@@ -9,7 +10,7 @@ const CATEGORY_HINTS: Record<SoundCategory, string> = {
 
 export function getSoundTooltipLines(sound: SoundDef): { title: string; description: string } {
   const description = sound.description ?? CATEGORY_HINTS[sound.category];
-  return { title: sound.name, description };
+  return { title: displaySoundName(sound), description };
 }
 
 export function getSoundTooltip(sound: SoundDef): string {

@@ -50,6 +50,9 @@
   max-height: min(36vh, 280px);
   background: #f8f6f2;
   border-bottom: 1px solid var(--border);
+  /* Shared image-tile radius so the detail artwork rounds like the tiles; the
+     inner image inherits this and is clipped to it. */
+  border-radius: var(--tile-radius);
   overflow: hidden;
 }
 

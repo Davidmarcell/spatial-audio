@@ -3,6 +3,51 @@
   font-weight: 500;
 }
 
+.iconSlot {
+  position: relative;
+  display: inline-grid;
+  grid-template: 1fr / 1fr;
+  place-items: center;
+}
+
+.iconSlot > * {
+  grid-area: 1 / 1;
+  will-change: transform, opacity;
+}
+
+/* New icon pops in with a spring-like overshoot; old icon shrinks + fades beneath it. */
+.iconEnter {
+  animation: playBarIconEnter 320ms var(--ease-ios-spring) both;
+}
+
+.iconExit {
+  animation: playBarIconExit 200ms var(--ease-ios) both;
+}
+
+@keyframes playBarIconEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes playBarIconExit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
 .labelSlot {
   position: relative;
   display: inline-grid;
@@ -85,7 +130,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .labelEnter .letter,
-  .labelExit .letter {
+  .labelExit .letter,
+  .iconEnter,
+  .iconExit {
     animation: none;
     filter: none;
   }

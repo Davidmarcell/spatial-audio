@@ -1,0 +1,235 @@
+.panel {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
+  z-index: 500;
+  width: min(18.5rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 1.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--glass-border);
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--glass-panel-bg) 88%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.panelCollapsed {
+  width: auto;
+  max-width: min(18.5rem, calc(100vw - 1.5rem));
+}
+
+/* Sits on the same baseline as the Radiance and Fan launcher docks (bottom-left),
+   pushed right so the Entrance chip reads as beside the Radiance / Landing / Fan
+   chips. */
+.launcherDock {
+  position: fixed;
+  left: calc(env(safe-area-inset-left, 0px) + 17.5rem);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  z-index: 499;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.launcher {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-panel-bg) 90%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.launcher:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.launcherActive {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.7rem 0.55rem;
+  border-bottom: 1px solid var(--search-divider);
+}
+
+.title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.summary {
+  margin: 0.2rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.headerActions {
+  display: inline-flex;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.iconButton {
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 0.45rem;
+  background: var(--glass-fill);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--glass-fill-hover);
+}
+
+.body {
+  padding: 0.55rem 0.7rem 0.7rem;
+  overflow-y: auto;
+}
+
+.hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.hint code,
+.hint kbd {
+  font-size: 0.66rem;
+}
+
+/* Primary preview action: replays the whole entrance in place. Sits at the top
+   of the body so it is always reachable while tuning. */
+.replayButton {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.55rem;
+  background: var(--accent-soft, var(--glass-fill-active));
+  color: var(--text);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.replayButton:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft, var(--glass-fill-active)) 80%, var(--accent));
+}
+
+.field {
+  display: block;
+  margin-bottom: 0.55rem;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.fieldValue {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.field input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.section {
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--search-divider);
+}
+
+.sectionTitle {
+  margin: 0 0 0.65rem;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.footer {
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--search-divider);
+}
+
+.footerActions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.saveButton,
+.resetButton {
+  flex: 1;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 0.55rem;
+  background: var(--glass-fill);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.saveButton {
+  flex: 1.6;
+}
+
+.saveButton:hover,
+.resetButton:hover {
+  background: var(--glass-fill-hover);
+}
+
+.defaults {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.64rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}

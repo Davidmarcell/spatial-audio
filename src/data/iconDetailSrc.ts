@@ -16,12 +16,14 @@ const BUNDLED_MET_SRCS = new Set([
   '/icons/met/12392.jpg',
   '/icons/met/12586.jpg',
   '/icons/met/286187.jpg',
-  '/icons/met/334086.jpg',
+  '/icons/met/338617.jpg',
+  '/icons/met/363843.jpg',
   '/icons/met/371022.jpg',
   '/icons/met/393450.jpg',
   '/icons/met/489985.jpg',
   '/icons/met/55433.jpg',
   '/icons/met/751141.jpg',
+  '/icons/met/830271.jpg',
   '/icons/met/853645.jpg',
 ]);
 
@@ -76,20 +78,30 @@ export function iconSrcFallbackChain(
   entry: { src: string; sourceUrl?: string; detailSrc?: string },
   size: 'tile' | 'detail' = 'tile',
 ): string[] {
-  const primary =
-    size === 'detail'
-      ? getDetailIconSrc(entry.src, entry.sourceUrl, entry.detailSrc)
-      : resolveTileIconSrc(entry);
+  const tileSrc = resolveTileIconSrc(entry);
+  const detailPrimary = getDetailIconSrc(entry.src, entry.sourceUrl, entry.detailSrc);
+  const chain: string[] = [];
 
-  const chain = new Set<string>([primary]);
+  // Prefer bundled local files first so dev and portfolio base paths always resolve.
+  if (isLocallyBundledIconSrc(entry.src)) {
+    chain.push(entry.src);
+  }
 
-  if (entry.detailSrc) chain.add(entry.detailSrc);
+  if (size === 'detail') {
+    if (detailPrimary !== entry.src) chain.push(detailPrimary);
+    if (entry.detailSrc && entry.detailSrc !== detailPrimary) chain.push(entry.detailSrc);
+  } else if (tileSrc !== entry.src) {
+    chain.push(tileSrc);
+  }
 
   const commonsRemote = getDetailIconSrc(entry.src, entry.sourceUrl, undefined);
-  if (commonsRemote !== entry.src) chain.add(commonsRemote);
+  if (commonsRemote !== entry.src && !chain.includes(commonsRemote)) {
+    chain.push(commonsRemote);
+  }
 
-  if (isLocallyBundledIconSrc(entry.src)) chain.add(entry.src);
+  if (!chain.includes(FALLBACK_ICON_SRC)) {
+    chain.push(FALLBACK_ICON_SRC);
+  }
 
-  chain.add(FALLBACK_ICON_SRC);
-  return [...chain];
+  return chain;
 }

@@ -54,48 +54,38 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.4rem;
 }
 
 .item {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
-  background: var(--surface-row);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  box-shadow: var(--shadow-sm);
-}
-
-.itemTitle {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
-}
-
-.meta {
   margin: 0;
-  display: grid;
-  gap: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-.meta div {
-  display: grid;
-  grid-template-columns: 5rem 1fr;
-  gap: 0.5rem;
-}
-
-.meta dt {
-  margin: 0;
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-}
-
-.meta dd {
-  margin: 0;
-  font-size: 0.9rem;
-  word-break: break-word;
-}
-
-.meta a {
+.item a {
   color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.item a:hover,
+.item a:focus-visible {
+  text-decoration: underline;
+}
+
+/* Subtle outbound-link cue after each external source link. Inherits the link
+   colour, sits on the text baseline, and stays small so it reads as a hint
+   rather than a separate glyph. */
+.externalIcon {
+  margin-left: 0.2em;
+  font-size: 0.82em;
+  color: inherit;
+  vertical-align: baseline;
+  text-decoration: none;
+}
+
+.suggest {
+  margin: 1.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }

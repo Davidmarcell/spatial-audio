@@ -43,6 +43,12 @@ type Props = {
   originRect?: OriginRectSnapshot | null;
   /** Changes while open re-run the origin enter animation (e.g. sound detail swap). */
   swapKey?: string | number | null;
+  /** Hide the visible title; keeps an sr-only label for screen readers. */
+  hideTitle?: boolean;
+  /** Replaces the default title + close row (e.g. search bar with inline close). */
+  headerContent?: ReactNode;
+  /** Extra class on the header element. */
+  headerClassName?: string;
 };
 
 export function ScaleBlurOverlay({
@@ -61,6 +67,9 @@ export function ScaleBlurOverlay({
   originRect,
   swapKey = null,
   lockBodyScroll = false,
+  hideTitle = false,
+  headerContent,
+  headerClassName,
 }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -248,18 +257,42 @@ export function ScaleBlurOverlay({
         aria-labelledby={titleId}
         onTransitionEnd={handlePanelTransitionEnd}
       >
-        <header className={styles.header}>
-          <h2 className={styles.title} id={titleId}>
-            {title}
-          </h2>
-          <button
-            type="button"
-            className={styles.close}
-            aria-label={closeLabel}
-            onClick={close}
-          >
-            <UiIcon icon="xmark" size="sm" className={styles.closeIcon} />
-          </button>
+        <header
+          className={[
+            styles.header,
+            hideTitle || headerContent ? styles.headerCompact : '',
+            headerContent ? styles.headerMinimal : '',
+            headerClassName ?? '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {headerContent ?? (
+            <>
+              {hideTitle ? (
+                <span className={styles.srOnly} id={titleId}>
+                  {title}
+                </span>
+              ) : (
+                <h2 className={styles.title} id={titleId}>
+                  {title}
+                </h2>
+              )}
+              <button
+                type="button"
+                className={styles.close}
+                aria-label={closeLabel}
+                onClick={close}
+              >
+                <UiIcon icon="xmark" size="sm" className={styles.closeIcon} />
+              </button>
+            </>
+          )}
+          {headerContent && (
+            <span className={styles.srOnly} id={titleId}>
+              {title}
+            </span>
+          )}
         </header>
         <div
           className={[

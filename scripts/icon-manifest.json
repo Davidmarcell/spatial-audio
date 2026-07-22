@@ -71,7 +71,42 @@
       "title": "Metamorphosis of a Small Emperor Moth on a Damson Plum (plate 13)",
       "author": "Maria Sibylla Merian (Getty Museum)",
       "license": "Public domain",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Metamorphosis_of_a_Small_Emperor_Moth_on_a_Damson_Plum,_plate_13_of_the_Caterpillar_Book,_by_Maria_Sibylla_Merian_(Getty_109Q5N).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Metamorphosis_of_a_Small_Emperor_Moth_on_a_Damson_Plum,_plate_13_of_the_Caterpillar_Book,_by_Maria_Sibylla_Merian_(Getty_109Q5N).jpg",
+      "pool": "insects",
+      "tags": ["temperate", "european"]
+    },
+    {
+      "id": "merian-suriname-butterfly",
+      "file": "merian-suriname-butterfly.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Metamorphosis_of_a_Butterfly_Merrian_1705.jpg/330px-Metamorphosis_of_a_Butterfly_Merrian_1705.jpg",
+      "title": "Metamorphosis of a Butterfly (plate XX)",
+      "author": "Maria Sibylla Merian (Metamorphosis insectorum Surinamensium, 1705)",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Metamorphosis_of_a_Butterfly_Merrian_1705.jpg",
+      "pool": "insects",
+      "tags": ["tropical", "americas"]
+    },
+    {
+      "id": "african-butterfly",
+      "file": "african-butterfly.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Rhopalocera_exotica%3B_being_illustraions_of_new%2C_rare%2C_and_unfigured_species_of_butterflies_%281887%29_%2814781632362%29.jpg/330px-Rhopalocera_exotica%3B_being_illustraions_of_new%2C_rare%2C_and_unfigured_species_of_butterflies_%281887%29_%2814781632362%29.jpg",
+      "title": "Rhopalocera exotica (African butterfly plate)",
+      "author": "Frederick Du Cane Godman & Osbert Salvin (1887)",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rhopalocera_exotica;_being_illustraions_of_new,_rare,_and_unfigured_species_of_butterflies_(1887)_(14781632362).jpg",
+      "pool": "insects",
+      "tags": ["african", "tropical"]
+    },
+    {
+      "id": "moustached-barbet",
+      "file": "barbet.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Megalaima_incognita_Keulemans.jpg/330px-Megalaima_incognita_Keulemans.jpg",
+      "title": "Moustached Barbet (Megalaima incognita)",
+      "author": "John Gerrard Keulemans (Catalogue of the Birds in the British Museum, 1891)",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Megalaima_incognita_Keulemans.jpg",
+      "pool": "asian-forest-bird",
+      "tags": ["asian", "tropical", "forest"]
     },
     {
       "id": "quetzal",
@@ -123,6 +158,17 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Crashing_Waves-Alfred_T_Bricher.jpg",
       "pool": "surf",
       "tags": ["temperate", "coastal", "americas"]
+    },
+    {
+      "id": "waves-courbet-the-wave",
+      "file": "waves-courbet-the-wave.jpg",
+      "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave%20Courbet%20-%20The%20Wave%20-%20Google%20Art%20Project.jpg?width=1600",
+      "title": "The Wave",
+      "author": "Gustave Courbet — Oil on canvas",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_The_Wave_-_Google_Art_Project.jpg",
+      "pool": "surf",
+      "tags": ["temperate", "coastal", "european"]
     },
     {
       "id": "wind-trees",
@@ -190,14 +236,6 @@
         "medium": "Black chalk, watercolor, and white bodycolor",
         "sourceUrl": "https://www.metmuseum.org/art/collection/search/339153",
         "tags": ["cold", "coastal", "european"]
-      },
-      {
-        "objectId": 334086,
-        "title": "On the Beach",
-        "artist": "Eugène Boudin",
-        "medium": "Graphite and watercolor",
-        "sourceUrl": "https://www.metmuseum.org/art/collection/search/334086",
-        "tags": ["temperate", "coastal", "european"]
       },
       {
         "objectId": 460052,
@@ -383,6 +421,26 @@
         "tags": ["tropical", "asian"]
       }
     ],
+    "insects": [
+      {
+        "objectId": 544094,
+        "title": "Butterfly amulet",
+        "artist": "Ancient Egyptian, Middle Kingdom",
+        "medium": "Faience",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/544094",
+        "tags": ["african", "tropical"]
+      }
+    ],
+    "asian-forest-bird": [
+      {
+        "objectId": 363843,
+        "title": "Eclectus Roratus Polychloros",
+        "artist": "Edward Lear",
+        "medium": "Watercolor and gouache over graphite",
+        "sourceUrl": "https://www.metmuseum.org/art/collection/search/363843",
+        "tags": ["tropical", "asian", "forest"]
+      }
+    ],
     "nyc-traffic": [
       {
         "objectId": 339882,
@@ -448,31 +506,12 @@
   },
   "locationArt": [
     {
-      "objectId": 10481,
-      "locationId": "costa-rica-pacific",
-      "title": "Heart of the Andes",
-      "artist": "Frederic Edwin Church",
-      "medium": "Oil on canvas",
-      "date": "1859",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/10481"
-    },
-    {
-      "objectId": 38064,
-      "locationId": "bangkok",
-      "title": "Buddhist Temple Painting",
-      "artist": "Unidentified artist, Thailand",
-      "medium": "Hanging scroll; color on silk",
-      "date": "early 19th century",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/38064"
-    },
-    {
-      "objectId": 380481,
-      "locationId": "new-orleans",
-      "title": "\"Rounding a Bend\" on the Mississippi – The Parting Salute",
-      "artist": "Frances Flora Bond Palmer (Currier & Ives)",
-      "medium": "Hand-colored lithograph",
-      "date": "1866",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/380481"
+      "objectId": 15775,
+      "locationId": "bariloche",
+      "title": "Two Sketches: River Bank with Trees; Figure in a Canoe",
+      "artist": "Albert Bierstadt",
+      "medium": "Graphite on wove paper",
+      "sourceUrl": "https://www.metmuseum.org/art/collection/search/15775"
     },
     {
       "objectId": 830271,
@@ -509,15 +548,6 @@
       "medium": "Hanging scroll; ink and color on paper",
       "date": "dated 1666",
       "sourceUrl": "https://www.metmuseum.org/art/collection/search/39557"
-    },
-    {
-      "objectId": 381008,
-      "locationId": "new-york",
-      "title": "Evening, New York Harbor",
-      "artist": "Henry Farrer",
-      "medium": "Etching",
-      "date": "1884",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/381008"
     }
   ],
   "soundPoolMap": {

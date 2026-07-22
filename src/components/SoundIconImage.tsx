@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getIconCrop } from '../data/iconCrop';
 import { FALLBACK_ICON_SRC, iconSrcFallbackChain } from '../data/iconDetailSrc';
+import { publicUrl } from '../utils/publicUrl';
 import styles from './SoundIconImage.module.css';
 
 type Props = {
@@ -40,7 +41,7 @@ export function SoundIconImage({
     <span className={`${styles.frame} ${styles[size] ?? ''}`}>
       <img
         className={styles.image}
-        src={imageSrc}
+        src={publicUrl(imageSrc)}
         alt={alt}
         draggable={false}
         loading={isDetail ? 'eager' : 'lazy'}

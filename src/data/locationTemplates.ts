@@ -12,11 +12,15 @@ const TEMPLATES = {
   europeUrban: { environmentId: 'urban-europe', regionId: 'london' },
   coastalAmericas: { environmentId: 'brazil-coast', regionId: 'rio-de-janeiro' },
   coastalEurope: { environmentId: 'urban-europe', regionId: 'london' },
-  forestPacific: { environmentId: 'nz-forest', regionId: 'nz-forest-general' },
-  forestEurope: { environmentId: 'alpine-europe', regionId: 'dolomites' },
-  alpine: { environmentId: 'alpine-europe', regionId: 'dolomites' },
-  tropical: { environmentId: 'southeast-asia', regionId: 'chiang-mai' },
-  rainforest: { environmentId: 'costa-rica-rainforest', regionId: 'pacific-slope' },
+  forestPacific: { environmentId: 'nz-forest', regionId: 'auckland' },
+  // The former bespoke alpine/forest-Europe environment (Dolomites) was retired;
+  // these fall back to the generic forest scene until a replacement lands.
+  forestEurope: { environmentId: 'nz-forest', regionId: 'auckland' },
+  alpine: { environmentId: 'nz-forest', regionId: 'auckland' },
+  // The former northern-Thai forest scene became the Bangkok city pin; tropical
+  // / rainforest fallbacks now use the nearest remaining tropical curated scene.
+  tropical: { environmentId: 'brazil-coast', regionId: 'rio-de-janeiro' },
+  rainforest: { environmentId: 'brazil-coast', regionId: 'rio-de-janeiro' },
   pacificUrban: { environmentId: 'nz-forest', regionId: 'auckland' },
 } as const satisfies Record<string, SoundscapeTemplate>;
 

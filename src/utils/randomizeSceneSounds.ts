@@ -1,24 +1,34 @@
-import type { BedSound, SoundDef, SpatialPoint } from '../data/types';
+import type { BedSound, SoundDef, SoundType, SpatialPoint } from '../data/types';
 import { defaultSpawnVolumeForSound } from './defaultSoundVolume';
+import { inferSoundType } from './soundTypeInference';
+import { displaySoundName } from './soundCatalog';
 
-const CANVAS_SOUND_MIN = 4;
-const CANVAS_SOUND_MAX = 5;
-const DOCK_SOUND_MAX = 5;
+const DOCK_SOUND_MAX = 6;
 
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
+/**
+ * Generic, single-voice types where a second tile in one scene reads as a bug
+ * (the "two Surf tiles" complaint): only one wind, one surf, one rain, one
+ * bossa-nova, etc. should ever auto-play. Distinctive wildlife types (songbird,
+ * seabird, corvid, tropical-bird, primates, owl, kookaburra) are deliberately
+ * NOT listed here so genuinely different native species — Tui + Fantail +
+ * Kererū, all "songbird" — can share a scene; those de-dup by display name
+ * instead, which still collapses two identical "Songbird"/"Night Owl" tiles.
+ */
+const GENERIC_UNIQUE_TYPES = new Set<SoundType>([
+  'wind', 'waves', 'rain', 'thunder', 'stream', 'forest', 'fire',
+  'insects', 'frogs', 'city-hum', 'traffic', 'market', 'bells',
+  'jazz', 'bossa-nova',
+]);
 
-function pickCount(min: number, max: number, available: number): number {
-  if (available <= 0) return 0;
-  const upper = Math.min(max, available);
-  if (upper <= min) return upper;
-  return min + Math.floor(Math.random() * (upper - min + 1));
+/**
+ * De-dup key for scene composition. Generic ambiences collapse by type (one
+ * Surf, one Wind…); everything else collapses by its displayed name so distinct
+ * named species coexist but two identical generic tiles never do.
+ */
+function dedupKey(sound: SoundDef): string {
+  const type = inferSoundType(sound);
+  if (type && GENERIC_UNIQUE_TYPES.has(type)) return `type:${type}`;
+  return `name:${displaySoundName(sound)}`;
 }
 
 function ringPosition(index: number, total: number): SpatialPoint {
@@ -35,43 +45,53 @@ export type RandomizedSceneSounds = {
 };
 
 /**
- * Picks 4–5 canvas defaults and up to 5 different dock palette sounds per visit.
- * Uses optional bedSounds entries for preferred volume/position when available.
+ * Compose a location's DEFAULT scene deterministically from its curated bed
+ * palette, then fill the dock with the remaining distinct region sounds.
+ *
+ * This replaces the old per-visit random pick (which was the root cause of the
+ * "generic / repetitive / owl-everywhere" feel): the auto-playing palette is
+ * now exactly the region's hand-curated `bedSounds`, in order, with duplicate
+ * TYPES removed so no scene shows two Surf / two owls. Generic ambiences the
+ * curator left out of the bed (wind, rain, surf…) stay in the region library /
+ * dock so users can still add them by hand — they just aren't force-defaulted.
  */
 export function randomizeSceneSounds(
   regionSounds: SoundDef[],
   bedSoundTemplates: BedSound[] = [],
 ): RandomizedSceneSounds {
-  const templateById = new Map(bedSoundTemplates.map((item) => [item.soundId, item]));
   const soundById = new Map(regionSounds.map((sound) => [sound.id, sound]));
-  const pool = shuffle(regionSounds.map((sound) => sound.id));
 
-  if (pool.length === 0) {
+  if (regionSounds.length === 0) {
     return { canvasBedSounds: [], dockSoundIds: [] };
   }
 
-  const canvasCount = pickCount(
-    CANVAS_SOUND_MIN,
-    CANVAS_SOUND_MAX,
-    pool.length,
-  );
-  const canvasIds = pool.slice(0, canvasCount);
-  const remaining = pool.slice(canvasCount);
+  // ---- canvas: the curated bed palette, de-duplicated by type/name ----
+  const usedKeys = new Set<string>();
+  const canvasEntries: Array<{ bed: BedSound; sound: SoundDef }> = [];
+  for (const bed of bedSoundTemplates) {
+    const sound = soundById.get(bed.soundId);
+    if (!sound) continue;
+    const key = dedupKey(sound);
+    if (usedKeys.has(key)) continue;
+    usedKeys.add(key);
+    canvasEntries.push({ bed, sound });
+  }
 
-  const dockCount = Math.min(DOCK_SOUND_MAX, remaining.length);
-  const dockSoundIds = remaining.slice(0, dockCount);
+  const canvasBedSounds: BedSound[] = canvasEntries.map(({ bed, sound }, index) => ({
+    soundId: bed.soundId,
+    volume: bed.volume ?? defaultSpawnVolumeForSound(sound),
+    position: bed.position ?? ringPosition(index, canvasEntries.length),
+  }));
 
-  const canvasBedSounds: BedSound[] = canvasIds.map((soundId, index) => {
-    const template = templateById.get(soundId);
-    const sound = soundById.get(soundId);
-    return {
-      soundId,
-      volume:
-        template?.volume ??
-        (sound ? defaultSpawnVolumeForSound(sound) : 0.52 + Math.random() * 0.18),
-      position: template?.position ?? ringPosition(index, canvasIds.length),
-    };
-  });
+  // ---- dock: remaining region sounds, one per distinct type/name ----
+  const dockSoundIds: string[] = [];
+  for (const sound of regionSounds) {
+    if (dockSoundIds.length >= DOCK_SOUND_MAX) break;
+    const key = dedupKey(sound);
+    if (usedKeys.has(key)) continue;
+    usedKeys.add(key);
+    dockSoundIds.push(sound.id);
+  }
 
   return { canvasBedSounds, dockSoundIds };
 }

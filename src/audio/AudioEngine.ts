@@ -1,4 +1,5 @@
 import type { SoundDef, SpatialPoint } from '../data/types';
+import { publicUrl } from '../utils/publicUrl';
 import { gainFromDistance, toPannerPosition } from './spatialMath';
 
 /**
@@ -43,8 +44,12 @@ type SourceNode = {
   crossfadeIndex: number;
 };
 
-const CROSSFADE_MIN_S = 16;
-const CROSSFADE_MAX_S = 30;
+const CROSSFADE_MIN_S = 28;
+const CROSSFADE_MAX_S = 48;
+/** Fraction of each crossfade cycle spent ramping between layers. */
+const CROSSFADE_RAMP_FRACTION = 0.55;
+/** Seconds trimmed from the buffer tail so Web Audio loop wraps cleanly. */
+const LOOP_END_SAFETY_S = 0.02;
 
 export class AudioEngine {
   private context: AudioContext | null = null;
@@ -58,6 +63,10 @@ export class AudioEngine {
   private inflight = new Map<string, Promise<AudioBuffer>>();
   private sources = new Map<string, SourceNode>();
   private playing = false;
+  // Monotonic load-session token. Bumped whenever a new soundscape supersedes
+  // the current one, so any async buffer load (fetch/decode) still in flight
+  // for the old scene can detect it lost the race and refuse to start playing.
+  private loadEpoch = 0;
 
   get isPlaying() {
     return this.playing;
@@ -107,7 +116,7 @@ export class AudioEngine {
     if (pending) return pending;
 
     const promise = (async () => {
-      const response = await fetch(src);
+      const response = await fetch(publicUrl(src));
       if (!response.ok) {
         throw new Error(`Failed to load audio: ${src}`);
       }
@@ -125,6 +134,24 @@ export class AudioEngine {
     }
   }
 
+  /**
+   * Deterministically tear down the current soundscape before a new one loads.
+   * Bumps the load epoch (so any in-flight buffer load for the outgoing scene
+   * is discarded and never starts), then stops, disconnects and cancels the
+   * gain ramps of every active source. The transport flag (`playing`) is left
+   * untouched so the incoming scene keeps playing without a manual replay.
+   *
+   * Every soundscape switch (search, region/environment change, world-map pick,
+   * geolocation, reshuffle) must route through here so nothing from the old
+   * location can linger or start late on top of the new one.
+   */
+  beginSoundscapeTransition(): void {
+    this.loadEpoch += 1;
+    for (const instanceId of [...this.sources.keys()]) {
+      this.removeSource(instanceId);
+    }
+  }
+
   async addSource(
     instanceId: string,
     sound: SoundDef,
@@ -132,7 +159,11 @@ export class AudioEngine {
     volume = 1,
     recipe?: PlaybackRecipe,
   ): Promise<void> {
+    // Pin the load session: if a new soundscape supersedes us at any await
+    // point below, we must discard this load and never start playback.
+    const epoch = this.loadEpoch;
     await this.unlock();
+    if (epoch !== this.loadEpoch) return;
     const ctx = this.context!;
 
     const primarySrc = recipe?.src || sound.src;
@@ -157,8 +188,28 @@ export class AudioEngine {
     const layerSrcs = wantCrossfade ? [primarySrc, recipe!.secondarySrc!] : [primarySrc];
     const buffers = await Promise.all(layerSrcs.map((src) => this.loadBuffer(src)));
 
-    // Bail out if the source was torn down while buffers were loading.
-    if (!this.context) return;
+    // Discard if a newer soundscape superseded us (or the engine was torn down)
+    // while buffers were loading. This kills the "late-arriving rain clip starts
+    // after I've already left" race: the already-connected gain/panner nodes are
+    // released and no source node is ever created or started.
+    if (epoch !== this.loadEpoch || !this.context) {
+      gain.disconnect();
+      panner.disconnect();
+      return;
+    }
+
+    // A concurrent addSource for this same instanceId may have already registered
+    // a node under this key while we were awaiting the buffer load. This happens
+    // in practice for the drag preview: it reuses one fixed instance id and fires
+    // a fresh addSource on every pointer move, so a burst of moves during the
+    // first (uncached) fetch/decode all pass the caller's `hasSource` guard and
+    // race here. Tear down any previously registered node first, using the shared
+    // source map, so its still-playing buffer sources can never be orphaned —
+    // left sounding but absent from the map, and therefore unreachable by
+    // pause()/removeSource(). Whichever load resolves last is the one that plays.
+    if (this.sources.has(instanceId)) {
+      this.removeSource(instanceId);
+    }
 
     const baseDetune = recipe?.detuneCents ?? 0;
     const baseOffset = recipe?.loopOffset ?? 0;
@@ -206,6 +257,9 @@ export class AudioEngine {
     const node = this.sources.get(instanceId);
     if (!node) return;
     this.stopSource(instanceId);
+    if (this.context) {
+      node.gain.gain.cancelScheduledValues(this.context.currentTime);
+    }
     for (const layer of node.layers) {
       layer.gain.disconnect();
     }
@@ -305,7 +359,10 @@ export class AudioEngine {
       }
       source.connect(layer.gain);
       const offset = node.loop
-        ? Math.min(layer.loopOffset * layer.buffer.duration, Math.max(0, layer.buffer.duration - 0.05))
+        ? Math.min(
+            layer.loopOffset * layer.buffer.duration,
+            Math.max(0, layer.buffer.duration - LOOP_END_SAFETY_S),
+          )
         : 0;
       source.start(0, offset);
       layer.source = source;
@@ -333,7 +390,7 @@ export class AudioEngine {
       if (!current || !this.context) return;
       current.crossfadeIndex = (current.crossfadeIndex + 1) % current.layers.length;
       const active = current.crossfadeIndex;
-      const constant = (cycleMs / 1000) * 0.35;
+      const constant = (cycleMs / 1000) * CROSSFADE_RAMP_FRACTION;
       current.layers.forEach((layer, index) => {
         const target = index === active ? layer.baseLevel : 0;
         layer.gain.gain.setTargetAtTime(target, this.context!.currentTime, constant);
@@ -353,7 +410,11 @@ export class AudioEngine {
     }
     node.crossfadeIndex = 0;
 
+    const now = this.context?.currentTime ?? 0;
     for (const layer of node.layers) {
+      // Cancel any pending crossfade/gain ramp so a stopped layer can never
+      // ramp itself back up after the source has been torn down.
+      layer.gain.gain.cancelScheduledValues(now);
       if (!layer.source) continue;
       try {
         layer.source.stop();

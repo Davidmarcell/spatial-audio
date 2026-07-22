@@ -4,6 +4,7 @@ import {
   configSummary,
   DEFAULT_PLAYING_BAR_EDGE_GRADIENT,
   isPlayingBarEdgeGradientTunerEnabled,
+  loadPlayingBarEdgeGradientSavedDefault,
   persistPlayingBarEdgeGradientTunerVisible,
 } from '../utils/playingBarEdgeGradient';
 import styles from './PlayingBarEdgeGradientTuner.module.css';
@@ -64,10 +65,22 @@ function ToggleField({ label, checked, onChange }: ToggleProps) {
   );
 }
 
-export function PlayingBarEdgeGradientTuner({ isPlaying = false }: { isPlaying?: boolean }) {
-  const { config, setConfig, resetConfig } = usePlayingBarEdgeGradient();
+type PlayingBarEdgeGradientTunerProps = {
+  isPlaying?: boolean;
+  /** Whether the intro landing gate is enabled (dev toggle, defaults off). */
+  landingEnabled?: boolean;
+  onLandingEnabledChange?: (enabled: boolean) => void;
+};
+
+export function PlayingBarEdgeGradientTuner({
+  isPlaying = false,
+  landingEnabled = false,
+  onLandingEnabledChange,
+}: PlayingBarEdgeGradientTunerProps) {
+  const { config, setConfig, saveConfigAsDefault, resetConfig } = usePlayingBarEdgeGradient();
   const [visible, setVisible] = useState(() => isPlayingBarEdgeGradientTunerEnabled());
   const [collapsed, setCollapsed] = useState(false);
+  const [savedDefault, setSavedDefault] = useState(() => loadPlayingBarEdgeGradientSavedDefault());
 
   const showPanel = (persist = true) => {
     setVisible(true);
@@ -118,14 +131,33 @@ export function PlayingBarEdgeGradientTuner({ isPlaying = false }: { isPlaying?:
   return (
     <>
       {!visible && (
-        <button
-          type="button"
-          className={`${styles.launcher} ${isPlaying ? styles.launcherActive : ''}`}
-          onClick={() => showPanel()}
-          aria-label="Open background radiance controls"
-        >
-          Radiance
-        </button>
+        <div className={styles.launcherDock}>
+          <button
+            type="button"
+            className={`${styles.launcher} ${isPlaying ? styles.launcherActive : ''}`}
+            onClick={() => showPanel()}
+            aria-label="Open background radiance controls"
+          >
+            Radiance
+          </button>
+          {onLandingEnabledChange && (
+            <button
+              type="button"
+              className={`${styles.landingChip} ${landingEnabled ? styles.landingChipOn : ''}`}
+              onClick={() => onLandingEnabledChange(!landingEnabled)}
+              aria-pressed={landingEnabled}
+              aria-label={
+                landingEnabled ? 'Hide landing page' : 'Show landing page'
+              }
+            >
+              <span className={styles.landingChipDot} aria-hidden="true" />
+              Landing
+              <span className={styles.landingChipState}>
+                {landingEnabled ? 'on' : 'off'}
+              </span>
+            </button>
+          )}
+        </div>
       )}
 
       {visible && (
@@ -161,6 +193,21 @@ export function PlayingBarEdgeGradientTuner({ isPlaying = false }: { isPlaying?:
                 Press Play to preview. Toggle with <kbd>Shift</kbd>+<kbd>G</kbd> or the Radiance chip
                 (dev only).
               </p>
+
+              {onLandingEnabledChange && (
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Landing page</h3>
+                  <ToggleField
+                    label="Show landing page"
+                    checked={landingEnabled}
+                    onChange={onLandingEnabledChange}
+                  />
+                  <span className={styles.fieldNote}>
+                    Off by default so the app boots straight into the workspace. Turn on to preview
+                    the intro gate.
+                  </span>
+                </div>
+              )}
 
               <div className={styles.section}>
                 <h3 className={styles.sectionTitle}>Opacity</h3>
@@ -262,11 +309,25 @@ export function PlayingBarEdgeGradientTuner({ isPlaying = false }: { isPlaying?:
               </div>
 
               <div className={styles.footer}>
-                <button type="button" className={styles.resetButton} onClick={resetConfig}>
-                  Reset defaults
-                </button>
+                <div className={styles.footerActions}>
+                  <button
+                    type="button"
+                    className={styles.saveButton}
+                    onClick={() => {
+                      saveConfigAsDefault();
+                      setSavedDefault({ ...config });
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button type="button" className={styles.resetButton} onClick={resetConfig}>
+                    Reset
+                  </button>
+                </div>
                 <span className={styles.defaults}>
-                  Defaults: {configSummary(DEFAULT_PLAYING_BAR_EDGE_GRADIENT)}
+                  {savedDefault
+                    ? `Saved baseline: ${configSummary(savedDefault)}`
+                    : `No saved baseline · code defaults: ${configSummary(DEFAULT_PLAYING_BAR_EDGE_GRADIENT)}`}
                 </span>
               </div>
             </div>

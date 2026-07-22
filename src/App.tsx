@@ -23,8 +23,9 @@ import {
   CANVAS_TILE_SIZE,
   DOCK_BASE_SIZE,
   DRAG_THRESHOLD,
+  reorderDockDefaultIds,
 } from './components/soundPaletteLayout';
-import { SoundPalette, type SoundPaletteHandle } from './components/SoundPalette';
+import { SoundPalette, type DockMagnetDrag, type SoundPaletteHandle } from './components/SoundPalette';
 import { SpatialCanvas, type RadarRingVariant } from './components/SpatialCanvas';
 import {
   appLocations,
@@ -35,12 +36,23 @@ import {
 } from './data/environments';
 import { GlobeMapSheet } from './components/GlobeMapSheet';
 import { AddSoundSheet } from './components/AddSoundSheet';
+import { LandingGate } from './components/LandingGate';
+import { EnterTransition } from './components/EnterTransition';
+import { SHEET_SCENE_REVEAL_MS, prefersReducedMotion } from './components/sheetRise';
+import { loadLandingFanConfig, type FanConfig } from './components/landingFan';
+import { LandingFanTuner } from './components/LandingFanTuner';
+import { LandingEntranceTuner } from './components/LandingEntranceTuner';
+import {
+  applyLandingEntranceAnimation,
+  loadLandingEntranceConfig,
+  type LandingEntranceConfig,
+} from './utils/landingEntranceAnimation';
 import { AboutButton } from './components/AboutButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ProjectInfoSheet } from './components/ProjectInfoSheet';
 import { appStackingAnimation } from './components/sheetDepth';
 import sheetStack from './components/sheetStack.module.css';
-import { worldLocations, createCustomWorldLocation, type WorldLocation } from './data/worldLocations';
+import { worldLocations, createCustomWorldLocation, formatWorldLocationLabel, type WorldLocation } from './data/worldLocations';
 import type { SoundDef, SpatialPoint } from './data/types';
 import { useAudioEngine } from './hooks/useAudioEngine';
 import { useSpatialSources } from './hooks/useSpatialSources';
@@ -49,6 +61,8 @@ import { randomizeSceneSounds } from './utils/randomizeSceneSounds';
 import { regionSeed, selectSceneVariants } from './utils/soundscapeSelection';
 import { enrichSounds } from './utils/soundTypeInference';
 import { defaultSpawnVolumeForSound } from './utils/defaultSoundVolume';
+import { displaySoundName } from './utils/soundCatalog';
+import { isLandingGateEnabled, persistLandingGateEnabled } from './utils/landingGate';
 import {
   snapshotOriginRect,
   type OriginRectSnapshot,
@@ -71,6 +85,7 @@ type ReturnFlight = {
   soundId: string;
   name: string;
   from: { x: number; y: number };
+  fromSize: number;
   to: { x: number; y: number };
 };
 
@@ -85,7 +100,58 @@ export default function App() {
   const [soundDrag, setSoundDrag] = useState<SoundDrag | null>(null);
   const [returnFlight, setReturnFlight] = useState<ReturnFlight | null>(null);
   const [returningId, setReturningId] = useState<string | null>(null);
+  const [returningSoundId, setReturningSoundId] = useState<string | null>(null);
+  const [dockMagnetDrag, setDockMagnetDrag] = useState<DockMagnetDrag | null>(null);
   const [showGlobe, setShowGlobe] = useState(false);
+  // True while the full-screen globe was opened from the landing to *browse the
+  // world* (Enter / empty-query Enter), as opposed to opening the map from
+  // within a location. In this state the visitor has not yet entered a specific
+  // place: no soundscape is mounted and no audio plays, so closing the globe (X)
+  // returns to the landing, while picking a place enters that location.
+  const [browsingFromLanding, setBrowsingFromLanding] = useState(false);
+  // Shared stacked-sheet cover panel (see EnterTransition), used only for
+  // navigations where the incoming page cannot be z-stacked above the outgoing
+  // one (globe close, globe -> location, landing -> location, home). It rises up
+  // over the lifting outgoing page and reveals the destination beneath.
+  // `coverActive` mounts it; `coverKey` is bumped on every trigger so it always
+  // remounts and replays cleanly, even mid-rise. Purely visual: it never gates
+  // audio-unlock or `browsingFromLanding`. (Opening the globe uses no panel: the
+  // globe itself rises as the incoming sheet, approach A.)
+  const [coverActive, setCoverActive] = useState(false);
+  const [coverKey, setCoverKey] = useState(0);
+  // When a scene arrives behind the rising cover panel, the canvas holds its
+  // tile radiate-in by this many ms so the tiles push out just as/after the
+  // panel finishes rising and reveals the canvas rather than under it. 0 at boot
+  // (no transition), then set to the reveal point for every covered entry.
+  const [sceneEntranceDelayMs, setSceneEntranceDelayMs] = useState(0);
+  // Bumped on every covered scene entry so the workspace assets (the canvas of
+  // sound tiles and the bottom control bar) rise up into place as the cover
+  // panel reveals them, matching the entrance parallax of the other sheets. 0 at
+  // boot means no rise on the very first paint.
+  const [sceneRiseToken, setSceneRiseToken] = useState(0);
+  // True for the scene-rise window so the bottom bar's portalled search pill
+  // tracks the rising bar instead of staying pinned to its resting anchor while
+  // the bar rises around it. Cleared once the rise animation settles.
+  const [sceneRising, setSceneRising] = useState(false);
+  // True while the landing is the OUTGOING page (Enter -> globe, or landing ->
+  // location). It STAYS mounted and visible and is gently lifted + dimmed
+  // beneath the incoming sheet (the rising globe, or the rising cover panel) so
+  // the Enter reads as the old page staying and being pushed up while the new one
+  // rises on top, rather than a hard cut. It unmounts only once the incoming
+  // sheet has fully arrived (`onEntered`/`onCovered` clear this).
+  const [landingExiting, setLandingExiting] = useState(false);
+  // True while the full-screen globe is the OUTGOING page (globe close, or globe
+  // -> location entry). It is kept mounted so it stays visible and lifts + dims
+  // beneath the rising cover panel, and only unmounts once the panel has fully
+  // risen (`onCovered` clears this).
+  const [globeExiting, setGlobeExiting] = useState(false);
+  // True while the landing is the INCOMING page returning home (map close ->
+  // landing, or the wordmark home). The landing gate itself RISES up over the
+  // lifting outgoing page (the globe, or the workspace) with the shared curved
+  // top edge, so home arrives as a true stacked-sheet rise rather than a cover
+  // panel that cross-fades out. Cleared by the gate's `onEntered` once it has
+  // fully risen, which is also when the outgoing globe is unmounted.
+  const [landingEntering, setLandingEntering] = useState(false);
   const [customGlobeLocation, setCustomGlobeLocation] = useState<WorldLocation | null>(null);
   const [showProjectInfo, setShowProjectInfo] = useState(false);
   const [showAddSounds, setShowAddSounds] = useState(false);
@@ -94,8 +160,36 @@ export default function App() {
   const ringVariant: RadarRingVariant = 1;
   const [bottomBarTooltip, setBottomBarTooltip] = useState<BottomBarTooltipAnchor | null>(null);
   const [locationSearchOpen, setLocationSearchOpen] = useState(false);
+  // The landing search reports its own open state so the wordmark and fan tiles
+  // recede to ~40% opacity (kept visible) while the search is expanded.
+  const [landingSearchOpen, setLandingSearchOpen] = useState(false);
   const [locationSearchResetToken, setLocationSearchResetToken] = useState(0);
+  // The landing gate doubles as the audio-unlock gesture: when enabled, the app
+  // starts on the intro moment and the first entry (a location image or a
+  // search) enters the workspace with audio playing. The gate is a dev-only
+  // toggle (Radiance panel) that defaults OFF, so by default the app boots
+  // straight into the workspace and the first-gesture unlock() fallback handles
+  // audio.
+  const [landingEnabled, setLandingEnabled] = useState(() => isLandingGateEnabled());
+  const [hasEntered, setHasEntered] = useState(() => !isLandingGateEnabled());
+  // Live fan layout for the landing card row, adjustable via the dev-only fan
+  // controls panel and persisted (localStorage) as the landing default.
+  const [fanConfig, setFanConfig] = useState<FanConfig>(() => loadLandingFanConfig());
+  // Live entrance/loading animation timings for the landing gate, adjustable via
+  // the dev-only entrance tuner and persisted (localStorage) as the default.
+  // Written onto the document root as CSS custom properties the landing keyframes
+  // read (see applyLandingEntranceAnimation).
+  const [landingEntranceConfig, setLandingEntranceConfig] = useState<LandingEntranceConfig>(
+    () => loadLandingEntranceConfig(),
+  );
+  // Bumped to replay the landing entrance in place: it is used as the LandingGate
+  // `key`, so incrementing it remounts the gate (and its portalled search pill),
+  // re-arming every one-shot entrance latch (wordmark/fan/tagline/search/Enter)
+  // without a page refresh.
+  const [landingReplayKey, setLandingReplayKey] = useState(0);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const bottomBarRef = useRef<HTMLElement>(null);
   const paletteRef = useRef<SoundPaletteHandle>(null);
   const wasGlobeOpenRef = useRef(showGlobe);
   const soundDragRef = useRef<SoundDrag | null>(null);
@@ -128,8 +222,7 @@ export default function App() {
       && customGlobeLocation.environmentId === environmentId
       && customGlobeLocation.regionId === regionId
     ) {
-      const { name, subtitle } = customGlobeLocation;
-      return subtitle ? `${name}, ${subtitle}` : name;
+      return formatWorldLocationLabel(customGlobeLocation);
     }
     return region.name;
   }, [customGlobeLocation, environmentId, regionId, region.name]);
@@ -274,9 +367,12 @@ export default function App() {
       setShuffleSalt(0);
       setDockDefaultIds(dockSoundIds);
       loadDefaults(canvasBedSounds);
-      for (const instanceId of engine.getSourceIds()) {
-        engine.removeSource(instanceId);
-      }
+      // Deterministically stop and disconnect every source from the outgoing
+      // location and bump the engine load epoch, so an in-flight buffer load
+      // (e.g. a long rain bed) for the old scene can never start on top of the
+      // new one. All entry routes (search, globe pick, geolocation, random)
+      // funnel through here.
+      engine.beginSoundscapeTransition();
       setDetailTarget(null);
     },
     [engine, loadDefaults],
@@ -314,9 +410,7 @@ export default function App() {
   useEffect(() => {
     if (previousSaltRef.current === shuffleSalt) return;
     previousSaltRef.current = shuffleSalt;
-    for (const instanceId of engine.getSourceIds()) {
-      engine.removeSource(instanceId);
-    }
+    engine.beginSoundscapeTransition();
   }, [engine, shuffleSalt]);
 
   useEffect(() => {
@@ -388,7 +482,7 @@ export default function App() {
   ]);
 
   const beginReturnToDock = useCallback(
-    (instanceId: string, iconRect: DOMRect) => {
+    (instanceId: string, iconRect: DOMRect, dropPoint?: { x: number; y: number }) => {
       const item = activeSounds.find((entry) => entry.instanceId === instanceId);
       if (!item) return;
 
@@ -402,25 +496,35 @@ export default function App() {
         setSelectedId(null);
       }
 
-      // The dock only guarantees slots for `dockDefaultIds`, then backfills the
-      // rest from the catalogue. A tile that was a backfill (or was added from
-      // the library) is not a default, so when it returns a different backfill
-      // has already taken its slot and it never reappears. Pin the returned
-      // sound to the front of the dock defaults so it is always shown again.
-      const nextDockDefaultIds = dockDefaultIds.includes(item.soundId)
-        ? dockDefaultIds
-        : [item.soundId, ...dockDefaultIds];
+      setDockMagnetDrag(null);
 
       const nextActiveIds = activeSounds
         .filter((entry) => entry.instanceId !== instanceId)
         .map((entry) => entry.soundId);
+
+      const insertionIndex = dropPoint
+        ? paletteRef.current?.getInsertionIndex(dropPoint.x, dropPoint.y) ?? 0
+        : 0;
+
+      const nextDockDefaultIds = reorderDockDefaultIds(
+        dockDefaultIds,
+        nextActiveIds,
+        librarySounds,
+        item.soundId,
+        insertionIndex,
+      );
+
       const target = paletteRef.current?.getSlotCenter(
         item.soundId,
         nextActiveIds,
         nextDockDefaultIds,
+        item.soundId,
       );
 
-      if (nextDockDefaultIds !== dockDefaultIds) {
+      if (
+        nextDockDefaultIds.length !== dockDefaultIds.length
+        || nextDockDefaultIds.some((id, index) => id !== dockDefaultIds[index])
+      ) {
         setDockDefaultIds(nextDockDefaultIds);
       }
 
@@ -430,18 +534,33 @@ export default function App() {
       }
 
       setReturningId(instanceId);
+      setReturningSoundId(item.soundId);
+      // Start the return flight from the tile's exact on-screen box at release,
+      // the same rect the drag mirror was showing, so the hand-off is seamless:
+      // no size pop (it keeps its current size and only shrinks to the dock slot)
+      // and no positional jump to the pointer, which can lag the tile mid-drag.
       setReturnFlight({
         instanceId,
         soundId: item.soundId,
-        name: sound.name,
+        name: displaySoundName(sound),
         from: {
           x: iconRect.left + iconRect.width / 2,
           y: iconRect.top + iconRect.height / 2,
         },
+        fromSize: iconRect.width,
         to: target,
       });
     },
-    [activeSounds, detailTarget, dockDefaultIds, removeSound, selectedId, setSelectedId, soundMap],
+    [
+      activeSounds,
+      detailTarget,
+      dockDefaultIds,
+      librarySounds,
+      removeSound,
+      selectedId,
+      setSelectedId,
+      soundMap,
+    ],
   );
 
   useEffect(() => {
@@ -611,7 +730,7 @@ export default function App() {
       setDetailTarget({
         instanceId,
         soundId: item.soundId,
-        name: sound?.name ?? item.soundId,
+        name: sound ? displaySoundName(sound) : item.soundId,
         volume: item.volume,
       });
     },
@@ -675,20 +794,258 @@ export default function App() {
     void ensureScenePlaying();
   }, [ensureScenePlaying]);
 
+  // Fire the shared cover panel (for navigations where the incoming page cannot
+  // be stacked above the outgoing one). Bumping the key remounts EnterTransition
+  // so the rise always replays from a clean state, even if a previous one is
+  // still mid-flight, which keeps repeated navigations reliable.
+  const playCover = useCallback(() => {
+    setCoverKey((key) => key + 1);
+    setCoverActive(true);
+  }, []);
+
+  // A location is loading into the canvas (globe pick, search, pin, geolocation,
+  // random): rise the cover panel over the outgoing page and arm the canvas to
+  // hold its tile radiate-in until the panel finishes rising and reveals the
+  // canvas, so it reads as "sheet rises up to reveal, then the tiles push out".
+  const playSceneEntryCover = useCallback(() => {
+    setSceneEntranceDelayMs(SHEET_SCENE_REVEAL_MS);
+    setSceneRising(true);
+    setSceneRiseToken((token) => token + 1);
+    playCover();
+  }, [playCover]);
+
+  // Rise the revealed soundscape assets. When a scene enters behind the cover
+  // panel, the canvas (sound tiles, rings, listener) and the bottom control bar
+  // are held one short step below their resting spot and then glide up as the
+  // cover sweeps away, so the reveal and the assets settling read as one
+  // continuous upward motion (the same feel as the sheet rises). The animation
+  // is delayed to the reveal moment (SHEET_SCENE_REVEAL_MS) with no fill, so the
+  // assets sit naturally until the cover fully covers them and the brief
+  // downward offset it starts from is hidden behind the cover. Reduced motion
+  // skips the rise entirely (the tiles also skip their radiate-in).
+  useEffect(() => {
+    if (sceneRiseToken === 0) return undefined;
+    if (prefersReducedMotion()) {
+      setSceneRising(false);
+      return undefined;
+    }
+    const targets = [mainRef.current, bottomBarRef.current].filter(
+      (el): el is HTMLElement => el !== null,
+    );
+    if (targets.length === 0) {
+      setSceneRising(false);
+      return undefined;
+    }
+    let cancelled = false;
+    const animations = targets.map((el) =>
+      el.animate(
+        [
+          { transform: 'translate3d(0, 44px, 0)' },
+          { transform: 'translate3d(0, 0, 0)' },
+        ],
+        {
+          duration: 620,
+          delay: SHEET_SCENE_REVEAL_MS,
+          easing: 'cubic-bezier(0.32, 0.72, 0, 1)',
+          fill: 'none',
+        },
+      ),
+    );
+    // Keep the bottom bar's search pill tracking the rising bar until the rise
+    // settles, then release it back to the resting anchor.
+    void Promise.all(
+      animations.map((animation) => animation.finished.catch(() => undefined)),
+    ).then(() => {
+      if (!cancelled) setSceneRising(false);
+    });
+    return () => {
+      cancelled = true;
+      animations.forEach((animation) => animation.cancel());
+    };
+  }, [sceneRiseToken]);
+
   const handleGlobeSelect = useCallback(
     (location: WorldLocation) => {
+      void unlock();
+      playSceneEntryCover();
+      if (location.custom) {
+        setCustomGlobeLocation(location);
+      }
+      applyRegion(location.environmentId, location.regionId);
+      // Picking a place while browsing from the landing is the entry gesture, so
+      // it starts that location's soundscape (matching the search entry). A
+      // mid-session pick keeps the transport untouched: beginSoundscapeTransition
+      // leaves `playing` alone and addSource only starts sources when already
+      // playing, so a paused user stays silent and a playing user keeps playing.
+      if (!hasEntered) {
+        setAutoPlayOnLoad(true);
+      }
+      setShowGlobe(false);
+      // Keep the outgoing globe mounted so it stays visible and lifts + dims
+      // beneath the rising cover panel; the incoming soundscape canvas is
+      // revealed on top when the panel finishes rising. `onCovered` unmounts it.
+      setGlobeExiting(true);
+      // We have now entered a concrete location, so the landing-browse state is
+      // spent and the globe close no longer returns to the landing.
+      setBrowsingFromLanding(false);
+      // Selecting from the globe is also an entry gesture, so it dismisses the
+      // landing gate (a no-op once already inside the workspace).
+      setHasEntered(true);
+    },
+    [applyRegion, hasEntered, playSceneEntryCover, unlock],
+  );
+
+  // Entry from the landing gate. Unlocking the AudioContext inside this click
+  // handler (the user gesture) satisfies the browser autoplay policy, then
+  // `applyRegion` + `autoPlayOnLoad` starts the chosen soundscape as we dismiss
+  // the gate, the same path the globe uses to enter a place.
+  const handleEnterLocation = useCallback(
+    (location: WorldLocation) => {
+      void unlock();
+      playSceneEntryCover();
+      // Keep the landing mounted and lifting beneath the rising cover panel even
+      // though `hasEntered` flips true, so the old page stays and pushes up while
+      // the soundscape rises on top; it unmounts once the panel has fully risen
+      // (see `onCovered`).
+      setLandingExiting(true);
       if (location.custom) {
         setCustomGlobeLocation(location);
       }
       applyRegion(location.environmentId, location.regionId);
       setAutoPlayOnLoad(true);
-      setShowGlobe(false);
+      setHasEntered(true);
     },
-    [applyRegion],
+    [applyRegion, playSceneEntryCover, unlock],
   );
+
+  // Entry via the Enter button or an empty-query Enter in the landing search:
+  // open the full-screen world map DIRECTLY over the landing so the visitor
+  // lands in the map of all soundscapes with no flash of the workspace beneath.
+  // We deliberately do NOT leave the landing gate (`hasEntered` stays false) and
+  // do NOT start a soundscape: the landing stays mounted behind the globe (so
+  // the soundscape canvas is never revealed) and no scene plays, so there is
+  // nothing to flash or hear. We still resume the AudioContext on this click so
+  // the gesture satisfies the browser autoplay gate for when a place is picked.
+  // Closing the globe (X) returns to the landing; picking a place enters it.
+  const handleEnterExperience = useCallback(() => {
+    void unlock();
+    // Approach A: the globe is naturally above the landing, so it rises as its
+    // real self ON TOP of the landing (no cover panel). Lift the landing and keep
+    // it mounted + visible beneath the rising globe so the two read as stacked
+    // sheets; `onEntered` from the globe settles the landing back to rest once the
+    // globe has fully arrived. It stays mounted (hasEntered false while browsing)
+    // and simply returns to rest when the globe is later closed back to it.
+    setLandingExiting(true);
+    setBrowsingFromLanding(true);
+    setShowGlobe(true);
+  }, [unlock]);
+
+  // Close handler for the full-screen globe. Opening always just shows it; the
+  // interesting case is closing. When the globe was opened from the landing to
+  // browse (and no place was picked), closing returns to the landing rather
+  // than into an empty workspace. A normal in-session map close (already inside
+  // a location) simply hides the globe and returns to that location.
+  const handleGlobeOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      // Opening the map: the globe rises as its real self (approach A) on top of
+      // the workspace beneath it, so no cover panel is needed. This is not a
+      // location entry, so no radiate-in.
+      setShowGlobe(true);
+      return;
+    }
+    // Closing the map: the outgoing globe lifts up (parallax) and stays visible
+    // beneath the incoming page rising over it.
+    setShowGlobe(false);
+    setGlobeExiting(true);
+    if (browsingFromLanding) {
+      // Returning home to the landing (map -> home): the landing gate is itself
+      // a full-page opaque sheet, so it RISES up over the lifting globe with the
+      // shared curved edge (a true stacked-sheet rise, no cover panel and no
+      // cross-fade). Remount it (replay key) so it re-arms its entrance, and its
+      // `onEntered` unmounts the globe once it has fully risen. hasEntered stays
+      // false, so it renders and settles at rest.
+      setBrowsingFromLanding(false);
+      setLandingExiting(false);
+      setLandingEntering(true);
+      setLandingReplayKey((key) => key + 1);
+    } else {
+      // Returning to the workspace: the soundscape canvas is stacked BELOW the
+      // globe and cannot be raised above it, so the shared cover panel rises up
+      // over the lifting globe and reveals it. The panel (z-index 500) sits above
+      // the globe page (z-index 400); `onCovered` unmounts the globe once the
+      // panel has fully risen.
+      playCover();
+    }
+  }, [browsingFromLanding, playCover]);
+
+  // The header wordmark doubles as a "home" control. Home returns to the landing
+  // gate when the landing experience is available (mirroring the globe X
+  // return-to-landing path: close the globe, drop the browse/exit state and the
+  // entered flag so the gate is shown again), replaying the landing entrance so
+  // it reads as a fresh arrival. With the landing gate disabled (dev toggle off)
+  // there is no gate to return to, so home is simply the default view: close the
+  // globe. Either way it plays the shared wipe so the navigation feels of a
+  // piece with the rest of the app.
+  const handleGoHome = useCallback(() => {
+    // Lift the outgoing page up (parallax) if the globe is open, otherwise the
+    // workspace beneath stays put. Only lift the globe if it is actually open,
+    // otherwise `globeExiting` would mount an empty globe just to lift it.
+    if (showGlobe) setGlobeExiting(true);
+    setShowGlobe(false);
+    if (landingEnabled) {
+      // Home returns to the landing gate, which is itself a full-page opaque
+      // sheet, so it RISES up over the lifting outgoing page with the shared
+      // curved edge (a true stacked-sheet rise, no cover panel and no
+      // cross-fade). Remount it so its entrance re-arms; its `onEntered` unmounts
+      // any lifted globe once it has fully risen.
+      setBrowsingFromLanding(false);
+      setLandingExiting(false);
+      setHasEntered(false);
+      setLandingEntering(true);
+      setLandingReplayKey((key) => key + 1);
+    } else {
+      // No landing gate to return to, so home is just the default view: rise the
+      // shared cover panel over the outgoing page and reveal the workspace.
+      playCover();
+    }
+  }, [landingEnabled, playCover, showGlobe]);
+
+  // The incoming landing has finished rising home over the outgoing page, so
+  // settle the rise (drop the raised stacking) and unmount the lifted globe
+  // beneath it now that it is fully covered.
+  const handleLandingEntered = useCallback(() => {
+    setLandingEntering(false);
+    setGlobeExiting(false);
+  }, []);
+
+  // Dev toggle (Landing switch): persist the preference and reflect it live.
+  // Turning it on drops back to the landing gate, turning it off enters the
+  // workspace straight away (the first-gesture unlock fallback still applies).
+  const handleLandingEnabledChange = useCallback((enabled: boolean) => {
+    setLandingEnabled(enabled);
+    persistLandingGateEnabled(enabled);
+    setHasEntered(!enabled);
+  }, []);
+
+  // Push the live entrance timings to the document root so the landing keyframes
+  // pick them up (runs on mount for the saved/default config and on every edit).
+  useEffect(() => {
+    applyLandingEntranceAnimation(landingEntranceConfig);
+  }, [landingEntranceConfig]);
+
+  // Replay the landing entrance in place (dev tuner Test button): make sure the
+  // gate is visible, settle any exit lift, then remount it via the replay key so
+  // the whole choreographed entrance re-arms and plays again with no refresh.
+  const handleReplayLandingEntrance = useCallback(() => {
+    if (!landingEnabled) handleLandingEnabledChange(true);
+    setLandingExiting(false);
+    setHasEntered(false);
+    setLandingReplayKey((key) => key + 1);
+  }, [handleLandingEnabledChange, landingEnabled]);
 
   const handleGeoMatch = useCallback(
     (match: GeoMatchResult) => {
+      playSceneEntryCover();
       setCustomGlobeLocation(
         createCustomWorldLocation({
           lat: match.lat,
@@ -700,26 +1057,47 @@ export default function App() {
         }),
       );
       applyRegion(match.environmentId, match.regionId);
-      setAutoPlayOnLoad(true);
+      // Mid-session switch: respect the transport rather than forcing playback.
     },
-    [applyRegion],
+    [applyRegion, playSceneEntryCover],
   );
 
   const handleRandomRegion = useCallback(
     (nextEnvironmentId: string, nextRegionId: string) => {
+      playSceneEntryCover();
       applyRegion(nextEnvironmentId, nextRegionId);
-      setAutoPlayOnLoad(true);
+      // Mid-session switch: respect the transport rather than forcing playback.
     },
-    [applyRegion],
+    [applyRegion, playSceneEntryCover],
   );
 
   const handleLocationSearchChange = useCallback(
-    (nextEnvironmentId: string, nextRegionId: string) => {
-      setCustomGlobeLocation(null);
+    (
+      nextEnvironmentId: string,
+      nextRegionId: string,
+      customLocation?: WorldLocation,
+    ) => {
+      // A geocoded worldwide result carries a custom location so it drops a pin
+      // on the globe at the searched coordinates; a curated soundscape clears
+      // any existing custom pin.
+      void unlock();
+      playSceneEntryCover();
+      setCustomGlobeLocation(customLocation ?? null);
       applyRegion(nextEnvironmentId, nextRegionId);
-      setAutoPlayOnLoad(true);
+      // Only the landing search (before entering) is an entry gesture that
+      // forces playback. Once inside the workspace a search is a mid-session
+      // switch, so it respects the transport: the engine keeps playing if we
+      // were playing and stays silent if the user has paused.
+      if (!hasEntered) {
+        setAutoPlayOnLoad(true);
+        // Landing-origin entry: lift the landing and keep it beneath the rising
+        // cover panel while the workspace is revealed on top.
+        setLandingExiting(true);
+      }
+      // Searching is the alternate entry gesture, so it also leaves the gate.
+      setHasEntered(true);
     },
-    [applyRegion],
+    [applyRegion, hasEntered, playSceneEntryCover, unlock],
   );
 
   const handleReturnComplete = useCallback(() => {
@@ -727,6 +1105,7 @@ export default function App() {
     removeSound(returnFlight.instanceId);
     setReturnFlight(null);
     setReturningId(null);
+    setReturningSoundId(null);
   }, [removeSound, returnFlight]);
 
   const syncBottomBarTooltip = useCallback((target: EventTarget | null) => {
@@ -744,13 +1123,6 @@ export default function App() {
     if (!scene) return null;
     return buildSceneShareUrl(scene);
   }, [activeSounds, customGlobeLocation, environmentId, headerLocationLabel, regionId]);
-
-  // About / Add Sound keep the iOS-style scale-down + blur of the app layer.
-  const scaleDownActive = showProjectInfo || showAddSounds;
-  // The sound tile detail modal only blurs the background (no downscale) so
-  // tapping a tile never shifts its position.
-  const blurOnlyActive = detailTarget !== null && !scaleDownActive;
-  const scaleBlurActive = scaleDownActive || blurOnlyActive;
 
   useEffect(() => {
     engine.setDuckingGain(showGlobe ? GLOBE_DUCK_GAIN : 1);
@@ -776,18 +1148,44 @@ export default function App() {
   return (
     <SheetStack.Root className={sheetStack.root}>
       <SheetStack.Outlet
-        className={`${sheetStack.outlet} ${
-          scaleDownActive
-            ? sheetStack.outletScaleBlur
-            : blurOnlyActive
-              ? sheetStack.outletBlurOnly
-              : ''
-        }`}
+        className={sheetStack.outlet}
         stackingAnimation={appStackingAnimation}
         asChild
       >
-        <div className={styles.app} inert={scaleBlurActive || undefined}>
-      {!isUnlocked && (
+        <div className={styles.app}>
+      {(!hasEntered || landingExiting || landingEntering) && (
+        <LandingGate
+          key={landingReplayKey}
+          onSelect={handleEnterLocation}
+          fanConfig={fanConfig}
+          onEnter={handleEnterExperience}
+          searchOpen={landingSearchOpen}
+          exiting={landingExiting}
+          entering={landingEntering}
+          onEntered={handleLandingEntered}
+          search={
+            <LocationSearchSpotlight
+              appLocations={appLocations}
+              worldLocations={worldLocations}
+              environmentId={environmentId}
+              regionId={regionId}
+              onChange={handleLocationSearchChange}
+              onOpenChange={setLandingSearchOpen}
+              onEmptyEnter={handleEnterExperience}
+              resetToken={locationSearchResetToken}
+              idleLabel="Search or create your own"
+              expandDirection="down"
+              theme="light"
+              backdrop={false}
+              enlarged
+              recenterOnExpand
+              riseWithGate={landingEntering}
+            />
+          }
+        />
+      )}
+
+      {hasEntered && !isUnlocked && (
         <button type="button" className={styles.unlockBanner} onClick={() => void unlock()}>
           Tap to enable audio · press Play when you are ready
         </button>
@@ -800,11 +1198,20 @@ export default function App() {
 
       <header className={styles.header}>
         <div className={styles.brand}>
-          <h1 className={styles.title}>Saudade</h1>
+          <h1 className={styles.title}>
+            <button
+              type="button"
+              className={styles.brandHome}
+              onClick={handleGoHome}
+              aria-label="Saudade, go home"
+            >
+              Saudade
+            </button>
+          </h1>
         </div>
       </header>
 
-      <main className={styles.main}>
+      <main className={styles.main} ref={mainRef}>
         <section className={styles.workspace} aria-label="Soundscape">
           <div className={styles.dockOverlay}>
             <SoundPalette
@@ -812,8 +1219,10 @@ export default function App() {
               sounds={librarySounds}
               dockDefaultIds={dockDefaultIds}
               activeSoundIds={activeSoundIds}
+              returningSoundId={returningSoundId}
               draggingSoundId={soundDrag?.source === 'palette' ? soundDrag.sound.id : null}
               draggingActive={soundDrag?.source === 'palette' ? soundDrag.active : false}
+              magnetDrag={dockMagnetDrag}
               regionArt={regionArt}
               onDragStart={handlePaletteDragStart}
               onAddClick={(originRect) => {
@@ -834,50 +1243,63 @@ export default function App() {
             onMove={handlePhysicsMove}
             onSettle={updatePosition}
             onDragBegin={handleCanvasDragBegin}
+            onDockDragHover={setDockMagnetDrag}
             dropHighlight={Boolean(soundDrag?.active)}
+            dockHitTest={(x, y) => paletteRef.current?.hitTest(x, y) ?? false}
             regionArt={regionArt}
             ringVariant={ringVariant}
             isPlaying={isPlaying}
+            entranceHoldMs={sceneEntranceDelayMs}
           />
         </section>
       </main>
 
       <nav
-        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe || scaleBlurActive ? styles.bottomBarHidden : ''}`}
+        ref={bottomBarRef}
+        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe ? styles.bottomBarHidden : ''}`}
         aria-label="Main controls"
         onPointerMove={(event) => syncBottomBarTooltip(event.target)}
         onPointerLeave={() => setBottomBarTooltip(null)}
       >
-        <div className={styles.bottomBarPlay}>
-          <PlayCluster
-            engine={engine}
-            isPlaying={isPlaying}
-            onToggle={() => void togglePlay()}
-          />
-        </div>
-        <div className={styles.bottomBarRow}>
-          <div className={styles.leftActionGroup}>
-            <UseMyLocationButton onMatch={handleGeoMatch} />
-            <RandomizeLocationButton
-              appLocations={appLocations}
-              worldLocations={worldLocations}
-              onPick={handleRandomRegion}
+        {hasEntered && (
+          <div className={styles.bottomBarPlay}>
+            <PlayCluster
+              engine={engine}
+              isPlaying={isPlaying}
+              onToggle={() => void togglePlay()}
             />
           </div>
-          <LocationSearchSpotlight
-            appLocations={appLocations}
-            worldLocations={worldLocations}
-            environmentId={environmentId}
-            regionId={regionId}
-            onChange={handleLocationSearchChange}
-            onOpenChange={setLocationSearchOpen}
-            resetToken={locationSearchResetToken}
-            blocked={showGlobe || scaleBlurActive}
-          />
-          <div className={styles.rightActionGroup}>
-            <MapButton onClick={() => setShowGlobe(true)} />
-            <ShareButton onShare={handleShare} />
-          </div>
+        )}
+        <div className={styles.bottomBarRow}>
+          {hasEntered && (
+            <div className={styles.leftActionGroup}>
+              <UseMyLocationButton onMatch={handleGeoMatch} />
+              <RandomizeLocationButton
+                appLocations={appLocations}
+                worldLocations={worldLocations}
+                onPick={handleRandomRegion}
+              />
+            </div>
+          )}
+          {hasEntered && (
+            <LocationSearchSpotlight
+              appLocations={appLocations}
+              worldLocations={worldLocations}
+              environmentId={environmentId}
+              regionId={regionId}
+              onChange={handleLocationSearchChange}
+              onOpenChange={setLocationSearchOpen}
+              resetToken={locationSearchResetToken}
+              blocked={showGlobe}
+              riseWithBar={sceneRising}
+            />
+          )}
+          {hasEntered && (
+            <div className={styles.rightActionGroup}>
+              <MapButton onClick={() => handleGlobeOpenChange(true)} />
+              <ShareButton onShare={handleShare} />
+            </div>
+          )}
         </div>
       </nav>
       <BottomBarMagnetTooltip anchor={bottomBarTooltip} />
@@ -885,13 +1307,15 @@ export default function App() {
       {soundDrag && (
         <FlyingSoundTile
           soundId={soundDrag.sound.id}
-          name={soundDrag.sound.name}
+          name={displaySoundName(soundDrag.sound)}
           x={soundDrag.x}
           y={soundDrag.y}
           size={soundDrag.active ? CANVAS_TILE_SIZE : DOCK_BASE_SIZE}
           showLabel={false}
           regionArt={regionArt}
-          elevated
+          elevated={soundDrag.source === 'palette'}
+          overlayElevated={soundDrag.source === 'library'}
+          pickedUp={soundDrag.source === 'library'}
           dragPhysics={soundDrag.active}
         />
       )}
@@ -903,7 +1327,7 @@ export default function App() {
           instanceId={returnFlight.instanceId}
           x={returnFlight.from.x}
           y={returnFlight.from.y}
-          size={CANVAS_TILE_SIZE}
+          size={returnFlight.fromSize}
           animateTo={{
             x: returnFlight.to.x,
             y: returnFlight.to.y,
@@ -911,6 +1335,7 @@ export default function App() {
           }}
           onComplete={handleReturnComplete}
           regionArt={regionArt}
+          elevated
         />
       )}
         </div>
@@ -929,12 +1354,32 @@ export default function App() {
 
       <GlobeMapSheet
         open={showGlobe}
-        onOpenChange={setShowGlobe}
+        exiting={globeExiting}
+        onEntered={() => {
+          // The globe (approach-A incoming) has finished rising into place, so
+          // settle the outgoing landing beneath it back to rest (it stays mounted
+          // while browsing, now fully covered by the globe).
+          setLandingExiting(false);
+        }}
+        onOpenChange={handleGlobeOpenChange}
         locations={globeLocations}
         activeEnvironmentId={environmentId}
         activeRegionId={regionId}
         activeLocationId={customGlobeLocation?.id}
         onSelect={handleGlobeSelect}
+      />
+
+      <EnterTransition
+        key={coverKey}
+        active={coverActive}
+        onCovered={() => {
+          // The cover panel now fully covers the viewport: unmount the lifted
+          // outgoing page(s) so the following cross-fade reveals the true
+          // destination beneath, not the outgoing layer.
+          setGlobeExiting(false);
+          setLandingExiting(false);
+        }}
+        onDone={() => setCoverActive(false)}
       />
 
       <AddSoundSheet
@@ -944,7 +1389,6 @@ export default function App() {
         sounds={librarySounds}
         activeSoundIds={activeSoundIds}
         regionArt={regionArt}
-        regionName={region.name}
         migratoryBirds={region.migratoryBirds}
         defaultSeason={region.defaultSeason}
         draggingSoundId={soundDrag?.source === 'library' ? soundDrag.sound.id : null}
@@ -956,6 +1400,17 @@ export default function App() {
 
       <SearchSpotlightAnimationTuner />
       <PlayingBarEdgeGradientTuner isPlaying={isPlaying} />
+      <LandingFanTuner
+        config={fanConfig}
+        onChange={setFanConfig}
+        landingEnabled={landingEnabled}
+        onLandingEnabledChange={handleLandingEnabledChange}
+      />
+      <LandingEntranceTuner
+        config={landingEntranceConfig}
+        onChange={setLandingEntranceConfig}
+        onReplay={handleReplayLandingEntrance}
+      />
     </SheetStack.Root>
   );
 }

@@ -36,7 +36,9 @@
 }
 
 .detail {
-  border-radius: 0;
+  /* Inherit the container's radius so the detail image rounds consistently with
+     every other image tile (the container carries the shared --tile-radius). */
+  border-radius: inherit;
   min-height: 0;
   max-height: 100%;
 }

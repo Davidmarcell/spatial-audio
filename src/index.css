@@ -38,41 +38,47 @@
   --scale-blur-backdrop-open-delay: 0s;
   --scale-blur-backdrop-close-delay: 0.02s;
   --scale-blur-swap-duration: 0.46s;
-  --search-duration: var(--scale-blur-duration);
-  --search-duration-fast: var(--scale-blur-duration-fast);
+  --search-duration: 0.46s;
+  --search-duration-fast: 0.2s;
   --bottom-bar-rise: 0px;
+  /* Bottom nav (main controls) show/hide timing. Kept independent of the search
+     spotlight tuning so retuning the search never changes the nav animation. */
+  --bottom-nav-transition-duration: 200ms;
+  --bottom-nav-transition-ease: cubic-bezier(0, 0, 0.2, 1);
   --search-bar-width: min(550px, calc(100vw - 2rem));
   --search-bar-rise: 0px;
-  --search-width-duration: 0.15s;
-  --search-width-ease: cubic-bezier(0.34, 1.12, 0.64, 1);
-  --search-height-duration: 0.21s;
-  --search-height-ease: cubic-bezier(0.24, 0.76, 0.3, 1);
-  --search-rise-duration: 0.22s;
-  --search-rise-ease: ease-out;
-  --search-open-width-duration: 0.15s;
-  --search-open-rise-duration: 0.35s;
-  --search-open-total-duration: calc(var(--search-open-width-duration) + var(--search-open-rise-duration));
-  --search-open-width-ease: cubic-bezier(0.4, 0, 1, 1);
-  --search-open-rise-ease: cubic-bezier(0.4, 0, 1, 1);
-  --search-rise-translate-overshoot: 1.045;
-  --search-width-spring-peak: 1.018;
-  --search-rise-spring-duration: 0.54s;
-  --search-rise-spring-scale-peak: 1.034;
-  --search-rise-spring-scale-settle: 0.986;
-  --search-close-drop-ease: cubic-bezier(0.34, 1.12, 0.64, 1);
-  --search-close-bounce-ease: cubic-bezier(0.34, 1.12, 0.64, 1);
-  --search-close-drop-duration: 0.35s;
-  --search-close-width-duration: 0.15s;
-  --search-close-bounce-duration: 0.38s;
-  --search-shell-duration: 0.32s;
-  --search-shell-ease: cubic-bezier(0.22, 0.75, 0.24, 1);
-  --search-content-duration: 0.22s;
-  --search-content-ease: cubic-bezier(0.22, 0.66, 0.3, 1);
-  --search-content-delay: 0ms;
-  --search-rise-overlap-ms: 100ms;
+  --search-width-duration: 0.42s;
+  --search-width-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-height-duration: 0.46s;
+  --search-height-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-rise-duration: 0.46s;
+  --search-rise-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-open-width-duration: 0.42s;
+  --search-open-rise-duration: 0.46s;
+  --search-open-total-duration: var(--search-open-rise-duration);
+  --search-open-width-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-open-rise-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-rise-translate-overshoot: 1;
+  --search-width-spring-peak: 1;
+  --search-rise-spring-duration: 0.46s;
+  --search-rise-spring-scale-peak: 1;
+  --search-rise-spring-scale-settle: 1;
+  --search-close-drop-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-close-bounce-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-close-drop-duration: 0.28s;
+  --search-close-width-duration: 0.28s;
+  --search-close-bounce-duration: 0.28s;
+  --search-close-radius-delay: 175ms;
+  --search-close-radius-duration: 105ms;
+  --search-shell-duration: 0.42s;
+  --search-shell-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-content-duration: 0.46s;
+  --search-content-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --search-content-delay: 175ms;
+  --search-rise-overlap-ms: 460ms;
   --search-side-shift-distance: 24px;
-  --search-side-shift-duration: 0.2s;
-  --search-side-shift-delay: 50ms;
+  --search-side-shift-duration: 0.42s;
+  --search-side-shift-delay: 0ms;
   --search-shell-collapsed-height: 3.2rem;
   --search-shell-expanded-height: min(24rem, calc(100vh - 7rem - env(safe-area-inset-top, 0px)));
   --search-shell-pill-radius: 999px;
@@ -82,11 +88,19 @@
   --radius-md: 1rem;
   --radius-lg: 1.25rem;
   --radius-xl: 1.5rem;
+  /* Single corner radius shared by every square image tile (landing fan tiles,
+     search-result thumbnails, sound-palette / canvas / flying sound tiles and
+     the sound-detail image) so their rounding stays identical everywhere. */
+  --tile-radius: 0.85rem;
   --blur-glass: saturate(180%) blur(20px);
   --blur-glass-panel: saturate(190%) blur(40px);
   --blur-glass-subtle: saturate(175%) blur(18px);
   --glass-inset: none;
-  --playing-bar-wave-opacity: 1;
+  --glass-button-shadow: var(--glass-shadow);
+  --glass-button-shadow-hover: var(--glass-shadow-elevated);
+  --glass-button-shadow-active: var(--glass-shadow);
+  --glass-button-shadow-subtle: var(--glass-shadow-subtle);
+  --playing-bar-wave-opacity: 0.4;
   --playing-bar-gradient-angle: 191;
   --playing-bar-gradient-offset: 0.58;
   --playing-bar-gradient-scale: 0.64;
@@ -122,6 +136,7 @@
   --accent: #111111;
   --accent-soft: rgba(17, 17, 17, 0.1);
   --accent-strong: #111111;
+  --focus-ring: rgba(17, 17, 17, 0.55);
   --warning: #b86a1f;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -155,7 +170,7 @@
   --playing-bar-accent: rgba(76, 175, 120, 0.38);
   --playing-bar-mid: rgba(76, 175, 120, 0.16);
   --playing-bar-warm: rgba(225, 200, 160, 0.28);
-  --playing-bar-line: rgba(76, 175, 120, 0.52);
+  --playing-bar-line: rgba(76, 175, 120, 0.40);
   --overlay-backdrop: rgba(245, 242, 236, 0.18);
   --overlay-backdrop-open: rgba(245, 242, 236, 0.32);
   --overlay-backdrop-closing: rgba(245, 242, 236, 0.22);
@@ -205,6 +220,7 @@
   --accent: #f5f5f7;
   --accent-soft: rgba(255, 255, 255, 0.12);
   --accent-strong: #ffffff;
+  --focus-ring: rgba(255, 255, 255, 0.42);
   --warning: #e09a4a;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28), 0 4px 16px rgba(0, 0, 0, 0.22);
   --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.36), 0 2px 8px rgba(0, 0, 0, 0.24);
@@ -222,13 +238,13 @@
   --glass-shine-mid: rgba(255, 255, 255, 0.03);
   --glass-shine-angle: rgba(255, 255, 255, 0.05);
   --glass-shine-opacity: 0.36;
-  --glass-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.42),
-    0 1px 3px rgba(0, 0, 0, 0.28);
-  --glass-shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.34);
-  --glass-shadow-elevated:
-    0 10px 28px rgba(0, 0, 0, 0.5),
-    0 2px 6px rgba(0, 0, 0, 0.3);
+  --glass-button-shadow: none;
+  --glass-button-shadow-hover: none;
+  --glass-button-shadow-active: none;
+  --glass-button-shadow-subtle: none;
+  --glass-shadow: none;
+  --glass-shadow-subtle: none;
+  --glass-shadow-elevated: none;
   --glass-panel-bg: rgba(32, 32, 34, 0.88);
   --glass-panel-shadow:
     0 22px 58px rgba(0, 0, 0, 0.52),
@@ -241,7 +257,7 @@
   --playing-bar-accent: rgba(76, 175, 120, 0.44);
   --playing-bar-mid: rgba(76, 175, 120, 0.18);
   --playing-bar-warm: rgba(40, 72, 58, 0.36);
-  --playing-bar-line: rgba(76, 175, 120, 0.58);
+  --playing-bar-line: rgba(76, 175, 120, 0.40);
   --overlay-backdrop: rgba(0, 0, 0, 0.38);
   --overlay-backdrop-open: rgba(0, 0, 0, 0.48);
   --overlay-backdrop-closing: rgba(0, 0, 0, 0.34);

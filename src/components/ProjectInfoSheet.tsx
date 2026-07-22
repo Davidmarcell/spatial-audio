@@ -156,6 +156,95 @@ export function ProjectInfoSheet({ open, onOpenChange }: Props) {
               and gently missed.
             </p>
           </section>
+
+          <section className={styles.section} aria-labelledby="project-info-how">
+            <h3 className={styles.heading} id="project-info-how">
+              How it works
+            </h3>
+            <figure className={styles.diagram}>
+              <svg
+                className={styles.diagramSvg}
+                viewBox="0 0 300 200"
+                role="img"
+                aria-labelledby="project-info-diagram-title project-info-diagram-desc"
+              >
+                <title id="project-info-diagram-title">Distance and loudness</title>
+                <desc id="project-info-diagram-desc">
+                  A central listener marked You, surrounded by sound tiles. Tiles
+                  nearer the centre are drawn larger to show they sound louder,
+                  and tiles further away are smaller and softer.
+                </desc>
+
+                {/* Concentric distance rings around the listener. */}
+                <circle className={styles.diagramRing} cx="150" cy="96" r="30" />
+                <circle className={styles.diagramRing} cx="150" cy="96" r="58" />
+                <circle className={styles.diagramRing} cx="150" cy="96" r="86" />
+
+                {/* Faint spokes reading as distance from the listener. */}
+                <line className={styles.diagramSpoke} x1="150" y1="96" x2="108" y2="96" />
+                <line className={styles.diagramSpoke} x1="150" y1="96" x2="198" y2="60" />
+                <line className={styles.diagramSpoke} x1="150" y1="96" x2="214" y2="150" />
+
+                {/* Near tile: large and loud (closest to the listener). */}
+                <g>
+                  <rect
+                    className={`${styles.diagramTile} ${styles.diagramTileNear}`}
+                    x="87"
+                    y="75"
+                    width="42"
+                    height="42"
+                    rx="9"
+                  />
+                  <text className={styles.diagramLabel} x="108" y="130" textAnchor="middle">
+                    Waves
+                  </text>
+                </g>
+
+                {/* Mid tile. */}
+                <g>
+                  <rect
+                    className={`${styles.diagramTile} ${styles.diagramTileMid}`}
+                    x="183"
+                    y="45"
+                    width="30"
+                    height="30"
+                    rx="7"
+                  />
+                  <text className={styles.diagramLabel} x="198" y="86" textAnchor="middle">
+                    Birdsong
+                  </text>
+                </g>
+
+                {/* Far tile: small and soft (furthest from the listener). */}
+                <g>
+                  <rect
+                    className={`${styles.diagramTile} ${styles.diagramTileFar}`}
+                    x="204"
+                    y="140"
+                    width="20"
+                    height="20"
+                    rx="5"
+                  />
+                  <text className={styles.diagramLabel} x="214" y="171" textAnchor="middle">
+                    Rain
+                  </text>
+                </g>
+
+                {/* Listener marker at the centre. */}
+                <circle className={styles.diagramYouGlow} cx="150" cy="96" r="9" />
+                <circle className={styles.diagramYou} cx="150" cy="96" r="3.4" />
+                <text className={styles.diagramYouLabel} x="150" y="112" textAnchor="middle">
+                  YOU
+                </text>
+              </svg>
+            </figure>
+            <p className={styles.diagramCaption}>
+              Your listening point sits at the centre. Drag and drop the sound
+              tiles around it to shape the scene. Move a tile closer to make it
+              louder, further away to soften it, and left or right to place it
+              across the stereo field.
+            </p>
+          </section>
         </div>
       ) : (
         <div

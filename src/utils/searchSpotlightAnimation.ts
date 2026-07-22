@@ -38,7 +38,7 @@ export type SearchSpotlightAnimationConfig = {
   closeShrinkDurationMs: number;
 };
 
-export const SEARCH_SPOTLIGHT_ANIMATION_STORAGE_KEY = 'saudade:search-spotlight-animation:v15';
+export const SEARCH_SPOTLIGHT_ANIMATION_STORAGE_KEY = 'saudade:search-spotlight-animation:v19';
 export const SEARCH_SPOTLIGHT_TUNER_VISIBLE_KEY = 'saudade:search-spotlight-tuner-visible';
 
 export const SEARCH_SPOTLIGHT_EASING_PRESETS: ReadonlyArray<{
@@ -62,47 +62,53 @@ export const SEARCH_SPOTLIGHT_EASING_PRESETS: ReadonlyArray<{
   { id: 'premium-exit', label: 'Premium exit', curve: 'cubic-bezier(0.4, 0, 0.2, 1)' },
 ];
 
+/**
+ * Width and height expand together, bottom-anchored, on the same beat (rise
+ * begins immediately with width — riseOverlapMs ≥ openWidthDurationMs keeps the
+ * start delay at 0; see LocationSearchSpotlight.module.css). The open is
+ * deliberately longer than the close and uses the same premium-exit easing as
+ * the close so it decelerates cleanly into rest rather than snapping — the
+ * close is the quality reference. Content fades in (opacity only, no movement)
+ * at a 175ms delay. Close is tuned independently of the open: it keeps its own
+ * snappier ~280ms timing and holds the open corner radius through most of the
+ * shrink phase, morphing to pill only in the final ~38%.
+ */
 export const DEFAULT_SEARCH_SPOTLIGHT_ANIMATION: SearchSpotlightAnimationConfig = {
-  openWidthDurationMs: 150,
-  openRiseDurationMs: 350,
-  riseOverlapMs: 100,
-  contentRevealDelayMs: 0,
+  openWidthDurationMs: 420,
+  openRiseDurationMs: 460,
+  riseOverlapMs: 460,
+  contentRevealDelayMs: 175,
   widthStiffness: 280,
   widthDamping: 38,
   widthOvershoot: 0,
   riseStiffness: 300,
   riseDamping: 32,
   riseOvershoot: 0,
-  riseBounceDurationMs: 380,
-  widthEasing: 'ease-in',
-  riseEasing: 'ease-in',
-  contentEasing: 'ease-out',
-  closeDropEasing: 'gentle-overshoot',
-  closeShrinkEasing: 'gentle-overshoot',
-  closeDropDurationMs: 350,
-  closeWidthDurationMs: 150,
-  closeOverlapMs: 100,
-  closeShrinkDurationMs: 380,
+  riseBounceDurationMs: 460,
+  widthEasing: 'premium-exit',
+  riseEasing: 'premium-exit',
+  contentEasing: 'premium-exit',
+  closeDropEasing: 'premium-exit',
+  closeShrinkEasing: 'premium-exit',
+  closeDropDurationMs: 280,
+  closeWidthDurationMs: 280,
+  closeOverlapMs: 280,
+  closeShrinkDurationMs: 280,
 };
 
 /**
- * Keep the close choreography matched to open for *timing* (drop ↔ rise,
- * shrink ↔ width), but intentionally diverge on *easing*: the open path stays
- * clean (ease-in, no overshoot) while the close gets a soft 'gentle-overshoot'
- * settle so the panel feels a little alive as it tucks away.
+ * Keep the close independent of the open (the user likes the existing close and
+ * only the open was slowed down). The close keeps its own durations/overlap
+ * straight from the config and just pins the drop/shrink easing to premium-exit
+ * with no spring overshoot on either path.
  */
 export function syncCloseAnimationToOpen(
   config: SearchSpotlightAnimationConfig,
 ): SearchSpotlightAnimationConfig {
-  const risePhaseMs = Math.max(config.openRiseDurationMs, config.riseBounceDurationMs);
   return {
     ...config,
-    closeDropDurationMs: config.openRiseDurationMs,
-    closeWidthDurationMs: config.openWidthDurationMs,
-    closeOverlapMs: config.riseOverlapMs,
-    closeShrinkDurationMs: risePhaseMs,
-    closeDropEasing: 'gentle-overshoot',
-    closeShrinkEasing: 'gentle-overshoot',
+    closeDropEasing: 'premium-exit',
+    closeShrinkEasing: 'premium-exit',
   };
 }
 
@@ -150,6 +156,16 @@ export function computeCloseRemainingDropMs(config: SearchSpotlightAnimationConf
 /** How long closing-shrink stays active (drop tail + width bounce, whichever is longer). */
 export function computeCloseShrinkPhaseDurationMs(config: SearchSpotlightAnimationConfig): number {
   return Math.max(computeCloseRemainingDropMs(config), config.closeShrinkDurationMs);
+}
+
+/** Hold open corner radius through most of width shrink; morph to pill near the end. */
+export function computeCloseRadiusDelayMs(config: SearchSpotlightAnimationConfig): number {
+  return Math.round(config.closeWidthDurationMs * 0.625);
+}
+
+/** Duration of the deferred border-radius morph to pill during closing-shrink. */
+export function computeCloseRadiusDurationMs(config: SearchSpotlightAnimationConfig): number {
+  return Math.max(90, Math.round(config.closeWidthDurationMs * 0.375));
 }
 
 export function resolveSearchSpotlightEasing(
@@ -208,6 +224,10 @@ export function applySearchSpotlightAnimation(config: SearchSpotlightAnimationCo
 
   root.style.setProperty('--search-open-width-duration', msToCssDuration(synced.openWidthDurationMs));
   root.style.setProperty('--search-open-rise-duration', msToCssDuration(synced.openRiseDurationMs));
+  root.style.setProperty('--search-rise-duration', msToCssDuration(synced.openRiseDurationMs));
+  root.style.setProperty('--search-shell-duration', msToCssDuration(synced.openWidthDurationMs));
+  root.style.setProperty('--search-content-duration', msToCssDuration(synced.openRiseDurationMs));
+  root.style.setProperty('--search-duration', msToCssDuration(synced.openRiseDurationMs));
   root.style.setProperty('--search-content-delay', msToCssDuration(synced.contentRevealDelayMs));
   root.style.setProperty('--search-open-width-ease', widthEase);
   root.style.setProperty('--search-open-rise-ease', riseEase);
@@ -227,9 +247,18 @@ export function applySearchSpotlightAnimation(config: SearchSpotlightAnimationCo
   root.style.setProperty('--search-rise-spring-scale-settle', (1 - riseBounce * 0.028).toFixed(4));
   root.style.setProperty('--search-rise-overlap-ms', msToCssDuration(synced.riseOverlapMs));
   root.style.setProperty(
+    '--search-close-radius-delay',
+    msToCssDuration(computeCloseRadiusDelayMs(synced)),
+  );
+  root.style.setProperty(
+    '--search-close-radius-duration',
+    msToCssDuration(computeCloseRadiusDurationMs(synced)),
+  );
+  root.style.setProperty(
     '--search-side-shift-delay',
     msToCssDuration(computeRiseStartDelayMs(synced)),
   );
+  root.style.setProperty('--search-side-shift-duration', msToCssDuration(synced.openWidthDurationMs));
 }
 
 export function loadSearchSpotlightAnimation(): SearchSpotlightAnimationConfig {

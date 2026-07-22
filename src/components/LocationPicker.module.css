@@ -19,15 +19,18 @@
 
 .select,
 .selectCompact {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   appearance: none;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
-  background: var(--surface-input);
+  background-color: var(--glass-fill);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
   color: var(--text);
   font: inherit;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--glass-button-shadow-subtle, 0 2px 8px rgba(0, 0, 0, 0.04));
   background-image:
     linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
     linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
@@ -36,6 +39,17 @@
     calc(100% - 12px) calc(50% + 2px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
+}
+
+.select::before,
+.selectCompact::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-button-overlay, transparent);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .select {

@@ -1,11 +1,16 @@
 import { UiIcon } from './UiIcon';
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { AppLocation } from '../data/environments';
 import { getRegion } from '../data/environments';
 import { getLocationArtForItem } from '../data/locationArt';
+import { publicUrl } from '../utils/publicUrl';
 import { resolveProceduralSoundscape } from '../utils/proceduralSoundscape';
-import type { WorldLocation } from '../data/worldLocations';
+import {
+  createCustomWorldLocation,
+  formatWorldLocationLabel,
+  type WorldLocation,
+} from '../data/worldLocations';
 import {
   fetchGeocodeResults,
   GEOCODE_DEBOUNCE_MS,
@@ -25,10 +30,75 @@ type Props = {
   worldLocations: readonly WorldLocation[];
   environmentId: string;
   regionId: string;
-  onChange: (environmentId: string, regionId: string) => void;
+  onChange: (
+    environmentId: string,
+    regionId: string,
+    customLocation?: WorldLocation,
+  ) => void;
   onOpenChange?: (open: boolean) => void;
   blocked?: boolean;
   resetToken?: number;
+  /**
+   * Overrides the collapsed pill's resting label (normally the current region
+   * name). Used on the landing gate to invite a search ("Search your
+   * location") instead of echoing the pre-entry location.
+   */
+  idleLabel?: string;
+  /**
+   * Direction the panel expands when opened. The bottom-bar instance sits at
+   * the foot of the screen and must grow UPWARD (default). The landing instance
+   * sits below the images, so it grows DOWNWARD.
+   */
+  expandDirection?: 'up' | 'down';
+  /**
+   * Forces a theme on the portalled panel/backdrop (which render to
+   * document.body and so escape a landing container's `data-theme`). Used to
+   * keep the landing search in light mode regardless of the global theme.
+   */
+  theme?: 'light' | 'dark';
+  /**
+   * Called when Enter is pressed with an empty query and no highlighted result.
+   * Used on the landing to open the full-page globe (browse everything).
+   */
+  onEmptyEnter?: () => void;
+  /**
+   * Renders the full-screen backdrop scrim behind the panel. The landing keeps
+   * its hero content softly visible instead, so it opts out.
+   */
+  backdrop?: boolean;
+  /**
+   * Scales the search shell up ~15% (landing hero moment) via its metric custom
+   * properties, so the whole pill and expanded panel grow together.
+   */
+  enlarged?: boolean;
+  /**
+   * Landing only: the collapsed pill sits left of the page centre because the
+   * Enter button shares its row, so recentre the EXPANDED panel on the viewport
+   * centre. Driven by a `--recenter-x` translate on the portal anchor that is 0
+   * while collapsed (so the resting pill never moves, and there is no hover/focus
+   * jump) and eases to the page-centre offset as the panel widens.
+   */
+  recenterOnExpand?: boolean;
+  /**
+   * Landing only: true for the one shot while the landing gate is RISING home
+   * (map/globe close -> landing). The pill is portalled to document.body and
+   * normally pinned to its resting anchor, so it would otherwise sit still while
+   * the gate rises and only "pop" in at the end. While this is set, the pill
+   * tracks the gate's live rise each frame (so it travels up with the sheet) and
+   * lifts above the outgoing globe, then settles onto its resting anchor as the
+   * rise completes.
+   */
+  riseWithGate?: boolean;
+  /**
+   * Bottom-bar only: true for the scene-entry window while the workspace assets
+   * (canvas and bottom control bar) rise up as the cover panel reveals them. The
+   * pill is portalled and pinned to its resting anchor, so without this it would
+   * stay put while the bar rose around it. While set, the pill tracks its live
+   * in-row position each frame so it rises in lockstep with the bar, then settles
+   * back onto its resting anchor. Unlike `riseWithGate` it is never lifted above
+   * the cover: it stays beneath the fading cover, which hides the brief start.
+   */
+  riseWithBar?: boolean;
 };
 
 type SearchItem = {
@@ -53,11 +123,47 @@ type SpotlightPhase =
 
 const SEARCH_FOCUS_SETTLE_MS = 32;
 
-// Recommended is a fixed, always-on pair.
-const RECOMMENDED_KEYS = ['world:auckland', 'world:rio-de-janeiro'] as const;
+// A short, tasteful beat while a searched place is turned into a bespoke
+// procedural soundscape. The resolve itself is synchronous and instant, so this
+// is purely the on-brand "generating" moment. Trimmed right down when the
+// visitor prefers reduced motion.
+const GENERATE_HOLD_MS = 900;
+const GENERATE_HOLD_REDUCED_MS = 260;
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
+// Read an element's current translateY (px) from its computed transform matrix.
+// Used to strip a transformed ancestor's live vertical offset off a measured
+// rect so the portal anchor always describes the element's RESTING baseline,
+// never a transient mid-animation position.
+function readTranslateY(el: Element): number {
+  const transform = window.getComputedStyle(el).transform;
+  if (!transform || transform === 'none') return 0;
+  const matrix3d = transform.match(/matrix3d\(([^)]+)\)/);
+  if (matrix3d) {
+    const ty = Number(matrix3d[1].split(',')[13]);
+    return Number.isFinite(ty) ? ty : 0;
+  }
+  const matrix = transform.match(/matrix\(([^)]+)\)/);
+  if (matrix) {
+    const ty = Number(matrix[1].split(',')[5]);
+    return Number.isFinite(ty) ? ty : 0;
+  }
+  return 0;
+}
+
+// Recommended is a fresh random draw from the full curated catalog each time the
+// panel opens (and on load), sized to comfortably fill the taller panel.
+const RECOMMENDED_COUNT = 4;
 
 // Trending is a fresh random draw from the full curated catalog each time the
-// panel opens (excluding whatever is already pinned to Recommended).
+// panel opens (excluding whatever is already drawn into Recommended).
 const TRENDING_COUNT = 6;
 
 function shuffleItems(items: SearchItem[]): SearchItem[] {
@@ -69,27 +175,8 @@ function shuffleItems(items: SearchItem[]): SearchItem[] {
   return arr;
 }
 
-function parseCatalogKey(catalogKey: string): { kind: 'app' | 'world'; id: string } {
-  if (catalogKey.startsWith('app:')) {
-    return { kind: 'app', id: catalogKey.slice('app:'.length) };
-  }
-  if (catalogKey.startsWith('world:')) {
-    return { kind: 'world', id: catalogKey.slice('world:'.length) };
-  }
-  return { kind: 'world', id: catalogKey };
-}
-
 function itemKey(environmentId: string, regionId: string) {
   return `${environmentId}:${regionId}`;
-}
-
-function dedupeSearchItems(items: SearchItem[]): SearchItem[] {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (seen.has(item.key)) return false;
-    seen.add(item.key);
-    return true;
-  });
 }
 
 function matchesQuery(name: string, subtitle: string, query: string) {
@@ -142,28 +229,42 @@ function buildSearchCatalog(
   return items.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function resolveCatalogKeys(
-  keys: readonly string[],
-  appLocations: readonly AppLocation[],
-  worldLocations: readonly WorldLocation[],
-): SearchItem[] {
-  const catalog = buildSearchCatalog(appLocations, worldLocations);
-  const byKey = new Map(catalog.map((item) => [item.key, item]));
+// A small, cute map-pin glyph shown inside a thumbnail surface whenever there
+// is no curated artwork (the geocoded "More places" entries, and any
+// recommended/trending item that lacks art). It inherits the surface's muted
+// token colour via `currentColor`, so it reads gently in both light and dark.
+function ThumbMapIcon() {
+  return (
+    <svg
+      className={styles.thumbIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      focusable="false"
+    >
+      <path
+        d="M12 21s6-5.4 6-10a6 6 0 1 0-12 0c0 4.6 6 10 6 10Z"
+        fill="currentColor"
+        fillOpacity="0.16"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="11" r="2.15" fill="currentColor" />
+    </svg>
+  );
+}
 
-  return dedupeSearchItems(
-    keys.flatMap((catalogKey) => {
-      const parsed = parseCatalogKey(catalogKey);
-      if (parsed.kind === 'app') {
-        const app = appLocations.find((location) => location.id === parsed.id);
-        if (!app) return [];
-        const key = itemKey(app.environmentId, app.regionId);
-        return byKey.get(key) ? [byKey.get(key)!] : [];
-      }
-      const world = worldLocations.find((location) => location.id === parsed.id);
-      if (!world) return [];
-      const key = itemKey(world.environmentId, world.regionId);
-      return byKey.get(key) ? [byKey.get(key)!] : [];
-    }),
+// The empty-state thumbnail: the shared fallback surface (now a 12px rounded
+// square, matching the curated art tiles) with the cute map pin centred inside.
+function ThumbPlaceholder({ className }: { className?: string }) {
+  return (
+    <span
+      className={`${styles.thumbFallback}${className ? ` ${className}` : ''}`}
+      aria-hidden
+    >
+      <ThumbMapIcon />
+    </span>
   );
 }
 
@@ -172,13 +273,13 @@ function LocationThumbnail({ item }: { item: SearchItem }) {
   const [failed, setFailed] = useState(false);
 
   if (!art || failed) {
-    return <span className={styles.thumbFallback} aria-hidden />;
+    return <ThumbPlaceholder />;
   }
 
   return (
     <span className={styles.thumbWrap}>
       <img
-        src={art.src}
+        src={publicUrl(art.src)}
         alt=""
         className={styles.thumb}
         loading="lazy"
@@ -187,6 +288,17 @@ function LocationThumbnail({ item }: { item: SearchItem }) {
       />
     </span>
   );
+}
+
+function searchItemLabel(item: SearchItem): string {
+  return formatWorldLocationLabel(item);
+}
+
+function geocodeResultLabel(result: GeocodeResult): string {
+  return formatWorldLocationLabel({
+    name: result.shortName,
+    subtitle: result.subtitle || '',
+  });
 }
 
 function TrendingRow({
@@ -206,7 +318,7 @@ function TrendingRow({
           onClick={() => onSelect(item)}
         >
           <LocationThumbnail item={item} />
-          <span className={styles.trendChipLabel}>{item.name.split(',')[0]}</span>
+          <span className={styles.trendChipLabel}>{searchItemLabel(item)}</span>
         </button>
       ))}
     </div>
@@ -236,8 +348,7 @@ function ResultRow({
       >
         <LocationThumbnail item={item} />
         <span className={styles.resultText}>
-          <span className={styles.resultName}>{item.name}</span>
-          {item.subtitle && <span className={styles.resultMeta}>{item.subtitle}</span>}
+          <span className={styles.resultName}>{searchItemLabel(item)}</span>
         </span>
       </button>
     </li>
@@ -253,7 +364,21 @@ export function LocationSearchSpotlight({
   onOpenChange,
   blocked = false,
   resetToken = 0,
+  idleLabel,
+  expandDirection = 'up',
+  theme,
+  onEmptyEnter,
+  backdrop = true,
+  enlarged = false,
+  recenterOnExpand = false,
+  riseWithGate = false,
+  riseWithBar = false,
 }: Props) {
+  // Either rise mode makes the pill follow its live in-row position each frame
+  // instead of pinning to the resting anchor, so it travels with the sheet/bar.
+  const trackingActive = riseWithGate || riseWithBar;
+  const trackingActiveRef = useRef(trackingActive);
+  trackingActiveRef.current = trackingActive;
   const { config: animationConfig } = useSearchSpotlightAnimation();
   const listboxId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -274,36 +399,70 @@ export function LocationSearchSpotlight({
   const [geocodeResults, setGeocodeResults] = useState<GeocodeResult[]>([]);
   const [geocodePhase, setGeocodePhase] = useState<'idle' | 'loading' | 'error'>('idle');
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  // The query the current geocode state (results/phase) actually reflects, so we
+  // never flash "nothing matched" for a query whose lookup has not settled yet.
+  const [geocodeQuery, setGeocodeQuery] = useState('');
+  // While set, the panel shows the brief "generating your soundscape" moment for
+  // a searched (non-curated) place before the generated scene is applied.
+  const [generating, setGenerating] = useState<{ label: string } | null>(null);
+  // Bumped whenever the panel resets/closes so an in-flight generate (its hold
+  // beat or a pending geocode fetch) that resolves afterwards can detect it lost
+  // the race and not apply a stale place.
+  const generateRunIdRef = useRef(0);
   // Bumped each time the panel opens so Trending draws a fresh random set.
   const [trendingToken, setTrendingToken] = useState(0);
+
+  // Landing-only entrance latch: the enlarged (landing) pill fades and rises in
+  // exactly once, as the final beat of the hero sequence. It is disarmed the
+  // moment the search is first opened (so the entrance can never fight the open
+  // transform) and, as a fallback, once the entrance has finished, and is never
+  // re-armed. This guarantees the rise plays only on the initial landing mount,
+  // never on a later open / close / hover / focus. It is also suppressed when
+  // the pill mounts as part of a gate home-rise (`riseWithGate`): there the
+  // whole pill travels up with the sheet, so a second, separate hero fade-up
+  // would double the motion.
+  const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !riseWithGate);
 
   useEffect(() => {
     if (phase === 'opening-width') setTrendingToken((token) => token + 1);
   }, [phase]);
+
+  useEffect(() => {
+    if (!landingEntranceArmed) return;
+    // Opening the search retires the entrance immediately.
+    if (phase !== 'closed') {
+      setLandingEntranceArmed(false);
+      return;
+    }
+    // Otherwise retire it once the delayed fade-up has comfortably finished.
+    const timer = window.setTimeout(() => setLandingEntranceArmed(false), 1600);
+    return () => window.clearTimeout(timer);
+  }, [landingEntranceArmed, phase]);
 
   const catalog = useMemo(
     () => buildSearchCatalog(appLocations, worldLocations),
     [appLocations, worldLocations],
   );
 
-  const recommended = useMemo(
-    () =>
-      dedupeSearchItems(resolveCatalogKeys(RECOMMENDED_KEYS, appLocations, worldLocations)),
-    [appLocations, worldLocations],
-  );
+  const recommended = useMemo(() => {
+    return shuffleItems(catalog).slice(0, RECOMMENDED_COUNT);
+    // trendingToken reshuffles the draw each time the panel opens (and on load).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalog, trendingToken]);
 
   const trending = useMemo(() => {
     const reserved = new Set(recommended.map((item) => item.key));
     const pool = catalog.filter((item) => !reserved.has(item.key));
     return shuffleItems(pool).slice(0, TRENDING_COUNT);
-    // trendingToken reshuffles the draw each time the panel opens.
+    // trendingToken reshuffles the draw each time the panel opens; excludes
+    // whatever landed in Recommended for this view so the two never overlap.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catalog, recommended, trendingToken]);
 
   const currentLabel = useMemo(() => {
     const key = itemKey(environmentId, regionId);
     const match = catalog.find((item) => item.key === key);
-    if (match) return match.name;
+    if (match) return searchItemLabel(match);
     const app = appLocations.find(
       (location) => location.environmentId === environmentId && location.regionId === regionId,
     );
@@ -333,12 +492,16 @@ export function LocationSearchSpotlight({
   }, [filteredItems, geocodeResults, geocodePhase, showGeocodeSection]);
 
   const finishClose = useCallback(() => {
+    // Invalidate any in-flight generate so its hold beat cannot apply a place
+    // after the panel has reset (e.g. Escape, globe open, blocked).
+    generateRunIdRef.current += 1;
     setPhase('closed');
     setQuery('');
     setHighlightIndex(-1);
     setGeocodeResults([]);
     setGeocodePhase('idle');
     setGeocodeError(null);
+    setGenerating(null);
   }, []);
 
   const hardResetClosed = useCallback(() => {
@@ -471,36 +634,38 @@ export function LocationSearchSpotlight({
   // that live transform, so a measurement taken at any point before the un-rise
   // finishes would capture a raised baseline. If such a value were committed to
   // the fixed portal anchor it would leave the collapsed pill sitting ~2px too
-  // high until a later re-measure snapped it back down — the residual vertical
+  // high until a later re-measure snapped it back down. The residual vertical
   // jump at the end of the close. Subtracting the bar's current translateY makes
   // the anchor the resting baseline no matter when (or by which listener) it is
   // measured, so no measurement can ever introduce a vertical jump.
-  const measureRestingAnchor = useCallback((): PanelAnchor | null => {
+  // Measure the pill's anchor. `subtractGate` strips the landing gate's live
+  // rise transform so the anchor describes the RESTING row; passing false keeps
+  // the gate's live translateY in the measurement so the portalled pill can
+  // TRACK the gate as it rises home (see the `riseWithGate` loop below).
+  const measureAnchor = useCallback((subtractGate: boolean): PanelAnchor | null => {
     const node = rootRef.current;
     const rect = node?.getBoundingClientRect();
     if (!node || !rect) return null;
-    let barTranslateY = 0;
+    // Strip the live vertical transform of any moving ancestor so the committed
+    // anchor is always the RESTING baseline. Two ancestors can lift this row:
+    //   1. the bottom bar (`nav`), which rises by `--bottom-bar-rise` while the
+    //      search is open; and
+    //   2. the landing gate, which RISES from below the viewport (a JS-driven
+    //      translateY) when it returns home over the lifting globe. Without this,
+    //      the anchor is measured mid-rise and the portalled pill commits to an
+    //      offset position, so it settles misaligned with the in-row Enter button
+    //      (which lives inside the rising gate and lands at rest).
+    let compensateY = 0;
     const bar = node.closest('nav');
-    if (bar) {
-      const transform = window.getComputedStyle(bar).transform;
-      if (transform && transform !== 'none') {
-        const matrix3d = transform.match(/matrix3d\(([^)]+)\)/);
-        if (matrix3d) {
-          const ty = Number(matrix3d[1].split(',')[13]);
-          if (Number.isFinite(ty)) barTranslateY = ty;
-        } else {
-          const matrix = transform.match(/matrix\(([^)]+)\)/);
-          if (matrix) {
-            const ty = Number(matrix[1].split(',')[5]);
-            if (Number.isFinite(ty)) barTranslateY = ty;
-          }
-        }
-      }
+    if (bar) compensateY += readTranslateY(bar);
+    if (subtractGate) {
+      const gate = node.closest('[data-landing-gate]');
+      if (gate) compensateY += readTranslateY(gate);
     }
     return {
-      // Remove the bar's lift so the anchor always describes the resting row,
-      // never the raised one (the fixed portal does not inherit the transform).
-      top: rect.top - barTranslateY,
+      // Remove the ancestor lift(s) so the anchor always describes the resting
+      // row, never a raised one (the fixed portal does not inherit transforms).
+      top: rect.top - compensateY,
       height: rect.height,
       // Anchor the fixed portal on the collapsed pill's measured centre rather
       // than a hardcoded viewport 50%. With a centred cluster the two coincide,
@@ -512,6 +677,29 @@ export function LocationSearchSpotlight({
     };
   }, []);
 
+  // The resting baseline (gate lift removed): used everywhere the anchor must be
+  // committed at rest.
+  const measureRestingAnchor = useCallback(
+    (): PanelAnchor | null => measureAnchor(true),
+    [measureAnchor],
+  );
+
+  // The pill's live on-screen position with NO ancestor transform stripped, so
+  // the portalled pill can follow a rising sheet/bar frame by frame (gate home-
+  // rise, or the bottom bar rising as a scene reveals). Because those rises all
+  // end at translateY 0, the live position resolves to the resting anchor with no
+  // jump when the rise completes.
+  const measureLiveAnchor = useCallback((): PanelAnchor | null => {
+    const node = rootRef.current;
+    const rect = node?.getBoundingClientRect();
+    if (!node || !rect) return null;
+    return {
+      top: rect.top,
+      height: rect.height,
+      centerX: rect.left + rect.width / 2,
+    };
+  }, []);
+
   const syncPanelAnchor = useCallback(() => {
     // Only ever commit the anchor while the search is at its resting (closed)
     // state. Combined with the bar-rise compensation in `measureRestingAnchor`,
@@ -519,6 +707,9 @@ export function LocationSearchSpotlight({
     // nor the close transition can shift the collapsed/expanded pill off the
     // row the round buttons sit on.
     if (phaseRef.current !== 'closed') return;
+    // While a rise-tracking loop owns the anchor, do not clobber it with a
+    // resting measurement (that would freeze the pill mid-rise).
+    if (trackingActiveRef.current) return;
     const anchor = measureRestingAnchor();
     if (anchor) setPanelAnchor(anchor);
   }, [measureRestingAnchor]);
@@ -560,7 +751,7 @@ export function LocationSearchSpotlight({
   // expansion grows from the resting row's true centre, never from a transient
   // mid-animation rect. `measureRestingAnchor` removes the bar's live translateY,
   // so even though the bar is re-rising during opening-width the committed anchor
-  // is the resting baseline — no horizontal or vertical drift on the reopen.
+  // is the resting baseline, so there is no drift on the reopen.
   useLayoutEffect(() => {
     if (phase !== 'opening-width') return;
     const anchor = measureRestingAnchor();
@@ -574,6 +765,11 @@ export function LocationSearchSpotlight({
       setPanelAnchor(null);
       return;
     }
+
+    // While a rise-tracking loop owns the anchor (gate home-rise, or the bottom
+    // bar rising on a scene reveal), skip this resting-settle loop so the two do
+    // not fight over `panelAnchor` each frame.
+    if (trackingActive) return;
 
     // When the globe sheet closes (blocked -> false) the SheetStack outlet is
     // still animating its stacking transform (scale ~0.92 -> 1 about a top
@@ -633,7 +829,36 @@ export function LocationSearchSpotlight({
       cancelled = true;
       window.cancelAnimationFrame(frame);
     };
-  }, [blocked, measureRestingAnchor, resetToken]);
+  }, [blocked, measureRestingAnchor, resetToken, trackingActive]);
+
+  // Rise tracking: follow a rising sheet/bar frame by frame. The pill is
+  // portalled to document.body and so does not inherit its in-row ancestor's
+  // live translateY; without this it would sit pinned at its resting anchor while
+  // the gate (home-rise) or the bottom bar (scene reveal) rose around it, then
+  // "pop" into place once the rise finished. Re-measuring the pill's live
+  // position every frame lets it travel in lockstep with the sheet, and because
+  // those rises end at translateY 0 the tracked position resolves to the resting
+  // anchor with no jump. A final resting measurement on cleanup commits that
+  // baseline once the sheet has settled.
+  useLayoutEffect(() => {
+    if (!trackingActive) return undefined;
+    if (phaseRef.current !== 'closed') return undefined;
+    let frame = 0;
+    let cancelled = false;
+    const track = () => {
+      if (cancelled) return;
+      const anchor = measureLiveAnchor();
+      if (anchor) setPanelAnchor(anchor);
+      frame = window.requestAnimationFrame(track);
+    };
+    frame = window.requestAnimationFrame(track);
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      const resting = measureRestingAnchor();
+      if (resting) setPanelAnchor(resting);
+    };
+  }, [measureLiveAnchor, measureRestingAnchor, trackingActive]);
 
   const selectLocal = useCallback(
     (item: SearchItem) => {
@@ -643,27 +868,101 @@ export function LocationSearchSpotlight({
     [close, onChange],
   );
 
-  const selectGeocode = useCallback(
-    (result: GeocodeResult) => {
-      // Assemble a bespoke procedural soundscape from the place metadata rather
-      // than snapping to one of a few curated templates.
-      const soundscape = resolveProceduralSoundscape({
-        name: result.subtitle ? `${result.shortName}, ${result.subtitle}` : result.shortName,
-        lat: result.lat,
-        lng: result.lng,
-        placeId: result.placeId,
-        geocode: {
-          type: result.type,
-          class: result.class,
-          addresstype: result.addresstype,
-          displayName: result.displayName,
-          countryCode: result.countryCode,
-        },
-      });
-      onChange(soundscape.environmentId, soundscape.regionId);
+  // Assemble a bespoke procedural soundscape from a geocoded place, carrying the
+  // real coordinates through so the app drops a custom globe pin at the searched
+  // place (matching the "Use my location" flow) rather than snapping to one of a
+  // few curated templates.
+  const buildGeneratedSelection = useCallback((result: GeocodeResult) => {
+    const soundscape = resolveProceduralSoundscape({
+      name: formatWorldLocationLabel({
+        name: result.shortName,
+        subtitle: result.subtitle || '',
+      }),
+      lat: result.lat,
+      lng: result.lng,
+      placeId: result.placeId,
+      geocode: {
+        type: result.type,
+        class: result.class,
+        addresstype: result.addresstype,
+        displayName: result.displayName,
+        countryCode: result.countryCode,
+      },
+    });
+    const customLocation = createCustomWorldLocation({
+      lat: result.lat,
+      lng: result.lng,
+      name: result.shortName,
+      subtitle: result.subtitle || result.displayName,
+      environmentId: soundscape.environmentId,
+      regionId: soundscape.regionId,
+      placeId: result.placeId,
+    });
+    return { soundscape, customLocation };
+  }, []);
+
+  // Hold the "generating" moment for a short beat, then hand the generated scene
+  // to the caller. `onChange` is the same entry the curated pins and globe use,
+  // so the transport rules (landing entry starts audio; a mid-session switch
+  // respects the paused/playing transport) are honoured automatically.
+  const holdAndApplyGenerated = useCallback(
+    async (result: GeocodeResult, runId: number) => {
+      const { soundscape, customLocation } = buildGeneratedSelection(result);
+      const holdMs = prefersReducedMotion() ? GENERATE_HOLD_REDUCED_MS : GENERATE_HOLD_MS;
+      await new Promise((resolve) => window.setTimeout(resolve, holdMs));
+      // Bailed out (reset/blocked/Escape) while we held the beat.
+      if (generateRunIdRef.current !== runId) return;
+      onChange(soundscape.environmentId, soundscape.regionId, customLocation);
       close();
     },
-    [close, onChange],
+    [buildGeneratedSelection, close, onChange],
+  );
+
+  // Selecting a specific worldwide result: we already have its coordinates, so
+  // generate straight away behind the animation.
+  const generateFor = useCallback(
+    (result: GeocodeResult) => {
+      const runId = (generateRunIdRef.current += 1);
+      setGenerating({ label: geocodeResultLabel(result) });
+      void holdAndApplyGenerated(result, runId);
+    },
+    [holdAndApplyGenerated],
+  );
+
+  // Pressing Enter on a typed query with nothing highlighted: geocode the raw
+  // query (reusing any results already loaded) and generate for the best match,
+  // so searching a real place always lands on a soundscape.
+  const generateFromQuery = useCallback(
+    async (rawQuery: string) => {
+      const query = rawQuery.trim();
+      if (query.length < 2) return;
+      const runId = (generateRunIdRef.current += 1);
+      setGenerating({ label: query });
+
+      let result: GeocodeResult | undefined = geocodeResults[0];
+      if (!result) {
+        try {
+          const results = await fetchGeocodeResults(query);
+          if (generateRunIdRef.current !== runId) return;
+          result = results[0];
+        } catch {
+          if (generateRunIdRef.current !== runId) return;
+        }
+      }
+
+      if (!result) {
+        // Genuinely unresolvable query: drop the animation and leave a gentle
+        // note rather than a dead end.
+        setGenerating(null);
+        setGeocodePhase('error');
+        setGeocodeError(`Nothing matched \u201c${query}\u201d. Try another place.`);
+        return;
+      }
+
+      setGenerating({ label: geocodeResultLabel(result) });
+      await holdAndApplyGenerated(result, runId);
+    },
+    [geocodeResults, holdAndApplyGenerated],
   );
 
   const selectHighlighted = useCallback(() => {
@@ -672,9 +971,9 @@ export function LocationSearchSpotlight({
     if (entry.kind === 'local') {
       selectLocal(entry.item);
     } else {
-      selectGeocode(entry.item);
+      generateFor(entry.item);
     }
-  }, [highlightIndex, selectGeocode, selectLocal, selectableItems]);
+  }, [generateFor, highlightIndex, selectLocal, selectableItems]);
 
   useEffect(() => {
     if (phase !== 'open') return;
@@ -715,15 +1014,46 @@ export function LocationSearchSpotlight({
         return;
       }
 
-      if (event.key === 'Enter' && highlightIndex >= 0) {
-        event.preventDefault();
-        selectHighlighted();
+      if (event.key === 'Enter') {
+        if (generating) {
+          event.preventDefault();
+          return;
+        }
+        if (highlightIndex >= 0) {
+          event.preventDefault();
+          selectHighlighted();
+          return;
+        }
+        // A typed place with nothing highlighted: generate on the fly so any
+        // real place always lands on a soundscape.
+        if (trimmedQuery.length >= 2) {
+          event.preventDefault();
+          void generateFromQuery(trimmedQuery);
+          return;
+        }
+        // Empty query with nothing highlighted: hand off to the caller (the
+        // landing opens the full-page globe / world map).
+        if (onEmptyEnter && trimmedQuery.length === 0) {
+          event.preventDefault();
+          onEmptyEnter();
+          close();
+        }
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [close, highlightIndex, isOpen, selectHighlighted, selectableItems.length]);
+  }, [
+    close,
+    generateFromQuery,
+    generating,
+    highlightIndex,
+    isOpen,
+    onEmptyEnter,
+    selectHighlighted,
+    selectableItems.length,
+    trimmedQuery,
+  ]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -749,6 +1079,7 @@ export function LocationSearchSpotlight({
       setGeocodeResults([]);
       setGeocodePhase('idle');
       setGeocodeError(null);
+      setGeocodeQuery('');
       return;
     }
 
@@ -762,12 +1093,14 @@ export function LocationSearchSpotlight({
           if (controller.signal.aborted) return;
           setGeocodeResults(results);
           setGeocodePhase('idle');
+          setGeocodeQuery(trimmedQuery);
         })
         .catch((error: unknown) => {
           if (controller.signal.aborted) return;
           setGeocodeResults([]);
           setGeocodePhase('error');
           setGeocodeError(error instanceof Error ? error.message : 'Search failed');
+          setGeocodeQuery(trimmedQuery);
         });
     }, GEOCODE_DEBOUNCE_MS);
 
@@ -778,15 +1111,37 @@ export function LocationSearchSpotlight({
   }, [showGeocodeSection, trimmedQuery]);
 
   const isActive = (index: number) => highlightIndex === index;
+  // A lookup has "settled" only once results (or an error) exist for the current
+  // query; until then we show the searching state rather than a stale empty note.
+  const geocodeSettled = geocodeQuery === trimmedQuery && geocodePhase !== 'loading';
+  const geocodeSearching = showGeocodeSection && !geocodeSettled && geocodePhase !== 'error';
+  const showGeocodeEmpty =
+    geocodeSettled &&
+    geocodePhase === 'idle' &&
+    geocodeResults.length === 0 &&
+    filteredItems.length === 0;
+  const showGeocodeSectionNow =
+    showGeocodeSection &&
+    (geocodeSearching || geocodeResults.length > 0 || geocodePhase === 'error' || showGeocodeEmpty);
   const showBackdrop = isPresent && !blocked;
   const showPromptText = isOpen && !isClosing && trimmedQuery.length === 0;
   const showCurrentLabelText = !isOpen || isClosing;
   const showSearchInput = phase === 'open';
 
+  // Landing recentre: how far the expanded panel must shift so it is centred on
+  // the viewport (which is where the landing column is centred) rather than on
+  // the collapsed pill, which sits left of centre beside the Enter button. Zero
+  // unless opted in, and consumed only in the expanded state via CSS, so the
+  // resting pill is never moved.
+  const recenterX =
+    recenterOnExpand && panelAnchor && typeof window !== 'undefined'
+      ? window.innerWidth / 2 - panelAnchor.centerX
+      : 0;
+
   let resultIndex = 0;
 
   return (
-    <div className={styles.root} ref={rootRef}>
+    <div className={styles.root} ref={rootRef} data-size={enlarged ? 'lg' : undefined}>
       {panelAnchor &&
         !blocked &&
         typeof document !== 'undefined' &&
@@ -794,11 +1149,19 @@ export function LocationSearchSpotlight({
           <div
             className={`${styles.panelAnchor} ${isWidthExpanded ? styles.panelAnchorExpanded : ''}`}
             data-search-phase={phase}
-            style={{
-              top: `${panelAnchor.top}px`,
-              left: `${panelAnchor.centerX}px`,
-              height: `${panelAnchor.height}px`,
-            }}
+            data-expand={expandDirection}
+            data-size={enlarged ? 'lg' : undefined}
+            data-landing-entrance={landingEntranceArmed ? 'in' : undefined}
+            data-rising={riseWithGate ? 'true' : undefined}
+            data-theme={theme}
+            style={
+              {
+                top: `${panelAnchor.top}px`,
+                left: `${panelAnchor.centerX}px`,
+                height: `${panelAnchor.height}px`,
+                '--recenter-x': `${recenterX}px`,
+              } as CSSProperties
+            }
           >
             <div
               ref={panelRef}
@@ -837,7 +1200,7 @@ export function LocationSearchSpotlight({
                   aria-hidden={!(showCurrentLabelText && trimmedQuery.length === 0)}
                 >
                   <UiIcon icon="magnifying-glass" size="sm" className={styles.searchIcon} />
-                  <span className={styles.searchTextLabel}>{currentLabel}</span>
+                  <span className={styles.searchTextLabel}>{idleLabel ?? currentLabel}</span>
                 </div>
                 <div className={styles.searchInputShell}>
                   {showSearchInput && (
@@ -886,13 +1249,9 @@ export function LocationSearchSpotlight({
 
                   {trimmedQuery && (
                     <>
-                      <section className={styles.section}>
-                        <p className={styles.sectionTitle}>Soundscapes</p>
-                        {filteredItems.length === 0 ? (
-                          <p className={styles.empty}>
-                            No soundscapes match &ldquo;{trimmedQuery}&rdquo;
-                          </p>
-                        ) : (
+                      {filteredItems.length > 0 && (
+                        <section className={styles.section}>
+                          <p className={styles.sectionTitle}>Soundscapes</p>
                           <ul className={styles.resultList}>
                             {filteredItems.map((item) => {
                               const index = resultIndex++;
@@ -907,70 +1266,85 @@ export function LocationSearchSpotlight({
                               );
                             })}
                           </ul>
-                        )}
-                      </section>
-
-                      {showGeocodeSection && (
-                        <section className={styles.section}>
-                          <p className={styles.sectionTitle}>Search worldwide</p>
-                          {geocodePhase === 'loading' && (
-                            <p className={styles.empty} role="status">
-                              Looking up &ldquo;{trimmedQuery}&rdquo;…
-                            </p>
-                          )}
-                          {geocodePhase === 'error' && geocodeError && (
-                            <p className={styles.empty}>{geocodeError}</p>
-                          )}
-                          {geocodePhase === 'idle' && geocodeResults.length === 0 && (
-                            <p className={styles.empty}>No results for &ldquo;{trimmedQuery}&rdquo;</p>
-                          )}
-                          {geocodeResults.length > 0 && (
-                            <ul className={styles.resultList}>
-                              {geocodeResults.map((result) => {
-                                const index = resultIndex++;
-                                return (
-                                  <li key={result.placeId}>
-                                    <button
-                                      type="button"
-                                      className={`${styles.resultButton} ${isActive(index) ? styles.resultActive : ''}`}
-                                      role="option"
-                                      aria-selected={isActive(index)}
-                                      onMouseEnter={() => setHighlightIndex(index)}
-                                      onClick={() => selectGeocode(result)}
-                                    >
-                                      <span
-                                        className={`${styles.thumbFallback} ${styles.geocodeThumb}`}
-                                        aria-hidden
-                                      />
-                                      <span className={styles.resultText}>
-                                        <span className={styles.resultName}>{result.shortName}</span>
-                                        <span className={styles.resultMeta}>
-                                          {result.subtitle || result.displayName}
-                                        </span>
-                                      </span>
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
                         </section>
                       )}
+
+                      {showGeocodeSectionNow && (
+                          <section className={styles.section}>
+                            <p className={styles.sectionTitle}>
+                              {filteredItems.length > 0 ? 'More places' : 'Places'}
+                            </p>
+                            {geocodeSearching && geocodeResults.length === 0 && (
+                              <p className={styles.empty} role="status">
+                                Searching for &ldquo;{trimmedQuery}&rdquo;…
+                              </p>
+                            )}
+                            {geocodePhase === 'error' && geocodeError && (
+                              <p className={styles.empty}>{geocodeError}</p>
+                            )}
+                            {showGeocodeEmpty && (
+                                <p className={styles.empty}>
+                                  Nothing matched &ldquo;{trimmedQuery}&rdquo;. Try another place.
+                                </p>
+                              )}
+                            {geocodeResults.length > 0 && (
+                              <ul className={styles.resultList}>
+                                {geocodeResults.map((result) => {
+                                  const index = resultIndex++;
+                                  return (
+                                    <li key={result.placeId}>
+                                      <button
+                                        type="button"
+                                        className={`${styles.resultButton} ${isActive(index) ? styles.resultActive : ''}`}
+                                        role="option"
+                                        aria-selected={isActive(index)}
+                                        onMouseEnter={() => setHighlightIndex(index)}
+                                        onClick={() => generateFor(result)}
+                                      >
+                                        <ThumbPlaceholder className={styles.geocodeThumb} />
+                                        <span className={styles.resultText}>
+                                          <span className={styles.resultName}>{geocodeResultLabel(result)}</span>
+                                        </span>
+                                      </button>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </section>
+                        )}
                     </>
                   )}
                 </div>
               </div>
+
+              {generating && (
+                <div className={styles.generating} role="status" aria-live="polite">
+                  <span className={styles.generatingOrb} aria-hidden>
+                    <span className={styles.generatingRing} />
+                    <span className={styles.generatingRing} />
+                    <span className={styles.generatingRing} />
+                    <span className={styles.generatingCore} />
+                  </span>
+                  <span className={styles.generatingText}>Generating your soundscape</span>
+                  {generating.label && (
+                    <span className={styles.generatingPlace}>{generating.label}</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>,
           document.body,
         )}
 
-      {isPresent &&
+      {backdrop &&
+        isPresent &&
         !blocked &&
         typeof document !== 'undefined' &&
         createPortal(
           <div
             className={`${styles.backdrop} ${showBackdrop && !isClosing ? styles.backdropOpen : ''} ${isClosing ? styles.backdropClosing : ''}`}
+            data-theme={theme}
             aria-hidden
           />,
           document.body,

@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import type { AddSoundTab, Season, SoundDef } from '../data/types';
 import {
-  displayTagsForSound,
+  displaySoundName,
   filterSoundsByQuery,
-  isGlobalLibrarySound,
   librarySoundsForRegion,
   paletteSoundsForRegion,
 } from '../utils/soundCatalog';
@@ -22,7 +21,6 @@ type Props = {
   sounds: SoundDef[];
   activeSoundIds: string[];
   regionArt: RegionArtContext;
-  regionName: string;
   migratoryBirds?: boolean;
   defaultSeason?: Season;
   draggingSoundId: string | null;
@@ -31,8 +29,8 @@ type Props = {
 };
 
 const TABS: Array<{ id: AddSoundTab; label: string }> = [
-  { id: 'ambient', label: 'Ambient' },
   { id: 'wildlife', label: 'Wildlife' },
+  { id: 'ambient', label: 'Ambient' },
 ];
 
 export function AddSoundSheet({
@@ -42,14 +40,13 @@ export function AddSoundSheet({
   sounds,
   activeSoundIds,
   regionArt,
-  regionName,
   migratoryBirds,
   defaultSeason = 'spring',
   draggingSoundId,
   dragActive,
   onDragStart,
 }: Props) {
-  const [tab, setTab] = useState<AddSoundTab>('ambient');
+  const [tab, setTab] = useState<AddSoundTab>('wildlife');
   const [season, setSeason] = useState<Season>(defaultSeason);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -65,7 +62,7 @@ export function AddSoundSheet({
   useEffect(() => {
     if (!open) {
       setSearchQuery('');
-      setTab('ambient');
+      setTab('wildlife');
       setSeason(defaultSeason);
     }
   }, [open, defaultSeason]);
@@ -84,11 +81,6 @@ export function AddSoundSheet({
     ? `No sounds match "${searchQuery.trim()}".`
     : 'No sounds in this category for the current season.';
 
-  const subtitle =
-    isSearching && listedSounds.length > 0
-      ? `${regionName} · ${listedSounds.length} result${listedSounds.length === 1 ? '' : 's'}`
-      : regionName;
-
   return (
     <ScaleBlurOverlay
       open={open}
@@ -96,50 +88,62 @@ export function AddSoundSheet({
       title="Sound library"
       titleId="add-sound-overlay-title"
       closeLabel="Close sound library"
+      hideTitle
       wide
       bodyClassName={styles.body}
       pointerPassThrough={dragActive}
       originRect={originRect}
-    >
-      <p className={styles.subtitle}>{subtitle}</p>
-
-      <div className={styles.searchRow}>
-        <UiIcon icon="magnifying-glass" size="sm" className={styles.searchIcon} />
-        <input
-          type="search"
-          className={styles.searchInput}
-          placeholder="Search sounds"
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          aria-label="Search sounds"
-          autoComplete="off"
-          spellCheck={false}
-        />
-        {searchQuery.length > 0 && (
+      headerContent={
+        <div className={styles.topBar}>
+          <div className={styles.searchRow}>
+            <UiIcon icon="magnifying-glass" size="sm" className={styles.searchIcon} />
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Search sounds"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              aria-label="Search sounds"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {searchQuery.length > 0 && (
+              <button
+                type="button"
+                className={styles.clearSearch}
+                aria-label="Clear search"
+                onClick={() => setSearchQuery('')}
+              >
+                <UiIcon icon="xmark" size="sm" className={styles.closeIcon} />
+              </button>
+            )}
+          </div>
           <button
             type="button"
-            className={styles.clearSearch}
-            aria-label="Clear search"
-            onClick={() => setSearchQuery('')}
+            className={styles.closeSheet}
+            aria-label="Close sound library"
+            onClick={() => onOpenChange(false)}
           >
             <UiIcon icon="xmark" size="sm" className={styles.closeIcon} />
           </button>
-        )}
-      </div>
-
+        </div>
+      }
+    >
       <div className={styles.controls}>
         <div
-          className={`${styles.tabs} ${isSearching ? styles.tabsMuted : ''}`}
+          className={`${styles.categoryToggle} ${isSearching ? styles.categoryToggleMuted : ''}`}
+          data-tab={tab}
           role="tablist"
           aria-label="Sound categories"
         >
+          <span className={styles.categoryThumb} aria-hidden />
           {TABS.map((item) => (
             <button
               key={item.id}
               type="button"
               role="tab"
               aria-selected={!isSearching && tab === item.id}
-              className={`${styles.tab} ${!isSearching && tab === item.id ? styles.tabActive : ''}`}
+              className={`${styles.categorySegment} ${!isSearching && tab === item.id ? styles.categorySegmentActive : ''}`}
               onClick={() => {
                 setSearchQuery('');
                 setTab(item.id);
@@ -172,74 +176,66 @@ export function AddSoundSheet({
             )}
           </div>
         ) : (
-          <ul className={styles.list}>
-            {listedSounds.map((sound) => {
-              const onCanvas = activeSoundIds.includes(sound.id);
-              const isDragging = draggingSoundId === sound.id;
-              const tags = displayTagsForSound(sound, {
-                isGlobal: isGlobalLibrarySound(sound.id),
-                maxTags: 5,
-              });
-              const artwork = getSoundArtworkForRegion(
-                regionArt.id,
-                regionArt.soundIds,
-                sound.id,
-                undefined,
-                regionArt.tags,
-              );
-              return (
-                <li
-                  key={sound.id}
-                  className={`${styles.listItem} ${isDragging ? styles.listItemDragging : ''}`}
-                >
-                  {!isDragging && (
-                    <button
-                      type="button"
-                      className={`${styles.card} ${onCanvas ? styles.cardOnCanvas : ''}`}
-                      disabled={onCanvas}
-                      onPointerDown={(event) => handlePointerDown(sound, event)}
-                    >
-                      <span className={styles.cardHead}>
-                        <span className={styles.iconWrap}>
-                          <SoundIconImage
-                            src={artwork.src}
-                            sourceUrl={artwork.sourceUrl}
-                            detailSrc={artwork.detailSrc}
-                            alt=""
-                            soundId={sound.id}
-                            size="palette"
-                          />
+          <div className={styles.gridFade} key={tab}>
+            <ul className={styles.list}>
+              {listedSounds.map((sound) => {
+                const onCanvas = activeSoundIds.includes(sound.id);
+                const isDragging = draggingSoundId === sound.id;
+                const label = displaySoundName(sound);
+                const artwork = getSoundArtworkForRegion(
+                  regionArt.id,
+                  regionArt.soundIds,
+                  sound.id,
+                  undefined,
+                  regionArt.tags,
+                );
+                return (
+                  <li
+                    key={sound.id}
+                    className={`${styles.listItem} ${isDragging ? styles.listItemDragging : ''}`}
+                  >
+                    {!isDragging && (
+                      <button
+                        type="button"
+                        className={`${styles.card} ${onCanvas ? styles.cardOnCanvas : ''}`}
+                        disabled={onCanvas}
+                        onPointerDown={(event) => handlePointerDown(sound, event)}
+                      >
+                        <span className={styles.cardHead}>
+                          <span className={styles.iconWrap}>
+                            <SoundIconImage
+                              src={artwork.src}
+                              sourceUrl={artwork.sourceUrl}
+                              detailSrc={artwork.detailSrc}
+                              alt=""
+                              soundId={sound.id}
+                              size="palette"
+                            />
+                          </span>
+                          <span className={styles.cardTitleWrap}>
+                            <span className={styles.soundName}>{label}</span>
+                            <span className={styles.soundMeta}>
+                              {onCanvas ? (
+                                <span className={styles.onCanvasBadge}>On canvas</span>
+                              ) : (
+                                'Drag or tap to add'
+                              )}
+                            </span>
+                          </span>
+                          {!onCanvas && (
+                            <span className={styles.addHint} aria-hidden>
+                              <UiIcon icon="plus" size="sm" />
+                            </span>
+                          )}
                         </span>
-                        <span className={styles.cardTitleWrap}>
-                          <span className={styles.soundName}>{sound.name}</span>
-                          <span className={styles.soundMeta}>
-                            {onCanvas ? (
-                              <span className={styles.onCanvasBadge}>On canvas</span>
-                            ) : (
-                              'Drag or tap to add'
-                            )}
-                          </span>
-                        </span>
-                        {!onCanvas && (
-                          <span className={styles.addHint} aria-hidden>
-                            <UiIcon icon="plus" size="sm" />
-                          </span>
-                        )}
-                      </span>
-                      <span className={styles.tagRow}>
-                        {tags.map((tag) => (
-                          <span key={tag} className={styles.tagChip}>
-                            {tag}
-                          </span>
-                        ))}
-                      </span>
-                      <span className={styles.cardDescription}>{sound.description ?? ''}</span>
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                        <span className={styles.cardDescription}>{sound.description ?? ''}</span>
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
       </div>
     </ScaleBlurOverlay>

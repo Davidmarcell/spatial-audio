@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import {
   depthZIndex,
@@ -18,10 +18,23 @@ type Props = {
   position: SpatialPoint;
   sway: number;
   isDragging: boolean;
+  /**
+   * When true, the tile plays its entrance ("radiate out") animation: it starts
+   * small and faded at the listener centre and glides to its resting position.
+   */
+  entering?: boolean;
+  /** Per-tile stagger (ms) so tiles further out land a touch later. */
+  entranceDelayMs?: number;
   selected: boolean;
+  /**
+   * Hide the real canvas tile while its floating dock mirror (portal ghost) is
+   * on screen, so the tile is never shown twice at once. Kept in layout so the
+   * mirror can still measure its position/size.
+   */
+  hiddenForGhost?: boolean;
   regionArt: RegionArtContext;
   onSelect: (instanceId: string) => void;
-  onRemove: (instanceId: string, iconRect: DOMRect) => void;
+  onRemove: (instanceId: string, iconRect: DOMRect, dropPoint?: { x: number; y: number }) => void;
   onOpenDetail: (instanceId: string, originRect: DOMRect | null) => void;
   onPointerDown: (instanceId: string, event: React.PointerEvent<HTMLButtonElement>) => void;
 };
@@ -33,7 +46,10 @@ export function SoundIcon({
   position,
   sway,
   isDragging,
+  entering = false,
+  entranceDelayMs = 0,
   selected,
+  hiddenForGhost = false,
   onSelect,
   onRemove,
   onOpenDetail,
@@ -42,6 +58,13 @@ export function SoundIcon({
 }: Props) {
   const iconRef = useRef<HTMLButtonElement>(null);
   const { left, top } = normalizedToPercent(position);
+  // Vector from the tile's resting spot back to the listener centre (50%, 50%),
+  // expressed in container-query units so the entrance offset tracks the canvas
+  // size. The tile animates from this offset (at centre) to zero (at rest).
+  const leftPercent = ((position.x + 1) / 2) * 100;
+  const topPercent = (1 - position.y) * 100;
+  const entranceDx = 50 - leftPercent;
+  const entranceDy = 50 - topPercent;
   const swayDeg = (sway * 180) / Math.PI;
   const distance = distanceFromListener(position);
   const proximityScale = scaleFromDistance(distance);
@@ -71,8 +94,20 @@ export function SoundIcon({
 
   return (
     <div
-      className={`${styles.wrapper} ${selected ? styles.selected : ''} ${isDragging ? styles.dragging : ''}`}
-      style={{ left, top, zIndex: depthZIndex(distance) }}
+      className={`${styles.wrapper} ${selected ? styles.selected : ''} ${isDragging ? styles.dragging : ''} ${entering ? styles.entering : ''}`}
+      style={{
+        left,
+        top,
+        zIndex: isDragging ? 470 : depthZIndex(distance),
+        visibility: hiddenForGhost ? 'hidden' : undefined,
+        ...(entering
+          ? ({
+              '--entrance-dx': `${entranceDx}cqw`,
+              '--entrance-dy': `${entranceDy}cqh`,
+              '--entrance-delay': `${entranceDelayMs}ms`,
+            } as CSSProperties)
+          : {}),
+      }}
       data-instance-id={instanceId}
     >
       <div

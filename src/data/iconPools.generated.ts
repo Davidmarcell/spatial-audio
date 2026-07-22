@@ -43,6 +43,19 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       ]
     },
     {
+      "src": "/icons/waves-courbet-the-wave.jpg",
+      "title": "The Wave",
+      "author": "Gustave Courbet",
+      "medium": "Oil on canvas",
+      "license": "Public domain",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_The_Wave_-_Google_Art_Project.jpg",
+      "tags": [
+        "temperate",
+        "coastal",
+        "european"
+      ]
+    },
+    {
       "src": "/icons/met/11908.jpg",
       "title": "Good Harbor Beach, Cape Ann, Massachusetts",
       "author": "William Trost Richards",
@@ -80,20 +93,6 @@ export const iconPools: Record<string, IconPoolEntry[]> = {
       "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP800942.jpg",
       "tags": [
         "cold",
-        "coastal",
-        "european"
-      ]
-    },
-    {
-      "src": "/icons/met/334086.jpg",
-      "title": "On the Beach",
-      "author": "Eugène Boudin",
-      "medium": "Graphite and watercolor",
-      "license": "CC0 (The Metropolitan Museum of Art)",
-      "sourceUrl": "https://www.metmuseum.org/art/collection/search/334086",
-      "detailSrc": "https://images.metmuseum.org/CRDImages/dp/original/DP805486.jpg",
-      "tags": [
-        "temperate",
         "coastal",
         "european"
       ]
@@ -589,7 +588,7 @@ export const artworkAttributions: ArtworkAttribution[] = [
   { file: '/icons/met/11908.jpg', title: 'Good Harbor Beach, Cape Ann, Massachusetts', author: 'William Trost Richards — Graphite on tan wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11908' },
   { file: '/icons/met/17053.jpg', title: 'Boys in a Dory', author: 'Winslow Homer — Watercolor and gouache over graphite', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/17053' },
   { file: '/icons/met/339153.jpg', title: 'Fishing Boats on the Beach in Winter', author: 'Anton Mauve — Black chalk, watercolor, and white bodycolor', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/339153' },
-  { file: '/icons/met/334086.jpg', title: 'On the Beach', author: 'Eugène Boudin — Graphite and watercolor', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/334086' },
+  { file: '/icons/waves-courbet-the-wave.jpg', title: 'The Wave', author: 'Gustave Courbet — Oil on canvas', license: 'Public domain', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_The_Wave_-_Google_Art_Project.jpg' },
   { file: '/icons/met/460052.jpg', title: 'Beach Scene', author: 'Eugène Boudin — Pastel on gray wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/460052' },
   { file: '/icons/met/11138.jpg', title: 'Shore and Surf, Nassau', author: 'Winslow Homer — Watercolor and graphite on off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11138' },
   { file: '/icons/met/11306.jpg', title: 'Birch Tree, Niagara', author: 'John Frederick Kensett — Graphite on smooth textured off-white wove paper', license: 'CC0 (The Metropolitan Museum of Art)', sourceUrl: 'https://www.metmuseum.org/art/collection/search/11306' },

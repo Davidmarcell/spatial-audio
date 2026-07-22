@@ -12,13 +12,13 @@ type Props = {
 };
 
 /** Keep in sync with --pair-duration in PlayCluster.module.css */
-const PAIR_DURATION_MS = 480;
+const PAIR_DURATION_MS = 200;
 
 type PairPhase = 'collapsed' | 'opening' | 'expanded' | 'closing';
 
 /**
  * Play pill + master volume. Volume pairs from the play pill centre and eases
- * out to the right — mirrored open and close choreography.
+ * out to the right — symmetric open and close via matched transitions.
  */
 export function PlayCluster({ engine, isPlaying, onToggle }: Props) {
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');

@@ -26,14 +26,63 @@
   max-width: min(28rem, calc(100% - 2rem));
   text-align: center;
   pointer-events: auto;
+  /* Centre the wordmark on the same line as the top-right buttons (3rem tall,
+     pinned to the same top inset). Flex-centring a 3rem-tall brand row places
+     the title's optical centre on the buttons' centre line, while the title
+     keeps its own tall line box and block padding so the Romie glyphs are never
+     clipped top or bottom. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
 }
 
 .title {
   margin: 0;
+  font-family: 'Romie', Georgia, 'Times New Roman', serif;
   font-size: 1.05rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  /* Romie is a display serif with tall ascenders. A line box below ~1.4 clips
+     the top of the glyphs; the block padding adds headroom so the full wordmark
+     stays visible even if an ancestor ever clips its overflow. */
+  line-height: 1.4;
+  padding-block: 0.12em;
   color: var(--text);
+}
+
+/* The wordmark doubles as a home control. It is a real button (keyboard
+   focusable, activatable) but inherits the title's type and colour so the
+   look and vertical alignment are unchanged; only a subtle hover/focus
+   affordance is added. */
+.brandHome {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s var(--ease-ios, ease);
+}
+
+.brandHome:hover {
+  opacity: 0.62;
+}
+
+.brandHome:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brandHome {
+    transition: none;
+  }
 }
 
 .main {
@@ -107,7 +156,11 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
+  /* Stack the resting gap ON TOP of the safe-area inset rather than max()-ing
+     them: with max(), any bottom inset (home indicator / device-mode chrome)
+     swallows the gap, leaving the search pill and the expanded panel's rounded
+     bottom flush against the inset boundary where it gets visually clipped. */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.55rem);
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -117,12 +170,12 @@
   pointer-events: none;
   transform-origin: center bottom;
   transform: translateY(0);
-  transition: transform var(--search-rise-duration) var(--search-rise-ease);
-  will-change: transform;
   opacity: 1;
+  will-change: transform;
+  /* Nav show/hide uses its own stable timing (not the search spotlight vars). */
   transition:
-    transform var(--search-rise-duration) var(--search-rise-ease),
-    opacity 220ms ease;
+    transform var(--bottom-nav-transition-duration) var(--bottom-nav-transition-ease),
+    opacity var(--bottom-nav-transition-duration) var(--bottom-nav-transition-ease);
 }
 
 .bottomBarPlay,
@@ -157,6 +210,11 @@
 
 .bottomBarSearchOpen {
   transform: translateY(calc(-1 * var(--bottom-bar-rise)));
+  /* The rise that accompanies opening the search stays synced to the search
+     spotlight timing so the bar and the expanding panel move together. */
+  transition:
+    transform var(--search-rise-duration) var(--search-rise-ease),
+    opacity var(--search-rise-duration) var(--search-rise-ease);
 }
 
 .bottomBarHidden {
@@ -256,7 +314,7 @@
     left: 0;
     right: 0;
     transform: translateY(0);
-    bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
   }
 
   .bottomBarSearchOpen {
@@ -312,7 +370,7 @@
   .bottomBar {
     left: 0;
     right: 0;
-    bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
   }
 
   .dockOverlay {

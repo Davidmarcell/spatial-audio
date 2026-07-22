@@ -8,52 +8,66 @@
   color: var(--text-muted);
 }
 
-.modalPanel {
-  --scale-blur-panel-width: min(87.5rem, calc(100vw - 2rem));
-  max-height: min(
-    90dvh,
-    calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
-  );
-  /* One continuous surface: the header (transparent) and the globe body share
-     this single gradient, so the title bar matches the globe background and
-     there's no nested rounded box. */
-  background: radial-gradient(circle at 50% 46%, #ffffff 0%, #f4f6fb 56%, #e8edf5 100%);
-}
+/* Full-screen world map page: fills the viewport with its own themed surface and
+   no dimmed backdrop, so it reads as entering a page. The globe body inherits a
+   definite height from this fixed container. Light theme here, dark below, so
+   the surface tracks the app theme (the globe recolours itself separately).
 
-/* Seamless title bar — no divider line between header and globe surface. */
-.modalPanel header {
-  border-bottom: none;
-}
-
-/* Scoped with the panel class so it outranks ScaleBlurOverlay's
-   `.body { flex: 1; min-height: 0 }`. Without the higher specificity the
-   flex-basis:0 / min-height:0 there defeats this explicit height and the
-   globe (which has no intrinsic height of its own) collapses to nothing. */
-.modalPanel .modalBody {
+   As the INCOMING page it rises up from the bottom with the shared curved top
+   edge, driven from JS (transform + clip-path written per frame in
+   GlobeMapSheet.tsx), then settles into a normal interactive full page. */
+.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  z-index: 400;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: min(
-    78dvh,
-    calc(90dvh - 3.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
-  );
-  height: min(
-    78dvh,
-    calc(90dvh - 3.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
-  );
-  padding: 0;
   overflow: hidden;
+  background: radial-gradient(circle at 50% 46%, #ffffff 0%, #f4f6fb 56%, #e8edf5 100%);
+  transform-origin: 50% 100%;
 }
 
-.modalPanel .modalBody > * {
-  flex: 1;
+[data-theme='dark'] .fullscreen {
+  background: radial-gradient(circle at 50% 46%, #20242e 0%, #171a22 56%, #0f1218 100%);
+}
+
+/* GlobeExplorer's root is height:100%; give it a definite parent height. */
+.fullscreen > * {
+  flex: 1 1 auto;
   min-height: 0;
 }
 
-/* Blur the app behind the world map modal. Scoped to this overlay only via the
-   backdropClassName prop so other ScaleBlurOverlay consumers are unaffected. The
-   shared backdrop already handles the dimming/opacity transition. */
-.modalBackdrop {
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+/* Outgoing globe (globe close, or globe -> location): it stays mounted and
+   visible and is gently lifted + very slightly scaled, holding that state beneath
+   the rising incoming sheet (the cover panel, or the landing rising home over it)
+   so the old page reads as staying and pushing up rather than disappearing.
+   Non-interactive while it leaves; the host unmounts it once the incoming sheet
+   has fully risen. It stays fully OPAQUE the whole way up (no opacity dim): on the
+   map -> home rise the landing rises ON TOP of this lifting globe, so any dim here
+   would let the workspace/soundscape behind the globe bleed faintly through above
+   the landing's curved edge during the transition. */
+.exiting {
+  pointer-events: none;
+  animation: globeExitLift 0.86s var(--ease-in-out-strong) both;
+}
+
+@keyframes globeExitLift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(0, -34px, 0) scale(0.986);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Skip the exit lift; the globe simply stays in place until unmounted (the
+     cover panel is a quick fade under reduced motion). The incoming rise is
+     already skipped in GlobeMapSheet.tsx. */
+  .exiting {
+    animation: none;
+  }
 }

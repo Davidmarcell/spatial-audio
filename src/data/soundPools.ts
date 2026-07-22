@@ -26,6 +26,18 @@ const FALLBACK_TYPES: Partial<Record<SoundType, SoundType[]>> = {
   'tropical-bird': ['songbird'],
   market: ['city-hum'],
   thunder: ['rain'],
+  // New city/music signatures — keep them audible if their (thin, single-clip)
+  // pool ever fails to populate rather than collapsing to silence.
+  tram: ['city-hum', 'traffic'],
+  fado: ['jazz', 'bossa-nova'],
+  adhan: ['bells', 'city-hum'],
+  ney: ['jazz', 'bossa-nova'],
+  // Distant lion roar (savanna signature) — fall back to the primate/other
+  // wildlife beds if the single-clip pool ever fails to populate.
+  lion: ['primates'],
+  // Parisian musette accordion — fall back to the other music beds if its
+  // single-clip pool ever fails to populate.
+  musette: ['jazz', 'bossa-nova'],
 };
 
 export function poolForType(type: SoundType): SoundClip[] {

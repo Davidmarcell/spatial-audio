@@ -4,6 +4,11 @@
   min-height: 0;
   min-width: 0;
   padding: 0.6rem 0.85rem 0.85rem;
+  /* Fixed content-region height so the outer modal chrome never resizes when
+     switching segments. The tallest segment scrolls internally (see .panel);
+     shorter segments simply leave slack at the bottom. Capped in dvh so it
+     stays within the overlay's max-height on short viewports. */
+  height: min(32rem, 62dvh);
 }
 
 .tabs {
@@ -16,6 +21,9 @@
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
   margin-bottom: 0.7rem;
+  /* Match the panel's horizontal padding so the tab bar stays aligned with the
+     section headings and copy below it. */
+  margin-inline: 0.4rem;
   flex-shrink: 0;
 }
 
@@ -65,7 +73,10 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   border-radius: calc(var(--radius-lg) - 0.2rem);
-  padding-inline: 0.05rem;
+  /* Real horizontal breathing room so section text is never flush against the
+     `overflow-x: hidden` clip edge. Without it, bold heading glyphs (with the
+     negative letter-spacing) get shaved on the left/right. */
+  padding-inline: 0.4rem;
 }
 
 .section + .section {
@@ -84,6 +95,91 @@
 }
 
 .copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* Static diagram explaining the spatial canvas. Purely illustrative (not wired
+   to the live SpatialCanvas) and deliberately motionless: tiles nearer the
+   listener are drawn larger and stronger (louder), further tiles smaller and
+   fainter (softer). */
+.diagram {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.75rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-elevated) 55%, transparent);
+}
+
+.diagramSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.diagramRing {
+  fill: none;
+  stroke: var(--radar-ring);
+  stroke-width: 1;
+}
+
+.diagramSpoke {
+  stroke: var(--radar-ring);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.75;
+}
+
+.diagramTile {
+  fill: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+/* Loudness read by distance: the near tile is strongest, the far tile faintest.
+   Nearer = larger + louder, further = smaller + softer. */
+.diagramTileNear {
+  fill: var(--surface-solid);
+  stroke: color-mix(in srgb, var(--accent) 55%, var(--border-strong));
+  stroke-width: 1.4;
+  opacity: 1;
+}
+
+.diagramTileMid {
+  opacity: 0.82;
+}
+
+.diagramTileFar {
+  opacity: 0.58;
+}
+
+.diagramYouGlow {
+  fill: var(--listener-glow);
+}
+
+.diagramYou {
+  fill: var(--text);
+}
+
+.diagramLabel {
+  fill: var(--text-muted);
+  font-family: inherit;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.diagramYouLabel {
+  fill: var(--text-secondary);
+  font-family: inherit;
+  font-size: 7.5px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.diagramCaption {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.88rem;

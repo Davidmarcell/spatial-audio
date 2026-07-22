@@ -31,13 +31,16 @@ export type PlayingBarEdgeGradientConfig = {
   breathDurationSec: number;
 };
 
-export const PLAYING_BAR_EDGE_GRADIENT_STORAGE_KEY = 'saudade:playing-bar-edge-gradient:v3';
+/** Legacy session key; read once for migration if no saved default exists. */
+export const PLAYING_BAR_EDGE_GRADIENT_STORAGE_KEY = 'saudade:playing-bar-edge-gradient:v4';
+export const PLAYING_BAR_EDGE_GRADIENT_SAVED_DEFAULT_KEY =
+  'saudade:playing-bar-edge-gradient:saved-default';
 export const PLAYING_BAR_EDGE_GRADIENT_TUNER_VISIBLE_KEY =
   'saudade:playing-bar-edge-gradient-tuner-visible';
 
 /** Defaults aligned with kirschberg.co.nz/bar-shaders (`va` config). */
 export const DEFAULT_PLAYING_BAR_EDGE_GRADIENT: PlayingBarEdgeGradientConfig = {
-  waveOpacity: 1,
+  waveOpacity: 0.4,
   useSceneColours: true,
   colour1: '#47b9ff',
   colour2: '#ffd9e8',
@@ -106,21 +109,48 @@ export function applyPlayingBarEdgeGradient(config: PlayingBarEdgeGradientConfig
   }
 }
 
-export function loadPlayingBarEdgeGradient(): PlayingBarEdgeGradientConfig {
-  if (typeof window === 'undefined') return DEFAULT_PLAYING_BAR_EDGE_GRADIENT;
+function parsePlayingBarEdgeGradientConfig(
+  raw: string,
+): PlayingBarEdgeGradientConfig | null {
   try {
-    const raw = window.localStorage.getItem(PLAYING_BAR_EDGE_GRADIENT_STORAGE_KEY);
-    if (!raw) return DEFAULT_PLAYING_BAR_EDGE_GRADIENT;
     const parsed = JSON.parse(raw) as Partial<PlayingBarEdgeGradientConfig>;
     return { ...DEFAULT_PLAYING_BAR_EDGE_GRADIENT, ...parsed };
   } catch {
-    return DEFAULT_PLAYING_BAR_EDGE_GRADIENT;
+    return null;
   }
 }
 
-export function savePlayingBarEdgeGradient(config: PlayingBarEdgeGradientConfig): void {
+export function loadPlayingBarEdgeGradientSavedDefault(): PlayingBarEdgeGradientConfig | null {
+  if (typeof window === 'undefined') return null;
+  const raw = window.localStorage.getItem(PLAYING_BAR_EDGE_GRADIENT_SAVED_DEFAULT_KEY);
+  if (!raw) return null;
+  return parsePlayingBarEdgeGradientConfig(raw);
+}
+
+export function savePlayingBarEdgeGradientSavedDefault(
+  config: PlayingBarEdgeGradientConfig,
+): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(PLAYING_BAR_EDGE_GRADIENT_STORAGE_KEY, JSON.stringify(config));
+  window.localStorage.setItem(
+    PLAYING_BAR_EDGE_GRADIENT_SAVED_DEFAULT_KEY,
+    JSON.stringify(config),
+  );
+}
+
+/** Baseline on load: saved default, then legacy v4 key, then code defaults. */
+export function loadPlayingBarEdgeGradient(): PlayingBarEdgeGradientConfig {
+  if (typeof window === 'undefined') return DEFAULT_PLAYING_BAR_EDGE_GRADIENT;
+
+  const savedDefault = loadPlayingBarEdgeGradientSavedDefault();
+  if (savedDefault) return savedDefault;
+
+  const legacyRaw = window.localStorage.getItem(PLAYING_BAR_EDGE_GRADIENT_STORAGE_KEY);
+  if (legacyRaw) {
+    const legacy = parsePlayingBarEdgeGradientConfig(legacyRaw);
+    if (legacy) return legacy;
+  }
+
+  return DEFAULT_PLAYING_BAR_EDGE_GRADIENT;
 }
 
 export function isPlayingBarEdgeGradientTunerEnabled(): boolean {

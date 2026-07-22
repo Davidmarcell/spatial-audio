@@ -1,4 +1,5 @@
 import { getSoundIconSrc, type RegionArtContext } from '../data/iconArt';
+import { publicUrl } from './publicUrl';
 import type { ActiveSound } from '../data/types';
 import type { ResolvedTheme } from './theme';
 
@@ -18,13 +19,13 @@ const FALLBACK: Record<ResolvedTheme, PlayingBarCssVars> = {
     '--playing-bar-warm': 'rgba(225, 200, 160, 0.28)',
     '--playing-bar-accent': 'rgba(76, 175, 120, 0.38)',
     '--playing-bar-mid': 'rgba(76, 175, 120, 0.16)',
-    '--playing-bar-line': 'rgba(76, 175, 120, 0.52)',
+    '--playing-bar-line': 'rgba(76, 175, 120, 0.40)',
   },
   dark: {
     '--playing-bar-warm': 'rgba(40, 72, 58, 0.36)',
     '--playing-bar-accent': 'rgba(76, 175, 120, 0.44)',
     '--playing-bar-mid': 'rgba(76, 175, 120, 0.18)',
-    '--playing-bar-line': 'rgba(76, 175, 120, 0.58)',
+    '--playing-bar-line': 'rgba(76, 175, 120, 0.40)',
   },
 };
 
@@ -43,23 +44,17 @@ const DEFAULT_LOCATION_PALETTE: LocationMoodPalette = {
 };
 
 const LOCATION_PALETTE_BY_REGION: Record<string, LocationMoodPalette> = {
-  'pacific-slope': {
-    warm: { r: 186, g: 166, b: 126 },
-    accent: { r: 50, g: 156, b: 104 },
-    mid: { r: 60, g: 124, b: 96 },
-    line: { r: 82, g: 186, b: 128 },
-  },
   'rio-de-janeiro': {
     warm: { r: 196, g: 162, b: 120 },
     accent: { r: 64, g: 150, b: 124 },
     mid: { r: 80, g: 124, b: 132 },
     line: { r: 90, g: 190, b: 162 },
   },
-  'chiang-mai': {
-    warm: { r: 192, g: 162, b: 110 },
-    accent: { r: 70, g: 148, b: 94 },
-    mid: { r: 76, g: 116, b: 90 },
-    line: { r: 102, g: 188, b: 126 },
+  bangkok: {
+    warm: { r: 198, g: 168, b: 112 },
+    accent: { r: 176, g: 146, b: 96 },
+    mid: { r: 120, g: 118, b: 104 },
+    line: { r: 208, g: 176, b: 120 },
   },
   auckland: {
     warm: { r: 198, g: 170, b: 132 },
@@ -78,18 +73,6 @@ const LOCATION_PALETTE_BY_REGION: Record<string, LocationMoodPalette> = {
     accent: { r: 134, g: 146, b: 164 },
     mid: { r: 110, g: 124, b: 140 },
     line: { r: 176, g: 188, b: 204 },
-  },
-  dolomites: {
-    warm: { r: 174, g: 166, b: 154 },
-    accent: { r: 104, g: 138, b: 168 },
-    mid: { r: 92, g: 112, b: 148 },
-    line: { r: 136, g: 168, b: 206 },
-  },
-  'nz-forest-general': {
-    warm: { r: 192, g: 166, b: 126 },
-    accent: { r: 74, g: 140, b: 116 },
-    mid: { r: 82, g: 126, b: 106 },
-    line: { r: 100, g: 178, b: 144 },
   },
 };
 
@@ -151,7 +134,7 @@ function resolveLocationPalette(regionArt: RegionArtContext): LocationMoodPalett
       line: { r: 168, g: 182, b: 198 },
     };
   }
-  if (/(alpine|mountain|dolomites)/.test(joined)) {
+  if (/(alpine|mountain)/.test(joined)) {
     return {
       warm: { r: 172, g: 164, b: 152 },
       accent: { r: 98, g: 138, b: 170 },
@@ -168,7 +151,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     img.decoding = 'async';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-    img.src = url;
+    img.src = publicUrl(url);
   });
 }
 
@@ -281,8 +264,8 @@ export function buildPlayingBarVars(
 
   const alpha =
     theme === 'dark'
-      ? { warm: 0.54, accent: 0.58, mid: 0.22, line: 0.72 }
-      : { warm: 0.44, accent: 0.52, mid: 0.2, line: 0.64 };
+      ? { warm: 0.36, accent: 0.38, mid: 0.18, line: 0.4 }
+      : { warm: 0.30, accent: 0.34, mid: 0.16, line: 0.4 };
 
   return {
     '--playing-bar-warm': toRgba(warmBase, alpha.warm),

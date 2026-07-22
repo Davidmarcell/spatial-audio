@@ -32,6 +32,25 @@
   box-shadow: inset 0 0 0 2px var(--drop-highlight);
 }
 
+/*
+ * Body-level mirror of the tile being dragged back to the dock. Rendered above
+ * the sidebar (which lives in a higher stacking context than the canvas) so the
+ * tile stays visibly on top as it approaches, matching the iOS dock feel. It is
+ * pinned exactly over the real canvas icon, so crossing into/out of the dock
+ * zone swaps between them seamlessly with no pop.
+ */
+.dockGhost {
+  position: fixed;
+  z-index: 490;
+  border: 1px solid var(--glass-border-strong);
+  border-radius: 1rem;
+  background: var(--surface-solid);
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.24);
+  will-change: left, top, width, height;
+}
+
 .playingBarShader {
   --radiance-colour-1: var(--playing-bar-colour-1-override, var(--playing-bar-warm));
   --radiance-colour-2: var(--playing-bar-colour-2-override, var(--playing-bar-accent));
@@ -98,7 +117,7 @@
 }
 
 .playingBarShaderActive {
-  opacity: var(--playing-bar-wave-opacity, 1);
+  opacity: var(--playing-bar-wave-opacity, 0.4);
 }
 
 :root[data-playing-bar-breathe='1'] .playingBarShaderActive {
@@ -128,6 +147,41 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
+}
+
+/*
+ * Rings entrance: a gentle scale/fade on the whole ring group as a new scene
+ * lands. Applied to the container (not each ring) so it never fights the per-ring
+ * idle/playing breath animations underneath.
+ */
+.radarRingsEntering {
+  transform-origin: center center;
+  animation: radarRingsEnter 820ms var(--ease-ios) both;
+}
+
+@keyframes radarRingsEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  72% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  86% {
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .radarRing {
@@ -295,7 +349,8 @@
   .radarRingsPlaying .radarRing,
   .radarRingsBreath .radarRing,
   .radarRingsPulsate .radarRing,
-  .radarRingsRipple .radarRing {
+  .radarRingsRipple .radarRing,
+  .radarRingsEntering {
     animation: none;
   }
 }
