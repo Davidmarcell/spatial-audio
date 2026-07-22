@@ -1023,37 +1023,26 @@ export default function App() {
     }
   }, [browsingFromLanding, playCover]);
 
-  // The header wordmark doubles as a "home" control. Home returns to the landing
-  // gate when the landing experience is available (mirroring the globe X
-  // return-to-landing path: close the globe, drop the browse/exit state and the
-  // entered flag so the gate is shown again), replaying the landing entrance so
-  // it reads as a fresh arrival. With the landing gate disabled (dev toggle off)
-  // there is no gate to return to, so home is simply the default view: close the
-  // globe. Either way it plays the shared wipe so the navigation feels of a
-  // piece with the rest of the app.
+  // The header wordmark doubles as a "home" control: always return to the
+  // landing gate (enabling it if the DEV toggle had it off), with the outgoing
+  // page pushing up in parallax while landing rises over it.
   const handleGoHome = useCallback(() => {
-    // Lift the outgoing page up (parallax) if the globe is open, otherwise the
-    // workspace beneath stays put. Only lift the globe if it is actually open,
-    // otherwise `globeExiting` would mount an empty globe just to lift it.
     if (showGlobe) setGlobeExiting(true);
     setShowGlobe(false);
-    if (landingEnabled) {
-      // Home returns to the landing gate, which is itself a full-page opaque
-      // sheet, so it RISES up over the lifting outgoing page with the shared
-      // curved edge (a true stacked-sheet rise, no cover panel and no
-      // cross-fade). Remount it so its entrance re-arms; its `onEntered` unmounts
-      // any lifted globe once it has fully risen.
-      setBrowsingFromLanding(false);
-      setLandingExiting(false);
-      setHasEntered(false);
-      setLandingEntering(true);
-      setLandingReplayKey((key) => key + 1);
-    } else {
-      // No landing gate to return to, so home is just the default view: rise the
-      // shared cover panel over the outgoing page and reveal the workspace.
-      playCover();
+    setDetailTarget(null);
+    setDetailOriginRect(null);
+    if (!landingEnabled) {
+      setLandingEnabled(true);
+      persistLandingGateEnabled(true);
     }
-  }, [landingEnabled, playCover, showGlobe]);
+    // Landing is a full-page opaque sheet: it rises over the lifting outgoing
+    // page (globe or workspace) with the shared curved edge.
+    setBrowsingFromLanding(false);
+    setLandingExiting(false);
+    setHasEntered(false);
+    setLandingEntering(true);
+    setLandingReplayKey((key) => key + 1);
+  }, [landingEnabled, showGlobe]);
 
   // The incoming landing has finished rising home over the outgoing page, so
   // settle the rise (drop the raised stacking) and unmount the lifted globe
@@ -1250,32 +1239,29 @@ export default function App() {
         <AboutButton onClick={() => setShowProjectInfo(true)} />
       </div>
 
-      <header className={styles.header}>
+      <header
+        className={`${styles.header} ${showGlobe || globeExiting ? styles.headerAboveGlobe : ''}`}
+      >
         <div className={styles.brand}>
           <h1 className={styles.title}>
-            {/* While the globe is open (or rising/exiting), the brand is display-
-                only: clip-path on the globe otherwise lets clicks fall through
-                to this header and unexpectedly fire go-home. Same while a sound
-                detail sheet is open so tile interactions near the top are safe. */}
-            {showGlobe || globeExiting || detailTarget ? (
-              <span className={styles.brandHome} aria-label="Saudade">
-                Saudade
-              </span>
-            ) : (
-              <button
-                type="button"
-                className={styles.brandHome}
-                onClick={handleGoHome}
-                aria-label="Saudade, go home"
-              >
-                Saudade
-              </button>
-            )}
+            <button
+              type="button"
+              className={styles.brandHome}
+              onClick={handleGoHome}
+              aria-label="Saudade, go home"
+            >
+              Saudade
+            </button>
           </h1>
         </div>
       </header>
 
-      <main className={styles.main} ref={mainRef}>
+      <main
+        className={`${styles.main} ${
+          (coverActive || landingEntering) && !globeExiting ? styles.pageExitLift : ''
+        }`}
+        ref={mainRef}
+      >
         <section className={styles.workspace} aria-label="Soundscape">
           <div className={styles.dockOverlay}>
             <SoundPalette

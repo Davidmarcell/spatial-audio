@@ -176,7 +176,7 @@
 
 .previewCard {
   pointer-events: auto;
-  width: min(var(--sound-tile-panel-width, 44rem), calc(100vw - 2rem));
+  width: min(var(--sound-tile-panel-width, 580px), calc(100vw - 2rem));
   border-radius: var(--sound-tile-card-radius, 36px);
   overflow: hidden;
   background: #fff;

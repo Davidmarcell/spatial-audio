@@ -14,8 +14,8 @@ export type SoundTileDesignConfig = {
   imageSizePx: number;
   /** Horizontal gap between artwork and info (px). */
   columnGapPx: number;
-  /** Panel max width (rem). */
-  panelWidthRem: number;
+  /** Panel max width (px). */
+  panelWidthPx: number;
 };
 
 export const DEFAULT_SOUND_TILE_DESIGN: SoundTileDesignConfig = {
@@ -24,7 +24,7 @@ export const DEFAULT_SOUND_TILE_DESIGN: SoundTileDesignConfig = {
   paddingPx: 22,
   imageSizePx: 280,
   columnGapPx: 28,
-  panelWidthRem: 44,
+  panelWidthPx: 580,
 };
 
 const STORAGE_KEY = 'saudade:sound-tile-design';
@@ -39,7 +39,7 @@ export function soundTileDesignToCssVars(
     '--sound-tile-padding': `${config.paddingPx}px`,
     '--sound-tile-image-size': `${config.imageSizePx}px`,
     '--sound-tile-column-gap': `${config.columnGapPx}px`,
-    '--sound-tile-panel-width': `${config.panelWidthRem}rem`,
+    '--sound-tile-panel-width': `${config.panelWidthPx}px`,
   };
 }
 
@@ -48,8 +48,15 @@ export function loadSoundTileDesign(): SoundTileDesignConfig {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULT_SOUND_TILE_DESIGN };
-    const parsed = JSON.parse(raw) as Partial<SoundTileDesignConfig>;
-    return { ...DEFAULT_SOUND_TILE_DESIGN, ...parsed };
+    const parsed = JSON.parse(raw) as Partial<SoundTileDesignConfig> & {
+      panelWidthRem?: number;
+    };
+    const { panelWidthRem, ...rest } = parsed;
+    const migrated =
+      rest.panelWidthPx == null && typeof panelWidthRem === 'number'
+        ? { ...rest, panelWidthPx: Math.round(panelWidthRem * 16) }
+        : rest;
+    return { ...DEFAULT_SOUND_TILE_DESIGN, ...migrated };
   } catch {
     return { ...DEFAULT_SOUND_TILE_DESIGN };
   }

@@ -21,6 +21,11 @@
   pointer-events: none;
 }
 
+/* Keep Saudade clickable above the full-screen globe (z-index 400). */
+.headerAboveGlobe {
+  z-index: 410;
+}
+
 .brand {
   min-width: 0;
   max-width: min(28rem, calc(100% - 2rem));
@@ -69,21 +74,35 @@
   transition: opacity 0.2s var(--ease-ios, ease);
 }
 
-/* Non-interactive brand mark (globe open / detail sheet): look the same, no
-   pointer affordance, so clicks cannot fall through to go-home. */
-span.brandHome {
-  cursor: default;
-  pointer-events: none;
-}
-
-button.brandHome:hover {
+.brandHome:hover {
   opacity: 0.62;
 }
 
-button.brandHome:focus-visible {
+.brandHome:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+/* Outgoing workspace push (parallax) while a cover panel or landing rises over it. */
+.pageExitLift {
+  pointer-events: none;
+  animation: pageExitLift 1.3s var(--ease-in-out-strong) both;
+}
+
+@keyframes pageExitLift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(0, -18vh, 0) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageExitLift {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -60,15 +60,17 @@ export function SoundArtDetailContent({
         </button>
       )}
 
-      <div className={styles.artwork}>
-        <SoundIconImage
-          src={artwork.src}
-          sourceUrl={artwork.sourceUrl}
-          detailSrc={artwork.detailSrc}
-          alt={artwork.title}
-          soundId={target.soundId}
-          size="detailNatural"
-        />
+      <div className={styles.artworkWrap}>
+        <div className={styles.artwork}>
+          <SoundIconImage
+            src={artwork.src}
+            sourceUrl={artwork.sourceUrl}
+            detailSrc={artwork.detailSrc}
+            alt={artwork.title}
+            soundId={target.soundId}
+            size="detailNatural"
+          />
+        </div>
       </div>
 
       <div className={styles.infoColumn}>

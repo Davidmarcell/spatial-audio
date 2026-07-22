@@ -31,7 +31,7 @@
 
 /* Soft white card chrome matching the sound-tile design spin. */
 .panel {
-  --scale-blur-panel-width: var(--sound-tile-panel-width, 44rem);
+  --scale-blur-panel-width: var(--sound-tile-panel-width, 580px);
   border-radius: var(--sound-tile-card-radius, 36px);
   border: none;
   background-color: #fff;

@@ -237,12 +237,12 @@ export function SoundTileDesignTuner({ regionArt, sampleTarget = null }: Props) 
                 />
                 <SliderField
                   label="Panel width"
-                  value={config.panelWidthRem}
-                  min={28}
-                  max={56}
-                  step={0.5}
-                  unit="rem"
-                  onChange={(panelWidthRem) => patch({ panelWidthRem })}
+                  value={config.panelWidthPx}
+                  min={420}
+                  max={720}
+                  step={10}
+                  unit="px"
+                  onChange={(panelWidthPx) => patch({ panelWidthPx })}
                 />
 
                 <div className={styles.actions}>
