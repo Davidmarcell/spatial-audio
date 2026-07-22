@@ -1,0 +1,42 @@
+[
+  {
+    "file": "ayutthaya-01-vingboons-rijksmuseum.jpg",
+    "dim": "1600x1104 (downscaled from original 7354x5074)",
+    "title": "View of Iudea (Ayutthaya), Capital of Siam / Gezicht op Iudea, de hoofdstad van Siam",
+    "artist": "Attributed to the workshop of Johannes Vingboons (Vinckboons)",
+    "collection": "Rijksmuseum, Amsterdam (object SK-A-4477)",
+    "year": "circa 1662-1663",
+    "licence": "CC0 (Rijksmuseum public-domain release)",
+    "source": "Wikimedia Commons, from the Rijksmuseum",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:View_of_Iudea_(Ayutthaya),_Capital_of_Siam_ca._1662_(SK-A-4477).jpg",
+    "objectUrl": "https://www.rijksmuseum.nl/en/collection/SK-A-4477",
+    "border": "Oil/gouache painting on canvas; NO printed border or mount. Full-bleed image with only a faint painted sky margin; nothing needs trimming beyond optional edge crop.",
+    "fit": "Outstanding colour bird's-eye veduta of the actual Siamese capital: the river-encircled island city with its grid of canals, gilded chedis and prangs, hills behind. The single strongest colour illustration of a real Thai city found. Warm, muted period palette that would sit well beside the other painterly plates."
+  },
+  {
+    "file": "ayutthaya-02-vingboons-amh-judiad.jpg",
+    "dim": "1500x994 (downscaled from 2400x1591)",
+    "title": "Afbeeldinge der stadt Iudiad, hooft des Conincrijk Siam (bird's-eye view of Ayutthaya)",
+    "artist": "Johannes Vingboons (Atlas Vingboons)",
+    "collection": "Nationaal Archief, The Hague — Atlas of Mutual Heritage (AMH-5626-NA)",
+    "year": "circa 1665",
+    "licence": "Public domain (PD-old-100 / CC-PD-Mark)",
+    "source": "Wikimedia Commons, from Nationaal Archief / Atlas of Mutual Heritage",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:AMH-5626-NA_Bird%27s_eye_view_of_the_city_of_Judja.jpg",
+    "border": "Hand-coloured pen-and-wash plan-view WITH margins, a titled Dutch caption strip along the top, and a visible horizontal join/seam across the sheet. Would need the caption strip and paper margins trimmed, and the seam is noticeable.",
+    "fit": "Vivid hand-coloured plan-view of the same island city (greens, reds, gilded stupas). More cartographic/decorative than #1 but unmistakably Ayutthaya. Good back-up; slightly compromised by the seam and border text."
+  },
+  {
+    "file": "ayutthaya-03-vingboons-amh-judia.jpg",
+    "dim": "1500x1151 (downscaled from 2400x1842)",
+    "title": "Bird's eye view of the city of Judia in Siam",
+    "artist": "After Johannes Vingboons",
+    "collection": "Nationaal Archief, The Hague — Atlas of Mutual Heritage (AMH-7236-KB)",
+    "year": "1724 (later copy after the c.1665 original)",
+    "licence": "Public domain (PD-old-100 / CC-PD-Mark)",
+    "source": "Wikimedia Commons, from Nationaal Archief / Atlas of Mutual Heritage",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:AMH-7236-KB_Bird%27s_eye_view_of_the_city_of_Judia_in_Siam.jpg",
+    "border": "Drawing with paper margins/border; muted, lightly-tinted palette (much less saturated than #1 and #2). Margins would need trimming.",
+    "fit": "A third colour view of Ayutthaya, but the palette is pale/washed and it reads more as a tinted drawing. Weakest of the three; keep only as a fallback."
+  }
+]

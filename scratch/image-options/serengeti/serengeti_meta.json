@@ -1,0 +1,82 @@
+{
+  "location": "Serengeti",
+  "pinId": "serengeti",
+  "current_plate": {
+    "file": "/icons/serengeti-hippos.jpg",
+    "title": "Hippopotami resting in an East African river (savanna landscape)",
+    "artist": "Colour lithograph, Wellcome Collection",
+    "year": "n.d.",
+    "medium": "Colour lithograph",
+    "is_photograph": false,
+    "verdict": "Illustration, not a photo. But it is an ANIMAL-PORTRAIT plate (hippos fill the frame) rather than an open savanna vista, which breaks rule section 1 (view of the place, not a species plate). Should be replaced with a plains/escarpment landscape.",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_group_of_hippopotami_drinking_and_resting_in_the_river_and_Wellcome_V0021175.jpg"
+  },
+  "candidates": [
+    {
+      "file": "serengeti/serengeti-02-gallen-kallela-sunset-savannah.jpg",
+      "title": "Sunset on the Savannah",
+      "artist": "Akseli Gallen-Kallela",
+      "year": "1909",
+      "collection": "Finnish National Gallery (A III 2176), via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1931)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1600x1218",
+      "border_or_mount_to_trim": "no",
+      "fit": "Open East African savanna with scattered acacias, distant hills and a blazing sunset; the strongest match for the plains-and-escarpment brief. Painted on Gallen-Kallela's 1909-11 East Africa expedition (the pick already under consideration).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Akseli_Gallen-Kallela_-_Sunset_on_the_Savannah_-_A_III_2176_-_Finnish_National_Gallery.jpg"
+    },
+    {
+      "file": "serengeti/serengeti-05-gallen-kallela-southern-cross.jpg",
+      "title": "The Southern Cross over Africa",
+      "artist": "Akseli Gallen-Kallela",
+      "year": "1909",
+      "collection": "Gallen-Kallela Museum, via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1931)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1375x1600",
+      "border_or_mount_to_trim": "no",
+      "fit": "A low savanna horizon with an acacia silhouette beneath a vast night sky and the Southern Cross; atmospheric East African plain (sky-dominant, portrait orientation).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Akseli_Gallen-Kallela_-_The_Southern_Cross_over_Africa_(1909).jpg"
+    },
+    {
+      "file": "serengeti/serengeti-04-gallen-kallela-hwandoni-hills.jpg",
+      "title": "Hwandoni Hills",
+      "artist": "Akseli Gallen-Kallela",
+      "year": "1910",
+      "collection": "Gallen-Kallela Museum, via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1931)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1380x1600",
+      "border_or_mount_to_trim": "no",
+      "fit": "A bold blue East African hill rising over green grassland under a yellow sky; a striking highland-plain vista (more a single hill than the open Serengeti plains).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Akseli_Gallen-Kallela_Hwandoni_Hills.tif"
+    },
+    {
+      "file": "serengeti/serengeti-01-gallen-kallela-african-landscape.jpg",
+      "title": "African Landscape",
+      "artist": "Akseli Gallen-Kallela",
+      "year": "1909-1911",
+      "collection": "Via Wikimedia Commons (Uppsala Auktionskammare)",
+      "licence": "Public domain (artist d. 1931)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1490x1600",
+      "border_or_mount_to_trim": "no",
+      "fit": "A lush green river valley with blue mountains beyond; genuinely East African but a riverine/forest scene rather than open savanna.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Akseli_Gallen-Kallela_-_African_Landscape_(1909-1911).jpg"
+    },
+    {
+      "file": "serengeti/serengeti-06-hellgrewe-mpwapwa.jpg",
+      "title": "The German fort at Mpwapwa (Das deutsche Fort in Mpuapua)",
+      "artist": "Rudolf Hellgrewe",
+      "year": "1890",
+      "collection": "Kriegsbilder aus dem Araberaufstand in Deutsch-Ostafrika (1891), via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1926)",
+      "medium": "Wood engraving (monochrome)",
+      "resolution": "1600x938",
+      "border_or_mount_to_trim": "no",
+      "fit": "Plains and hills at Mpwapwa in present-day Tanzania (the Serengeti's country). Backup only: it foregrounds a German colonial fort and flag, an unwanted subject, and is monochrome.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rudolf_Hellgrewe_-_German_fort_at_Mpuapua_(1890).jpg"
+    }
+  ],
+  "recommendation": "serengeti/serengeti-02-gallen-kallela-sunset-savannah.jpg (Gallen-Kallela, Sunset on the Savannah) - best open plains-with-acacias vista and already the favourite. 'The Southern Cross over Africa' is the strongest alternative for a moodier, more graphic option."
+}

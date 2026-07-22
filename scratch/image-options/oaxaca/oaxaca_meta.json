@@ -1,0 +1,70 @@
+{
+  "location": "Oaxaca, Mexico",
+  "pinId": "oaxaca",
+  "current_plate": {
+    "file": "/icons/oaxaca-mitla.jpg",
+    "title": "El gran palacio de Mitla, provincia de Oaxaca (the Great Palace of Mitla)",
+    "artist": "Wood engraving, America pintoresca (1884)",
+    "year": "1884",
+    "medium": "Wood engraving (monochrome)",
+    "is_photograph": false,
+    "verdict": "NOT a photograph - it is a wood engraving (the caption 'de fotografia' means it was engraved FROM a photograph, but the plate itself is an illustration). Region-accurate and explicitly endorsed by the rule (Oaxaca -> Mitla palace). So it is compliant; the 'Oaxaca is a photo' complaint does not apply to the current file. Only shortfall vs the brief: monochrome and a close-up of the palace wall rather than a valley vista. Options below.",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Am%C3%A9rica_pintoresca;_descripcion_de_viajes_al_nuevo_continente_por_los_mas_modernos_exploradores_(1884)_(14758736036).jpg"
+  },
+  "sourcing_note": "Genuinely COLOUR public-domain views of Oaxaca are scarce (Carl Nebel's 1836 colour series does not include Oaxaca/Mitla). The strongest Oaxaca-specific illustrations are the Sawkins tinted lithographs of the Mitla valley; a colour Velasco Mexican-highland-valley oil is offered as a region-accurate colour fallback (not Oaxaca itself).",
+  "candidates": [
+    {
+      "file": "oaxaca/sawkins-mitla-general-view.jpg",
+      "title": "A General View of the Architectural Remains at Mitla",
+      "artist": "J. G. Sawkins (drawn); lith. by T. Sinclair, Philadelphia",
+      "year": "c. 1858",
+      "collection": "Via Wikimedia Commons (Smithsonian / Mayer, Observations on Mexican History and Archaeology)",
+      "licence": "Public domain",
+      "medium": "Tinted lithograph (sepia/cream tint)",
+      "resolution": "1600x1246",
+      "border_or_mount_to_trim": "yes (title line at foot)",
+      "fit": "A true VALLEY VISTA of Oaxaca - the Mitla ruins on the valley floor with a church, orchards and the surrounding sierra behind. A clear upgrade in composition over the current close-up palace plate. Tinted rather than full colour; light foxing.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_General_View_of_the_Architectural_Remains_at_Milta.jpg"
+    },
+    {
+      "file": "oaxaca/velasco-valley-of-mexico.jpg",
+      "title": "The Valley of Mexico from the Santa Isabel Mountain Range",
+      "artist": "Jose Maria Velasco",
+      "year": "1877",
+      "collection": "Via Wikimedia Commons (Google Art Project)",
+      "licence": "Public domain (artist d. 1912)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1600x1098",
+      "border_or_mount_to_trim": "no",
+      "fit": "Magnificent COLOUR Mexican-highland-valley oil (ringed by mountains, distant snow volcanoes, a lake) - captures the Oaxaca valley character in the requested Velasco style. Region-accurate colour FALLBACK only: it depicts the Valley of Mexico, not Oaxaca. Note clearly if used.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jos%C3%A9_Mar%C3%ADa_Velasco_-_The_Valley_of_Mexico_from_the_Santa_Isabel_Mountain_Range_-_Google_Art_Project.jpg"
+    },
+    {
+      "file": "oaxaca/oaxaca-city-market.jpg",
+      "title": "General market, Oaxaca (city market beside the arcaded portales and church)",
+      "artist": "Engraving from 'The Living Races of Mankind' (c. 1900)",
+      "year": "c. 1900",
+      "collection": "Via Wikimedia Commons",
+      "licence": "Public domain",
+      "medium": "Pen-and-ink / halftone engraving (monochrome)",
+      "resolution": "1025x1600",
+      "border_or_mount_to_trim": "yes (irregular vignette; white cut-out at lower right)",
+      "fit": "An actual OAXACA CITY scene - the market under the arcades with church domes and towers behind; satisfies the 'cityscape for a city' guidance. Drawbacks: monochrome, portrait, and an irregular vignetted edge awkward for a rectangular crop.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:TLM_D534_General_market,_Oaxaca.jpg"
+    },
+    {
+      "file": "oaxaca/sawkins-mitla-fortification.jpg",
+      "title": "Ancient fortification near Mitla",
+      "artist": "J. G. Sawkins (drawn); lith. by T. Sinclair, Philadelphia",
+      "year": "c. 1858",
+      "collection": "Via Wikimedia Commons (BnF Gallica / Smithsonian)",
+      "licence": "Public domain",
+      "medium": "Tinted lithograph (grey tint)",
+      "resolution": "1600x1196",
+      "border_or_mount_to_trim": "yes (wide paper margin, title line)",
+      "fit": "A rocky Oaxaca hilltop fortification with agaves and cacti; region-accurate and atmospheric, but a rocky-knoll subject rather than a grand vista or cityscape. Backup option.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ancient_fortification_near_Mitla._-_btv1b10053276k.jpg"
+    }
+  ],
+  "recommendation": "oaxaca/sawkins-mitla-general-view.jpg (Sawkins, General View of Mitla) - the best genuinely Oaxaca vista, a valley panorama that keeps the rule-endorsed Mitla subject while improving composition over the current close-up. If a full-COLOUR image is required, oaxaca/velasco-valley-of-mexico.jpg is the fallback, but must be flagged as Valley of Mexico rather than Oaxaca."
+}

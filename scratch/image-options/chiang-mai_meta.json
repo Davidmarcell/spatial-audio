@@ -1,0 +1,57 @@
+[
+  {
+    "file": "chiang-mai/chiang-mai-01-chiang-saen-garnier.jpg",
+    "dim": "683x450",
+    "title": "Ruins of Chiang Saen",
+    "artist": "Louis Delaporte (sketch, Francis Garnier Mekong expedition)",
+    "year": "1867",
+    "licence": "Public domain",
+    "source": "Wikimedia Commons (Garnier expedition, 1867)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Chiang_Saen_1867_Francis_Garnier_expedition.jpg",
+    "fit": "Overgrown Lanna temple ruins (chedis, Buddha and guardian figures) at Chiang Saen in northern Thailand; the only candidate depicting an actual northern-Thai place. Small (683x450) black-and-white engraving; a rhino appears in the foreground but the subject is clearly the temple-ruins landscape."
+  },
+  {
+    "file": "chiang-mai/chiang-mai-02-wat-visoun-delaporte.jpg",
+    "dim": "747x465",
+    "title": "Wat Visoun (Vat Visounnarat), Luang Prabang",
+    "artist": "Louis Delaporte",
+    "year": "engraving published 1873 (Voyage d'exploration en Indo-Chine)",
+    "licence": "Public domain",
+    "source": "Voyage d'exploration en Indo-Chine (Garnier/Delaporte), via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Wat_Visoun,_Luang_Prabang_Laos_by_Louis_Delaporte.jpg",
+    "fit": "A clean engraving of a tiered-roof Buddhist temple and melon stupa; the same northern-Tai (Lanna/Lan Xang) Buddhist architecture as Chiang Mai's temples. In Laos, not Thailand."
+  },
+  {
+    "file": "chiang-mai/chiang-mai-03-that-luang-delaporte.jpg",
+    "dim": "810x552",
+    "title": "That Luang, Vientiane",
+    "artist": "Louis Delaporte",
+    "year": "engraving published 1873 (Voyage d'exploration en Indo-Chine)",
+    "licence": "Public domain",
+    "source": "Voyage d'exploration en Indo-Chine (Garnier/Delaporte), via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tat_Luong_Delaporte_Vien_Ch.png",
+    "fit": "The gilded, many-spired That Luang stupa amid palms and jungle; northern-Tai religious architecture akin to Chiang Mai's temples. In Laos, not Thailand."
+  },
+  {
+    "file": "chiang-mai/chiang-mai-04-mouhot-river-village.jpg",
+    "dim": "1162x700",
+    "title": "River village, from Voyage dans les royaumes de Siam, de Cambodge, de Laos (planche 15)",
+    "artist": "after Henri Mouhot",
+    "year": "1868",
+    "licence": "Public domain",
+    "source": "BnF Gallica, via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mouhot_-_Voyage_dans_les_royaumes_de_Siam,_de_Cambodge,_de_Laos_et_autres_parties_centrales_de_l%27Indo-Chine,_%C3%A9d._Lanoye,_1868,_planche_15.jpg",
+    "fit": "Stilt-house river village with a covered sampan; a region-accurate mainland SE Asian river scene (generic, not specifically northern Thailand)."
+  },
+  {
+    "file": "chiang-mai/chiang-mai-05-mouhot-river-mountains.jpg",
+    "dim": "1152x694",
+    "title": "River with distant mountains, from Voyage dans les royaumes de Siam, de Cambodge, de Laos (planche 25)",
+    "artist": "after Henri Mouhot",
+    "year": "1868",
+    "licence": "Public domain",
+    "source": "BnF Gallica, via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mouhot_-_Voyage_dans_les_royaumes_de_Siam,_de_Cambodge,_de_Laos_et_autres_parties_centrales_de_l%27Indo-Chine,_%C3%A9d._Lanoye,_1868,_planche_25.jpg",
+    "fit": "Boats on a broad river with distant mountains; a region-accurate river-and-hills valley scene that reads more northern than the current plate (generic Indo-China)."
+  }
+]

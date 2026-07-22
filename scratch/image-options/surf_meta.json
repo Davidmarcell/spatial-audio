@@ -1,0 +1,68 @@
+[
+  {
+    "file": "surf-01-hokusai-great-wave.jpg",
+    "title": "File:The Great Wave off Kanagawa.jpg",
+    "mime": "image/jpeg",
+    "dim": "4335x2990",
+    "licence": "Public domain",
+    "artist": "After Katsushika Hokusai",
+    "credit": "Own work",
+    "descpage": "https://commons.wikimedia.org/wiki/File:The_Great_Wave_off_Kanagawa.jpg",
+    "objname": "The Great Wave off Kanagawa"
+  },
+  {
+    "file": "surf-02-hiroshige-sea-off-satta.jpg",
+    "title": "File:23 - The Sea off Satta.jpg",
+    "mime": "image/jpeg",
+    "dim": "5902x8583",
+    "licence": "Public domain",
+    "artist": "Utagawa Hiroshige",
+    "credit": "print scan",
+    "descpage": "https://commons.wikimedia.org/wiki/File:23_-_The_Sea_off_Satta.jpg",
+    "objname": "36 Views of Mount Fuji- 23. The Sea off Satta"
+  },
+  {
+    "file": "surf-03-hiroshige-naruto-whirlpool.jpg",
+    "title": "File:六十余州名所図会 阿波 鳴門の風波-Naruto Whirlpool, Awa Province, from the series Views of Famous Places in the Sixty-Odd Provinces MET DP122165.jpg",
+    "mime": "image/jpeg",
+    "dim": "2610x3809",
+    "licence": "CC0",
+    "artist": "Utagawa Hiroshige",
+    "credit": "This file was donated to Wikimedia Commons as part of a project by the Metropolitan Museum of Art. See the Image and Data Resources Open Acc",
+    "descpage": "https://commons.wikimedia.org/wiki/File:%E5%85%AD%E5%8D%81%E4%BD%99%E5%B7%9E%E5%90%8D%E6%89%80%E5%9B%B3%E4%BC%9A_%E9%98%BF%E6%B3%A2_%E9%B3%B4%E9%96%80%E3%81%AE%E9%A2%A8%E6%B3%A2-Naruto_Whirlpool,_Awa_Province,_from_the_series_Views_of_Famous_Places_in_the_Sixty-Odd_Provinces_MET_DP122165.jpg",
+    "objname": "六十余州名所図会　阿波　鳴門の風波"
+  },
+  {
+    "file": "surf-04-aivazovsky-ninth-wave.jpg",
+    "title": "File:Aivazovsky, Ivan - The Ninth Wave.jpg",
+    "mime": "image/jpeg",
+    "dim": "5815x3840",
+    "licence": "Public domain",
+    "artist": "Ivan Aivazovsky",
+    "credit": "Hermitage Torrent (.torrent with info-hash)",
+    "descpage": "https://commons.wikimedia.org/wiki/File:Aivazovsky,_Ivan_-_The_Ninth_Wave.jpg",
+    "objname": "Russian:  «Девятый вал»The Ninth Wavetitle QS:P1476,ru:\"Девятый вал\"label QS:Lru,\"Девятый вал\"label QS:Len,\"The Ninth Wave\"label QS:Lde,\"Die"
+  },
+  {
+    "file": "surf-05-courbet-the-wave.jpg",
+    "title": "File:Gustave Courbet - The Wave - Google Art Project.jpg",
+    "mime": "image/jpeg",
+    "dim": "4001x3320",
+    "licence": "Public domain",
+    "artist": "Gustave Courbet",
+    "credit": "lQE6Ek7Yg9i5qg at Google Cultural Institute maximum zoom level",
+    "descpage": "https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_The_Wave_-_Google_Art_Project.jpg",
+    "objname": "The Wavetitle QS:P1476,en:\"The Wave\"label QS:Len,\"The Wave\""
+  },
+  {
+    "file": "surf-06-hiroshige-wild-sea-rocks.jpg",
+    "title": "File:Hiroshige Wild sea breaking on the rocks.jpg",
+    "mime": "image/jpeg",
+    "dim": "2030x3100",
+    "licence": "Public domain",
+    "artist": "Utagawa Hiroshige",
+    "credit": "print scan",
+    "descpage": "https://commons.wikimedia.org/wiki/File:Hiroshige_Wild_sea_breaking_on_the_rocks.jpg",
+    "objname": "Famous Views of the 60 Provinces - 55. Rough Sea at Naruto in Awa Province"
+  }
+]

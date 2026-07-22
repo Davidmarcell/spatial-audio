@@ -1,0 +1,66 @@
+{
+  "pin": "redwoods",
+  "pin_label": "Redwoods, California (coast redwoods / giant sequoia groves)",
+  "current_plate_do_not_resuggest": {
+    "src": "/icons/redwoods.jpg",
+    "title": "Californian redwood trees (Sequoia sempervirens), group of trees in the Mariposa Grove",
+    "author": "Colour lithograph by W. H. McFarlane (Wellcome Collection)",
+    "licence": "CC BY 4.0 (Wellcome Collection)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Californian_redwood_trees_(Sequoia_sempervirens_(D.Don)_Endl_Wellcome_V0043086.jpg"
+  },
+  "downscale_target": "~1200-1600px long edge",
+  "candidates": [
+    {
+      "file": "bierstadt-giant-redwood-trees.jpg",
+      "title": "Giant Redwood Trees of California",
+      "artist_collection": "Albert Bierstadt; The Berkshire Museum (Google Art Project)",
+      "year": "1874",
+      "licence": "Public domain (artist died 1902)",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Albert_Bierstadt_-_Giant_Redwood_Trees_of_California_-_Google_Art_Project.jpg",
+      "orig_resolution": "4501x5556",
+      "downloaded_resolution": "1100x1358",
+      "orientation": "portrait",
+      "printed_border_or_mount": "None; oil painting, no printed border to trim.",
+      "fit_note": "Unambiguous coast-redwood forest interior: towering red trunks, filtered light, waterfall and Native figures for scale. The strongest, most iconic redwood-grove vista here."
+    },
+    {
+      "file": "mammoth-trees-calaveras-strobridge.jpg",
+      "title": "The mammoth trees (Sequoia gigantea), California (Calaveras County)",
+      "artist_collection": "Chromolithograph 'executed in oil colors' by Middleton, Strobridge & Co., Cincinnati; after A. J. Campbell (Library of Congress)",
+      "year": "c.1860",
+      "licence": "Public domain (LoC, no known restrictions)",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_mammoth_trees_(Sequoia_gigantea),_California_(Calaveras_County)_executed_in_oil_colors_by_Middleton,_Strobridge_%26_Co.,_Cin._O._03140u.png",
+      "orig_resolution": "7327x5277",
+      "downloaded_resolution": "1500x1080",
+      "orientation": "landscape",
+      "printed_border_or_mount": "Yes; the sky arches to rounded top corners (arched vignette). Top and side edges would need trimming/cropping to lose the rounded mount.",
+      "fit_note": "Genuine 19th-C colour chromolithograph of the Calaveras Big Trees grove: giant sequoias, felled 'Big Tree' log, stump and the grove hotel. Best true-print option and the only landscape-orientation candidate; slightly touristic (hotel/figures) rather than pristine wilderness."
+    },
+    {
+      "file": "bierstadt-grizzly-giant-mariposa.jpg",
+      "title": "The Grizzly Giant Sequoia, Mariposa Grove, California",
+      "artist_collection": "Albert Bierstadt; Los Angeles County Museum of Art (LACMA 53.30)",
+      "year": "c.1872-1873",
+      "licence": "Public domain (artist died 1902)",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Albert_Bierstadt_-_The_Grizzly_Giant_Sequoia,_Mariposa_Grove,_California.jpg",
+      "orig_resolution": "2034x2885",
+      "downloaded_resolution": "1100x1560",
+      "orientation": "portrait",
+      "printed_border_or_mount": "None; oil study, no printed border to trim.",
+      "fit_note": "Clearly a giant-sequoia grove: the gnarled Grizzly Giant trunk against tall conifers receding into the Mariposa Grove. Cooler, quieter palette; a strong second painting but lower native resolution than the other Bierstadts."
+    },
+    {
+      "file": "bierstadt-california-redwoods-stl.jpg",
+      "title": "California Redwoods",
+      "artist_collection": "Albert Bierstadt; Saint Louis Art Museum (735:1991)",
+      "year": "1872",
+      "licence": "Public domain (artist died 1902)",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Albert_Bierstadt_-_California_Redwoods_-_735-1991_-_Saint_Louis_Art_Museum.jpg",
+      "orig_resolution": "3414x4680",
+      "downloaded_resolution": "1100x1508",
+      "orientation": "portrait",
+      "printed_border_or_mount": "None; oil painting (artist signature lower-left).",
+      "fit_note": "Sunset over a wooded Sierra valley with two tall trees in the foreground. Weakest fit: the trees read as generic tall conifers/pines rather than obvious redwoods, and it borders on the 'generic pine forest' the brief warns against. Included for completeness."
+    }
+  ]
+}

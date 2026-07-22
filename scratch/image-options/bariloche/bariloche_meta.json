@@ -1,0 +1,70 @@
+{
+  "location": "Bariloche (San Carlos de Bariloche), Argentina",
+  "pinId": "bariloche",
+  "current_plate": {
+    "file": "/icons/bariloche-sarmiento.jpg",
+    "title": "Mount Sarmiento, from Warp Bay (Patagonian Andes)",
+    "artist": "After Conrad Martens; engraved by Thomas Landseer, Narrative of the Beagle",
+    "year": "1838",
+    "medium": "Steel engraving (monochrome)",
+    "is_photograph": false,
+    "verdict": "Illustration, not a photo. But region-INACCURATE: Mount Sarmiento is in Tierra del Fuego, ~1,600 km south of Bariloche, not the Nahuel Huapi lake district. Monochrome. Worth replacing with a Nahuel-Huapi-type lake-and-cordillera scene.",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Plate_showing_Mount_Sarmiento_from_the_Narrative.....Wellcome_L0076875.jpg"
+  },
+  "sourcing_note": "No public-domain ILLUSTRATED vista of Nahuel Huapi / Bariloche itself was found (only modern photographs). Per rule section 1, these are the closest region-accurate illustrated Andean lake-and-snowpeak vistas (same cordillera / biome). True locations are noted so the fit can be judged.",
+  "candidates": [
+    {
+      "file": "bariloche/fanshawe-laguna-aculeo.jpg",
+      "title": "Lake of Acoleo (Laguna de Aculeo), Chile",
+      "artist": "Edward Gennys Fanshawe",
+      "year": "1851",
+      "collection": "Via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1906)",
+      "medium": "Watercolour (colour)",
+      "resolution": "1280x941",
+      "border_or_mount_to_trim": "yes (caption strip at foot)",
+      "fit": "Watercolour of an Andean lake ringed by mountains; the closest lake-and-cordillera composition to Nahuel Huapi. Real location: Laguna de Aculeo, central Chile.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Edward_Gennys_Fanshawe,_Lake_of_Acoleo_(Laguna_de_Aculeo),_Chile,_Jany_11th_1851.jpg"
+    },
+    {
+      "file": "bariloche/somerscales-volcan-antuco.jpg",
+      "title": "Vista del volcan Antuco",
+      "artist": "Thomas Somerscales",
+      "year": "1881",
+      "collection": "Museo Municipal de Bellas Artes de Valparaiso, via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1927)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1600x1100",
+      "border_or_mount_to_trim": "yes (museum frame in shot)",
+      "fit": "Alpenglow on the snowy Volcan Antuco over a rugged Andean foreground; the strongest, most atmospheric snow-peak vista. Real location: Biobio, southern Chilean Andes.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Somerscales_-_Vista_del_volcan_Antuco_-1881_ost_MMBAV_fRF01.jpg"
+    },
+    {
+      "file": "bariloche/fanshawe-andes-aconcagua.jpg",
+      "title": "Two Leagues from Santa Rosa de Los Andes (with the Andes and Aconcagua)",
+      "artist": "Edward Gennys Fanshawe",
+      "year": "1851",
+      "collection": "Via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1906)",
+      "medium": "Watercolour (colour)",
+      "resolution": "1280x874",
+      "border_or_mount_to_trim": "yes (caption strip at foot)",
+      "fit": "Clean watercolour of the snowy cordillera (Aconcagua) across a wooded valley; a genuine Andean snow-range vista. Real location: central Andes.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Edward_Gennys_Fanshawe,_Two_Leagues_from_Santa_Rosa_(de_Los_Andes,_Chile),_Jany_14th_1851_(with_the_Andes_and_Aconcagua).jpg"
+    },
+    {
+      "file": "bariloche/somerscales-valle-aconcagua.jpg",
+      "title": "Valle de Aconcagua",
+      "artist": "Thomas Somerscales",
+      "year": "1881",
+      "collection": "Museo Municipal de Bellas Artes de Valparaiso, via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1927)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1600x1065",
+      "border_or_mount_to_trim": "yes (museum frame in shot)",
+      "fit": "Snowy Andes range beyond a braided river valley; grand cordillera vista, though the foreground is arid (cacti) rather than Patagonian-lakeland green. Real location: central Andes.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Somerscales_-_Valle_de_Aconcagua_-1881_ost_MMBAV_fRF03.jpg"
+    }
+  ],
+  "recommendation": "bariloche/fanshawe-laguna-aculeo.jpg (Fanshawe, Laguna de Aculeo) for closest lake-and-mountain composition to Nahuel Huapi; or bariloche/somerscales-volcan-antuco.jpg for the most striking colour snow-peak vista. Both are region-adjacent (Chilean Andes), not Bariloche itself - note when choosing."
+}

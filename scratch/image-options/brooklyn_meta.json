@@ -1,0 +1,35 @@
+[
+  {
+    "file": "brooklyn/brooklyn-01-whitefield-view-of-brooklyn.jpg",
+    "dim": "1600x1002",
+    "title": "View of Brooklyn, L.I. from U.S. Hotel, New York",
+    "artist": "Edwin Whitefield (drawn from nature and on stone); printed in colours by Francis Michelin",
+    "year": "c. 1846",
+    "licence": "Public domain",
+    "source": "Library of Congress (LCCN 2003672873), via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:View_of_Brooklyn,_L.I._from_U.S._Hotel,_New_York_-_drawn_from_nature_%26_on_stone_by_E._Whitefield_;_printed_in_colors_by_F._Michelin._LCCN2003672873.jpg",
+    "fit": "Colour lithograph panorama of the Brooklyn waterfront and town across the East River; a genuine Brooklyn cityscape vista."
+  },
+  {
+    "file": "brooklyn/brooklyn-03-east-river-bridge-from-brooklyn-looking-west.jpg",
+    "dim": "1600x1051",
+    "title": "The Great East River Suspension Bridge, connecting the cities of New York and Brooklyn: View from Brooklyn, looking west",
+    "artist": "Currier & Ives",
+    "year": "1883",
+    "licence": "Public domain",
+    "source": "Library of Congress (LCCN 2001704262), via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_great_East_River_suspension_bridge-_connecting_the_cities_of_New_York_and_Brooklyn_View_from_Brooklyn,_looking_west._LCCN2001704262.jpg",
+    "fit": "Classic Currier & Ives colour print looking west from the Brooklyn shore across the Brooklyn Bridge, Brooklyn's defining landmark, in the foreground."
+  },
+  {
+    "file": "brooklyn/brooklyn-04-view-from-brooklyn-heights-met.jpg",
+    "dim": "1600x1210",
+    "title": "View of New York from Brooklyn Heights",
+    "artist": "Nathaniel Currier",
+    "year": "1849",
+    "licence": "CC0",
+    "source": "The Metropolitan Museum of Art, via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:View_of_New_York_from_Brooklyn_Heights_MET_DP816538.jpg",
+    "fit": "Hand-coloured lithograph with figures on the grassy Brooklyn Heights bluff and promenade in the foreground looking over the harbour."
+  }
+]

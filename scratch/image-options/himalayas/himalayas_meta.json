@@ -1,0 +1,83 @@
+{
+  "location": "Himalayas / Nepal",
+  "pinId": "himalayas",
+  "current_plate": {
+    "file": "/icons/himalayas-snows.jpg",
+    "title": "In India. Snows of the Himalayas",
+    "artist": "Vasily Vereshchagin",
+    "year": "1875-76",
+    "medium": "Oil painting",
+    "is_photograph": false,
+    "verdict": "Compliant. A colour oil painting of a Himalayan snow massif; illustration, region-accurate. Not a rule violation. Options requested only to compare a more iconic/recognisable vista.",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%D0%92_%D0%98%D0%BD%D0%B4%D0%B8%D0%B8._%D0%A1%D0%BD%D0%B5%D0%B3%D0%B0_%D0%93%D0%B8%D0%BC%D0%B0%D0%BB%D0%B0%D0%B5%D0%B2.jpg"
+  },
+  "nepal_note": "The current plate and the range-vista candidates below are eastern-Himalaya (Sikkim/Darjeeling), not Nepal-specific. The Oldfield Kathmandu watercolour is the one genuinely Nepal (Kathmandu Valley) option found; it is a temple-square cityscape rather than a mountain skyline.",
+  "candidates": [
+    {
+      "file": "himalayas/oldfield-kathmandu-durbar.jpg",
+      "title": "The Kumari Jatra: three temple cars outside the Hanuman Dhoka (Old Palace), Kathmandu",
+      "artist": "Henry Ambrose Oldfield (Oldfield collection, 1850-1863)",
+      "year": "c. 1850-63",
+      "collection": "British Library, via Wikimedia Commons",
+      "licence": "CC0 / Public domain (artist d. 1871)",
+      "medium": "Watercolour (colour)",
+      "resolution": "1505x1215",
+      "border_or_mount_to_trim": "slight (thin paper margin)",
+      "fit": "Vivid colour watercolour of Kathmandu Durbar Square with its pagoda temples during the Kumari Jatra festival; the only genuinely NEPAL-specific illustrated view found. A temple-square cityscape rather than a mountain vista.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_Kumari_jatra._Three_temple_cars_outside_the_Hanuman_Dhoka,_or_Old_Palace,_Kathmandu_-_Oldfield_collection_(1850-1863)_-_BL_WD_3279.jpg"
+    },
+    {
+      "file": "himalayas/lear-kangchenjunga-darjeeling.jpg",
+      "title": "Kangchenjunga from Darjeeling",
+      "artist": "Edward Lear",
+      "year": "1879",
+      "collection": "Google Art Project, via Wikimedia Commons",
+      "licence": "Public domain (artist d. 1888)",
+      "medium": "Oil painting (colour)",
+      "resolution": "1600x1042",
+      "border_or_mount_to_trim": "no",
+      "fit": "Luminous colour oil of the actual Kangchenjunga snow massif above a Darjeeling forest ridge; a definitive eastern-Himalaya vista and the strongest recognisable range view.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Edward_Lear_-_Kangchenjunga_from_Darjeeling_-_Google_Art_Project.jpg"
+    },
+    {
+      "file": "himalayas/roerich-himalayas-sikkim.jpg",
+      "title": "Himalayas, Sikkim",
+      "artist": "Nicholas Roerich",
+      "year": "c. 1928-29",
+      "collection": "Via Wikimedia Commons (MacDougall's)",
+      "licence": "Public domain in 70-yr-pma countries (artist d. 1947). Check jurisdiction before use.",
+      "medium": "Tempera (colour)",
+      "resolution": "1600x795",
+      "border_or_mount_to_trim": "no",
+      "fit": "Wide, atmospheric Sikkim Himalaya snow peak; panoramic and hero-croppable, unmistakably the high range. Licence caveat: Roerich PD only in life+70 countries.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Nicholas_Roerich_-_Himalayas,_Sikkim.jpg"
+    },
+    {
+      "file": "himalayas/roerich-kangchenjunga.jpg",
+      "title": "Kangchenjunga",
+      "artist": "Nicholas Roerich",
+      "year": "1944",
+      "collection": "Via Wikimedia Commons",
+      "licence": "Public domain in 70-yr-pma countries (artist d. 1947). Check jurisdiction before use.",
+      "medium": "Tempera (colour)",
+      "resolution": "1024x621",
+      "border_or_mount_to_trim": "no",
+      "fit": "Roerich's iconic tempera of pink-lit Kangchenjunga peaks over blue foothills; instantly reads as the high Himalaya. Lower resolution (1024px) and same licence caveat.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kangchenjunga_(N.Roerich).jpg"
+    },
+    {
+      "file": "himalayas/fraser-himala-touse-bridge.jpg",
+      "title": "Crossing the river Touse by rope bridge, Himalaya mountains",
+      "artist": "Aquatint in the manner of James Baillie Fraser",
+      "year": "c. 1820s",
+      "collection": "Wellcome Collection",
+      "licence": "CC BY 4.0 (Wellcome Collection)",
+      "medium": "Hand-coloured aquatint",
+      "resolution": "1600x1331",
+      "border_or_mount_to_trim": "yes (paper margin and title line at foot)",
+      "fit": "Period hand-coloured travel aquatint of a Himalayan river gorge and forested ranges; classic topographical print, though a gorge scene rather than a snow-peak skyline.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Crossing_the_river_Touse_by_rope_bridge,_Himalaya_mountains,_Wellcome_V0050513.jpg"
+    }
+  ],
+  "recommendation": "For a mountain vista: himalayas/lear-kangchenjunga-darjeeling.jpg (Edward Lear, Kangchenjunga from Darjeeling) - clean, colour, unambiguous high-Himalaya, no licence caveat. For a genuinely Nepal-specific pick: himalayas/oldfield-kathmandu-durbar.jpg (colour Kathmandu Durbar Square, CC0). Roerich 'Himalayas, Sikkim' is the boldest panorama if the life+70 licence is acceptable."
+}

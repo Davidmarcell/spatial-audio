@@ -1,0 +1,69 @@
+{
+  "location": "Bali",
+  "pinId": "bali",
+  "current_plate": {
+    "file": "/icons/bali-landscape.jpg",
+    "title": "Landschap op Bali (Balinese landscape with waringin trees)",
+    "artist": "W.O.J. Nieuwenkamp (woodcut), Rijksmuseum",
+    "year": "n.d.",
+    "medium": "Woodcut (monochrome)",
+    "is_photograph": false,
+    "verdict": "NOT a photograph - it is a black-and-white woodcut illustration, region-accurate (waringin/banyan trees). So the 'Bali is a photo' complaint does not apply to the file currently in the repo; it is already compliant. Only shortfall vs the brief: it is monochrome and a generic tree landscape rather than a temple or rice-terrace subject. Colour options below.",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Landschap_op_Bali,_RP-P-1967-911.jpg"
+  },
+  "candidates": [
+    {
+      "file": "bali/tropenmuseum-temple-aquarel.jpg",
+      "title": "Aquarel: a temple on Bali (Balinese temple courtyard with meru towers and shrines)",
+      "artist": "Unattributed (Tropenmuseum collection, TMnr 3204-104)",
+      "year": "early 20th century",
+      "collection": "Tropenmuseum / Nationaal Museum van Wereldculturen, via Wikimedia Commons",
+      "licence": "CC BY-SA 3.0 (attribution + share-alike)",
+      "medium": "Watercolour (colour)",
+      "resolution": "800x544",
+      "border_or_mount_to_trim": "no",
+      "fit": "Clean COLOUR watercolour of a Balinese temple courtyard with meru shrines and banyan trees; the best genuinely colour temple option. Main drawback: only 800px (fine for a small thumbnail, tight for a hero) and CC BY-SA licence.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:COLLECTIE_TROPENMUSEUM_Aquarel_voorstellend_een_tempel_op_Bali_TMnr_3204-104.jpg"
+    },
+    {
+      "file": "bali/nieuwenkamp-rijstvelden.jpg",
+      "title": "Rijstvelden op Bali (rice terraces on Bali, with a volcano)",
+      "artist": "W.O.J. Nieuwenkamp",
+      "year": "1906-1921",
+      "collection": "Rijksmuseum, via Wikimedia Commons",
+      "licence": "CC0 / Public domain",
+      "medium": "Etching in sanguine (red monochrome)",
+      "resolution": "1287x1600",
+      "border_or_mount_to_trim": "yes (large paper margin, signature)",
+      "fit": "Atmospheric red-chalk etching of Bali rice terraces below a volcano and sun; on-brief rice-terrace subject, high resolution, CC0. Warm red monochrome rather than full colour. Same artist as the current plate.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rijstvelden_op_Bali,_RP-P-1921-1034.jpg"
+    },
+    {
+      "file": "bali/nieuwenkamp-tempelpoort.jpg",
+      "title": "Tempelpoort op Bali (Balinese carved temple gate)",
+      "artist": "W.O.J. Nieuwenkamp",
+      "year": "1906-1938",
+      "collection": "Rijksmuseum, via Wikimedia Commons",
+      "licence": "CC0 / Public domain",
+      "medium": "Woodcut (monochrome)",
+      "resolution": "1299x1600",
+      "border_or_mount_to_trim": "yes (large paper margin, plate number and title block)",
+      "fit": "Boldly patterned woodcut of an ornate Balinese temple gate with a seated figure; strong temple subject, CC0, high resolution. Black-and-white and the same artist/medium as the current plate.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tempelpoort_op_Bali,_RP-P-1938-1998.jpg"
+    },
+    {
+      "file": "bali/spies-iseh-morgenlicht.jpg",
+      "title": "Iseh im Morgenlicht (Iseh in the morning light)",
+      "artist": "Walter Spies (Tropenmuseum reproduction, TMnr 60030143)",
+      "year": "1938 (original)",
+      "collection": "Tropenmuseum reproduction, via Wikimedia Commons",
+      "licence": "CC BY-SA 3.0 on the reproduction; Spies d. 1942 so the original is PD only in life+70 countries. Check jurisdiction.",
+      "medium": "Oil painting (reproduced here in near-greyscale)",
+      "resolution": "644x700",
+      "border_or_mount_to_trim": "slight",
+      "fit": "The iconic Spies Bali landscape (rice terraces, palms, village, Gunung Agung). Weakest option here: this Commons reproduction is small (644px) and effectively greyscale, and the licence is layered. Listed for reference.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:COLLECTIE_TROPENMUSEUM_%27Het_schilderij_%27Iseh_im_Morgenlicht%27_door_Walter_Spies%27_TMnr_60030143.jpg"
+    }
+  ],
+  "recommendation": "If colour is the priority: bali/tropenmuseum-temple-aquarel.jpg (colour Balinese temple watercolour) - lovely and on-brief, accepting 800px + CC BY-SA. If resolution and a clean licence matter more: bali/nieuwenkamp-rijstvelden.jpg (CC0 sanguine rice-terrace etching, 1600px) - a warm-toned upgrade in subject over the current generic-tree woodcut."
+}
