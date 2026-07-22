@@ -30,16 +30,28 @@ export const DEFAULT_SOUND_TILE_DESIGN: SoundTileDesignConfig = {
 const STORAGE_KEY = 'saudade:sound-tile-design';
 const VISIBLE_KEY = 'saudade:sound-tile-design-tuner-visible';
 
+const PANEL_WIDTH_MIN = 420;
+const PANEL_WIDTH_MAX = 720;
+
+function clampPanelWidthPx(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_SOUND_TILE_DESIGN.panelWidthPx;
+  return Math.min(PANEL_WIDTH_MAX, Math.max(PANEL_WIDTH_MIN, Math.round(value)));
+}
+
 export function soundTileDesignToCssVars(
   config: SoundTileDesignConfig,
 ): Record<string, string> {
+  const panelWidthPx = clampPanelWidthPx(config.panelWidthPx);
   return {
     '--sound-tile-card-radius': `${config.cardRadiusPx}px`,
     '--sound-tile-image-radius': `${config.imageRadiusPx}px`,
     '--sound-tile-padding': `${config.paddingPx}px`,
     '--sound-tile-image-size': `${config.imageSizePx}px`,
     '--sound-tile-column-gap': `${config.columnGapPx}px`,
-    '--sound-tile-panel-width': `${config.panelWidthPx}px`,
+    '--sound-tile-panel-width': `${panelWidthPx}px`,
+    // Inline on the overlay panel so ScaleBlurOverlay's `.panelWide` (44rem)
+    // cannot override the sound-tile width token.
+    '--scale-blur-panel-width': `${panelWidthPx}px`,
   };
 }
 
@@ -56,7 +68,11 @@ export function loadSoundTileDesign(): SoundTileDesignConfig {
       rest.panelWidthPx == null && typeof panelWidthRem === 'number'
         ? { ...rest, panelWidthPx: Math.round(panelWidthRem * 16) }
         : rest;
-    return { ...DEFAULT_SOUND_TILE_DESIGN, ...migrated };
+    const merged = { ...DEFAULT_SOUND_TILE_DESIGN, ...migrated };
+    return {
+      ...merged,
+      panelWidthPx: clampPanelWidthPx(merged.panelWidthPx),
+    };
   } catch {
     return { ...DEFAULT_SOUND_TILE_DESIGN };
   }

@@ -91,7 +91,6 @@ export function SoundArtDetailSheet({
       title={name}
       titleId="art-detail-overlay-title"
       closeLabel={`Close ${name} details`}
-      wide
       hideTitle
       lockBodyScroll
       bodyClassName={styles.body}

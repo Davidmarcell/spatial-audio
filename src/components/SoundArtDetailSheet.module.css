@@ -31,7 +31,9 @@
 
 /* Soft white card chrome matching the sound-tile design spin. */
 .panel {
+  /* Prefer the design token; fall back to the requested 580px card. */
   --scale-blur-panel-width: var(--sound-tile-panel-width, 580px);
+  width: min(var(--scale-blur-panel-width, 580px), calc(100% - 2rem));
   border-radius: var(--sound-tile-card-radius, 36px);
   border: none;
   background-color: #fff;
