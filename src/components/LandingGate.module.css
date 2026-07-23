@@ -198,13 +198,12 @@
   box-shadow:
     0 18px 48px rgba(0, 0, 0, 0.096),
     0 7px 20px rgba(0, 0, 0, 0.056);
-  /* Final beat of the hero sequence: fade + rise in just after the tagline,
-     one stagger step (0.06s, matching the wordmark/fan rhythm) behind the search
-     pill. `backwards` fill holds the hidden start-state from the first paint and,
-     unlike `both`, releases the transform when it ends so the press/active scale
-     still works afterwards. Transform + opacity only, so nothing reflows. */
-  animation: gateRise var(--landing-enter-duration, 0.6s) var(--ease-premium-enter)
-    var(--landing-enter-delay, 0.72s) backwards;
+  /* Final beat of the hero sequence: fade + rise in just after the search
+     pill. Static opacity:0 + `both` prevent a first-frame white-pill flash
+     (same pattern as the portalled search entrance). */
+  opacity: 0;
+  animation: gateRise var(--landing-enter-duration, 0.46s) var(--ease-premium-enter)
+    var(--landing-enter-delay, 0.56s) both;
   transition:
     transform 0.26s var(--ease-premium-enter),
     opacity 0.26s var(--ease-premium-enter),

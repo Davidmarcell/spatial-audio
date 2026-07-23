@@ -67,25 +67,25 @@ export type LandingEntranceConfig = {
  * The `gateRise` / `landingSearchRise` keyframes rise from `translateY(12px)`.
  */
 export const DEFAULT_LANDING_ENTRANCE_CONFIG: LandingEntranceConfig = {
-  wordmarkStartDelayMs: 50,
-  wordmarkStaggerMs: 60,
-  wordmarkDurationMs: 620,
+  wordmarkStartDelayMs: 40,
+  wordmarkStaggerMs: 45,
+  wordmarkDurationMs: 480,
   wordmarkRisePx: 12,
 
-  fanRevealDelayMs: 200,
-  fanStaggerMs: 60,
-  fanDurationMs: 600,
+  fanRevealDelayMs: 140,
+  fanStaggerMs: 45,
+  fanDurationMs: 460,
   fanRisePx: 12,
 
-  taglineDelayMs: 600,
-  taglineDurationMs: 620,
+  taglineDelayMs: 420,
+  taglineDurationMs: 480,
 
-  searchDelayMs: 660,
-  searchDurationMs: 550,
+  searchDelayMs: 520,
+  searchDurationMs: 420,
   searchRisePx: 12,
 
-  enterDelayMs: 720,
-  enterDurationMs: 600,
+  enterDelayMs: 560,
+  enterDurationMs: 460,
 };
 
 export const LANDING_ENTRANCE_STORAGE_KEY = 'saudade:landing-entrance:saved-default';
@@ -226,17 +226,17 @@ export function saveLandingEntranceConfigDefault(config: LandingEntranceConfig):
 export function isLandingEntranceTunerEnabled(): boolean {
   if (!import.meta.env.DEV || typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
+  if (params.get('entranceDebug') === '0') return false;
   if (params.get('entranceDebug') === '1') return true;
-  return window.localStorage.getItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY) === '1';
+  const stored = window.localStorage.getItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY);
+  // Default ON in DEV so the landing timing panel is findable; set '0' to hide.
+  if (stored === '0') return false;
+  return true;
 }
 
 export function persistLandingEntranceTunerVisible(visible: boolean): void {
   if (typeof window === 'undefined') return;
-  if (visible) {
-    window.localStorage.setItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY, '1');
-  } else {
-    window.localStorage.removeItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY);
-  }
+  window.localStorage.setItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY, visible ? '1' : '0');
 }
 
 export function landingEntranceSummary(config: LandingEntranceConfig): string {
