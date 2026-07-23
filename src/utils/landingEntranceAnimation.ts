@@ -183,12 +183,16 @@ export function applyLandingEntranceAnimation(config: LandingEntranceConfig): vo
   set('--landing-tagline-delay', msToCss(config.taglineDelayMs));
   set('--landing-tagline-duration', msToCss(config.taglineDurationMs));
 
-  set('--landing-search-delay', msToCss(config.searchDelayMs));
-  set('--landing-search-duration', msToCss(config.searchDurationMs));
+  // Search + Enter are one beat — always publish identical delay/duration so a
+  // stale saved config cannot resurface the search pill ahead of Enter.
+  const pairDelayMs = config.enterDelayMs;
+  const pairDurationMs = config.enterDurationMs;
+  set('--landing-search-delay', msToCss(pairDelayMs));
+  set('--landing-search-duration', msToCss(pairDurationMs));
   set('--landing-search-rise', pxToCss(config.searchRisePx));
 
-  set('--landing-enter-delay', msToCss(config.enterDelayMs));
-  set('--landing-enter-duration', msToCss(config.enterDurationMs));
+  set('--landing-enter-delay', msToCss(pairDelayMs));
+  set('--landing-enter-duration', msToCss(pairDurationMs));
 }
 
 function parseConfig(raw: string): LandingEntranceConfig | null {
@@ -206,7 +210,14 @@ export function loadLandingEntranceConfig(): LandingEntranceConfig {
   const raw = window.localStorage.getItem(LANDING_ENTRANCE_STORAGE_KEY);
   if (raw) {
     const parsed = parseConfig(raw);
-    if (parsed) return parsed;
+    if (parsed) {
+      // Keep search locked to Enter even if an older saved default desynced them.
+      return {
+        ...parsed,
+        searchDelayMs: parsed.enterDelayMs,
+        searchDurationMs: parsed.enterDurationMs,
+      };
+    }
   }
   return DEFAULT_LANDING_ENTRANCE_CONFIG;
 }

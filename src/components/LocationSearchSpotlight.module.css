@@ -306,33 +306,42 @@
   font-size: clamp(0.85rem, 1.5vw, 1rem);
 }
 
-/* Landing entrance: the enlarged pill fades and rises into place as the final
-   beat of the hero sequence, on the same easing and stagger rhythm as the
-   wordmark and fan. Applied to the portalled pill itself (transform + opacity
-   only, so nothing reflows and the measured anchor never moves), and gated by
-   the one-shot `data-landing-entrance` latch so it plays only on the initial
-   landing mount, never on a later open / close / hover / focus.
-
-   Static `opacity: 0` guards the first paint of the body-portalled node (which
-   can otherwise flash a white glass pill before `animation-fill` applies).
-   `both` holds the hidden start through the delay and the visible end until the
-   latch is cleared — then base `.panel { opacity: 1 }` takes over cleanly. */
+/* Landing entrance: keep the white glass shell fully unpainted until the rise
+   begins. Portal mount is also deferred in JS until the shared Enter delay, and
+   `data-entrance-deferred` plays the rise with delay 0 so search+Enter land
+   together. Inline opacity:0 on the panel covers the first compositor frame. */
 .panelAnchor[data-size='lg'][data-landing-entrance='in'] .panel {
-  opacity: 0;
-  visibility: hidden;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
   animation: landingSearchRise var(--landing-search-duration, 0.46s) var(--ease-premium-enter)
     var(--landing-search-delay, 0.56s) both;
+}
+
+/* JS already waited out the shared delay — rise immediately with Enter. */
+.panelAnchor[data-size='lg'][data-landing-entrance='in'][data-entrance-deferred='true'] .panel {
+  animation-delay: 0s;
 }
 
 @keyframes landingSearchRise {
   from {
     opacity: 0;
     visibility: hidden;
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
     transform: translate3d(-50%, var(--landing-search-rise, 12px), 0);
   }
   to {
     opacity: 1;
     visibility: visible;
+    background-color: var(--search-panel-bg, var(--glass-panel-bg));
+    border-color: var(--glass-border);
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.096),
+      0 7px 20px rgba(0, 0, 0, 0.056);
     transform: translate3d(-50%, 0, 0);
   }
 }
@@ -1132,20 +1141,35 @@
   /* No rise under reduced motion, but KEEP the delay so the pill still arrives
      last with Enter — never flash the white glass shell ahead of the hero. */
   .panelAnchor[data-size='lg'][data-landing-entrance='in'] .panel {
-    opacity: 0;
-    visibility: hidden;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
     animation: landingSearchAppear var(--landing-search-delay, 0.56s) linear both;
     transform: translate3d(-50%, 0, 0);
+  }
+
+  .panelAnchor[data-size='lg'][data-landing-entrance='in'][data-entrance-deferred='true'] .panel {
+    animation-delay: 0s;
   }
 
   @keyframes landingSearchAppear {
     from {
       opacity: 0;
       visibility: hidden;
+      background-color: transparent;
+      border-color: transparent;
+      box-shadow: none;
     }
     to {
       opacity: 1;
       visibility: visible;
+      background-color: var(--search-panel-bg, var(--glass-panel-bg));
+      border-color: var(--glass-border);
+      box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.096),
+        0 7px 20px rgba(0, 0, 0, 0.056);
     }
   }
 

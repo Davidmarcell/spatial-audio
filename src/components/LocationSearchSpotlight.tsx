@@ -429,6 +429,28 @@ export function LocationSearchSpotlight({
   // whole pill travels up with the sheet, so a second, separate hero fade-up
   // would double the motion.
   const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !riseWithGate);
+  // Keep the white glass pill OUT of the DOM until the shared Enter/search delay
+  // elapses. CSS opacity alone still flashes one paint frame on portal mount.
+  const [landingPortalAllowed, setLandingPortalAllowed] = useState(
+    () => !enlarged || riseWithGate,
+  );
+
+  useLayoutEffect(() => {
+    if (!enlarged || riseWithGate || !landingEntranceArmed) {
+      setLandingPortalAllowed(true);
+      return;
+    }
+    setLandingPortalAllowed(false);
+    // Pair with Enter: use the enter delay (same value as search in defaults).
+    const raw =
+      getComputedStyle(document.documentElement).getPropertyValue('--landing-enter-delay').trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue('--landing-search-delay').trim();
+    let delayMs = 560;
+    if (raw.endsWith('ms')) delayMs = Number.parseFloat(raw) || delayMs;
+    else if (raw.endsWith('s')) delayMs = (Number.parseFloat(raw) || 0.56) * 1000;
+    const timer = window.setTimeout(() => setLandingPortalAllowed(true), Math.max(0, delayMs));
+    return () => window.clearTimeout(timer);
+  }, [enlarged, landingEntranceArmed, riseWithGate]);
 
   useEffect(() => {
     if (phase === 'opening-width') setTrendingToken((token) => token + 1);
@@ -1156,6 +1178,7 @@ export function LocationSearchSpotlight({
     <div className={styles.root} ref={rootRef} data-size={enlarged ? 'lg' : undefined}>
       {panelAnchor &&
         !blocked &&
+        landingPortalAllowed &&
         typeof document !== 'undefined' &&
         createPortal(
           <div
@@ -1164,6 +1187,7 @@ export function LocationSearchSpotlight({
             data-expand={expandDirection}
             data-size={enlarged ? 'lg' : undefined}
             data-landing-entrance={landingEntranceArmed ? 'in' : undefined}
+            data-entrance-deferred={enlarged && landingEntranceArmed ? 'true' : undefined}
             data-rising={riseWithGate ? 'true' : undefined}
             data-recessed={recessed ? 'true' : undefined}
             data-theme={theme}
@@ -1188,6 +1212,12 @@ export function LocationSearchSpotlight({
               aria-haspopup="dialog"
               aria-controls={isOpen ? `${listboxId}-results` : undefined}
               tabIndex={isClosed ? 0 : -1}
+              // Inline hide beats first-paint FOUC before CSS animation fill attaches.
+              style={
+                landingEntranceArmed
+                  ? ({ opacity: 0, visibility: 'hidden' } as CSSProperties)
+                  : undefined
+              }
               onClick={isClosed ? open : undefined}
               onKeyDown={
                 isClosed
