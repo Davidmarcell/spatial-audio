@@ -3,11 +3,13 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type PointerEvent,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { animateRise } from './sheetRise';
+import { FALLBACK_ICON_SRC } from '../data/iconDetailSrc';
 import { getLocationArtForItem } from '../data/locationArt';
 import {
   formatWorldLocationLabel,
@@ -104,6 +106,39 @@ function prefersReducedMotion() {
 const clampMagnet = (value: number) =>
   Math.max(-MAGNET_MAX_PX, Math.min(MAGNET_MAX_PX, value));
 
+const FALLBACK_TILE_SRC = publicUrl(FALLBACK_ICON_SRC);
+
+/** Fan tile image with a local fallback so a transient 404/abort after go-home
+ * cannot leave a permanent broken-image icon in the hero row. */
+function LandingFanImage({ src }: { src: string }) {
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [didFallback, setDidFallback] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(src);
+    setDidFallback(false);
+  }, [src]);
+
+  return (
+    <img
+      key={currentSrc}
+      className={styles.locationImage}
+      src={currentSrc}
+      alt=""
+      width={TILE_PX}
+      height={TILE_PX}
+      loading="eager"
+      decoding="async"
+      draggable={false}
+      onError={() => {
+        if (didFallback || currentSrc === FALLBACK_TILE_SRC) return;
+        setDidFallback(true);
+        setCurrentSrc(FALLBACK_TILE_SRC);
+      }}
+    />
+  );
+}
+
 export function LandingGate({
   onSelect,
   search,
@@ -171,15 +206,16 @@ export function LandingGate({
     return shuffle(candidates).slice(0, LANDING_TILE_COUNT);
   }, []);
 
-  // Prefetch tile art in the background so paints stay smooth, but do NOT gate
-  // the fan entrance on decode — the reveal delay is measured from mount so the
-  // tiles can overlap the wordmark cascade.
+  // Warm the browser cache for fan art without competing decode() work. The
+  // visible <img> tags already load eagerly; a second decode() race after
+  // go-home remounts was observed to abort in-flight tile requests in some
+  // browsers and leave broken-image icons in the hero row.
   useEffect(() => {
     if (locations.length === 0) return;
     locations.forEach(({ src }) => {
       const image = new Image();
+      image.decoding = 'async';
       image.src = src;
-      void image.decode().catch(() => undefined);
     });
   }, [locations]);
 
@@ -277,16 +313,7 @@ export function LandingGate({
                     event.currentTarget.style.setProperty('--magnet-y', '0px');
                   }}
                 >
-                  <img
-                    className={styles.locationImage}
-                    src={src}
-                    alt=""
-                    width={TILE_PX}
-                    height={TILE_PX}
-                    loading="eager"
-                    decoding="async"
-                    draggable={false}
-                  />
+                  <LandingFanImage src={src} />
                 </button>
               </li>
             );

@@ -38,6 +38,7 @@ export function SoundIconImage({
   );
   const [chainIndex, setChainIndex] = useState(0);
   const imageSrc = fallbackChain[chainIndex] ?? FALLBACK_ICON_SRC;
+  const resolvedSrc = publicUrl(imageSrc);
   const isDetail = usesDetailAsset;
   const isNatural = size === 'detailNatural';
   // Keep unused soundId in the public API for callers; crop tables are no longer
@@ -51,8 +52,9 @@ export function SoundIconImage({
   return (
     <span className={`${styles.frame} ${styles[size] ?? ''}`}>
       <img
+        key={resolvedSrc}
         className={styles.image}
-        src={publicUrl(imageSrc)}
+        src={resolvedSrc}
         alt={alt}
         draggable={false}
         loading={isDetail ? 'eager' : 'lazy'}
