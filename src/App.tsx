@@ -1249,11 +1249,10 @@ export default function App() {
               backdrop={false}
               enlarged
               recenterOnExpand
-              // Hide while browsing the globe, and immediately when leaving the
-              // landing for a place (so the pill cannot linger over the cover).
-              blocked={(showGlobe && !landingEntering) || landingExiting}
-              // Track the gate on home-return rise only (exit uses blocked above).
-              riseWithGate={landingEntering}
+              // Hide while browsing the globe, but keep the landing pill paired
+              // with the outgoing sheet while the landing exits to a place.
+              blocked={showGlobe && !landingEntering}
+              riseWithGate={landingEntering || landingExiting}
             />
           }
         />

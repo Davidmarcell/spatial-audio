@@ -63,7 +63,7 @@ export type LandingEntranceConfig = {
  *   • wordmark letters: ~480ms, 45ms stagger
  *   • fan tiles:        ~460ms after 140ms reveal
  *   • tagline:          ~480ms at 420ms
- *   • search pill:      ~420ms at 520ms
+ *   • search pill:      ~460ms at 560ms
  *   • Enter button:     ~460ms at 560ms
  * The `gateRise` / `landingSearchRise` keyframes rise from `translateY(12px)`.
  */
@@ -81,8 +81,8 @@ export const DEFAULT_LANDING_ENTRANCE_CONFIG: LandingEntranceConfig = {
   taglineDelayMs: 420,
   taglineDurationMs: 480,
 
-  searchDelayMs: 520,
-  searchDurationMs: 420,
+  searchDelayMs: 560,
+  searchDurationMs: 460,
   searchRisePx: 12,
 
   enterDelayMs: 560,
