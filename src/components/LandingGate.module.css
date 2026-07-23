@@ -427,10 +427,25 @@
   .tagline,
   .headphones,
   .searchSlot,
-  .enterButton,
   .locationItem,
   .locationRow[data-tiles-ready] .locationItem {
     animation: none;
+  }
+
+  /* Keep Enter delayed with the search pill; don't flash it ahead of the hero. */
+  .enterButton {
+    opacity: 0;
+    animation: landingEnterAppear var(--landing-enter-delay, 0.56s) linear both;
+    transform: none;
+  }
+
+  @keyframes landingEnterAppear {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   /* Skip the lift/dim entirely; the landing simply stays in place until it is

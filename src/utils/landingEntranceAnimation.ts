@@ -57,13 +57,13 @@ export type LandingEntranceConfig = {
 };
 
 /**
- * Code defaults — a 1:1 transcription of the existing hand-authored timings, so
- * the entrance is visually unchanged when the config is at defaults:
- *   • wordmark letters: `gateRise 0.62s … backwards; delay calc(0.05s + i*0.06s)`
- *   • fan tiles:        `gateRise 0.6s … both;       delay calc(0.2s + i*0.06s)`
- *   • tagline:          `gateRise 0.62s … both;      delay 0.6s`
- *   • search pill:      `landingSearchRise 0.55s … 0.66s backwards`
- *   • Enter button:     `gateRise 0.6s … 0.72s backwards`
+ * Code defaults — snappier than the original hand-authored timings while keeping
+ * the same order (wordmark → fan → tagline → search → Enter):
+ *   • wordmark letters: ~480ms, 45ms stagger
+ *   • fan tiles:        ~460ms after 140ms reveal
+ *   • tagline:          ~480ms at 420ms
+ *   • search pill:      ~420ms at 520ms
+ *   • Enter button:     ~460ms at 560ms
  * The `gateRise` / `landingSearchRise` keyframes rise from `translateY(12px)`.
  */
 export const DEFAULT_LANDING_ENTRANCE_CONFIG: LandingEntranceConfig = {
