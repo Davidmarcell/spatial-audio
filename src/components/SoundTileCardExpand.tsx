@@ -29,13 +29,6 @@ const EXPAND_EASE = 'linear';
 const OPEN_MS = 440;
 const CLOSE_MS = 380;
 const TILE_RADIUS_PX = 13.6;
-/**
- * Art box reaches its resting size/aspect by this fraction of the card flight.
- * Finishing early keeps the portrait morph from fighting the wider card travel
- * (same clock, different distances); the image then sits contained while the
- * sheet finishes widening.
- */
-const ART_SETTLE_AT = 0.55;
 
 type Rect = OriginRectSnapshot;
 
@@ -53,24 +46,9 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-function lerpRect(from: Rect, to: Rect, t: number): Rect {
-  return {
-    left: lerp(from.left, to.left, t),
-    top: lerp(from.top, to.top, t),
-    width: lerp(from.width, to.width, t),
-    height: lerp(from.height, to.height, t),
-  };
-}
-
 /** Linear progress — constant speed into the resting slot (no end deceleration). */
 function easeCardExpand(t: number): number {
   return t;
-}
-
-/** Remap card progress so the art box hits 1.0 at `settleAt`, then holds. */
-function artProgressFor(progress: number, settleAt = ART_SETTLE_AT): number {
-  if (settleAt <= 0) return 1;
-  return Math.min(1, Math.max(0, progress / settleAt));
 }
 
 function clampCardWidth(preferred: number): number {
@@ -112,10 +90,10 @@ function readLiveTileRect(instanceId: string): Rect | null {
 
 /**
  * Shared-element card expand.
- * Same tile image throughout. The art frame morphs square → natural ratio on a
- * shorter clock than the card width (settles early, then stays contained), so
- * portrait height growth does not fight the wider sheet travel. Copy fades in
- * once the card is near resting width.
+ * Art width + height share one progress (square → natural box together). The
+ * sheet grows from the tile center on that same clock and always stays large
+ * enough to contain the art, so portraits don't read as "width then height".
+ * Copy fades in once the card is near resting width.
  */
 export function SoundTileCardExpand({
   open,
@@ -341,7 +319,6 @@ export function SoundTileCardExpand({
 
   const from = animFrom ?? restingRectFor(artAspect);
   const to = animTo ?? restingRectFor(artAspect);
-  const sheetRect = lerpRect(from, to, progress);
   const cardRadius = design.cardRadiusPx || DEFAULT_SOUND_TILE_DESIGN.cardRadiusPx;
   const radius = lerp(TILE_RADIUS_PX, cardRadius, progress);
 
@@ -349,19 +326,26 @@ export function SoundTileCardExpand({
   const destArtW = Math.min(design.imageSizePx, Math.max(48, to.width - pad * 2));
   const destArtH = destArtW / Math.max(0.4, artAspect);
 
-  // Art morph finishes early; card keeps traveling on `progress`.
-  const artT = artProgressFor(progress);
-  const faceLeft = lerp(0, pad, artT);
-  const faceTop = lerp(0, pad, artT);
-  // Grow from the origin tile size (not the live sheet), so width/height share
-  // one destination box and don't track the card's different travel distance.
-  const targetFaceW = lerp(from.width, destArtW, artT);
-  const targetFaceH = lerp(from.height, destArtH, artT);
-  // Contain inside the sheet so an early-settled image never overflows mid-flight
-  // (and on close, the art holds until the shrinking card forces it down).
-  const faceWidth = Math.min(targetFaceW, Math.max(0, sheetRect.width - faceLeft * 2));
-  const faceHeight = Math.min(targetFaceH, Math.max(0, sheetRect.height - faceTop * 2));
-  const faceRadius = lerp(TILE_RADIUS_PX, design.imageRadiusPx, artT);
+  // One clock for both axes: square tile → final art box together.
+  const faceLeft = lerp(0, pad, progress);
+  const faceTop = lerp(0, pad, progress);
+  const faceWidth = lerp(from.width, destArtW, progress);
+  const faceHeight = lerp(from.height, destArtH, progress);
+  const faceRadius = lerp(TILE_RADIUS_PX, design.imageRadiusPx, progress);
+
+  // Sheet tracks the resting card, but never smaller than the art + pad so a
+  // portrait's height isn't gated behind the card's width travel.
+  const cardW = lerp(from.width, to.width, progress);
+  const cardH = lerp(from.height, to.height, progress);
+  const sheetWidth = Math.max(cardW, faceWidth + faceLeft * 2);
+  const sheetHeight = Math.max(cardH, faceHeight + faceTop * 2);
+  // Grow from tile center → resting center so width/height bloom together.
+  const fromCx = from.left + from.width / 2;
+  const fromCy = from.top + from.height / 2;
+  const toCx = to.left + to.width / 2;
+  const toCy = to.top + to.height / 2;
+  const sheetLeft = lerp(fromCx, toCx, progress) - sheetWidth / 2;
+  const sheetTop = lerp(fromCy, toCy, progress) - sheetHeight / 2;
 
   const settled = phase === 'open';
   const showFace = !settled;
@@ -371,10 +355,10 @@ export function SoundTileCardExpand({
 
   const sheetStyle = {
     ...designVars,
-    left: `${sheetRect.left}px`,
-    top: `${sheetRect.top}px`,
-    width: `${sheetRect.width}px`,
-    height: `${sheetRect.height}px`,
+    left: `${sheetLeft}px`,
+    top: `${sheetTop}px`,
+    width: `${sheetWidth}px`,
+    height: `${sheetHeight}px`,
     maxWidth: `min(${design.panelWidthPx}px, calc(100vw - 2rem))`,
     maxHeight: 'min(85dvh, calc(100dvh - 2.5rem))',
     borderRadius: `${radius}px`,
