@@ -25,6 +25,10 @@ type Props = {
   onClose?: () => void;
   /** Mobile iOS bottom-sheet presentation (taller, edge-to-edge). */
   presentation?: 'card' | 'sheet';
+  /** Hide artwork while a shared-element face covers the same slot. */
+  artworkHidden?: boolean;
+  /** Fade the meta/volume column during card-expand (0–1). */
+  infoOpacity?: number;
 };
 
 export function SoundArtDetailContent({
@@ -34,6 +38,8 @@ export function SoundArtDetailContent({
   designConfig,
   onClose,
   presentation = 'card',
+  artworkHidden = false,
+  infoOpacity = 1,
 }: Props) {
   const artwork = getSoundArtworkForRegion(
     regionArt.id,
@@ -66,7 +72,7 @@ export function SoundArtDetailContent({
         </button>
       )}
 
-      <div className={styles.artworkWrap}>
+      <div className={`${styles.artworkWrap} ${artworkHidden ? styles.artworkHidden : ''}`}>
         <div className={styles.artwork}>
           <SoundIconImage
             src={artwork.src}
@@ -79,7 +85,14 @@ export function SoundArtDetailContent({
         </div>
       </div>
 
-      <div className={styles.infoColumn}>
+      <div
+        className={styles.infoColumn}
+        style={
+          infoOpacity < 1
+            ? { opacity: infoOpacity, transform: `translateY(${(1 - infoOpacity) * 12}px)` }
+            : undefined
+        }
+      >
         <div className={styles.scroll}>
           <h3 className={styles.title}>{target.name}</h3>
 

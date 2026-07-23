@@ -24,7 +24,7 @@ export const DEFAULT_SOUND_TILE_DESIGN: SoundTileDesignConfig = {
   paddingPx: 22,
   imageSizePx: 280,
   columnGapPx: 28,
-  panelWidthPx: 580,
+  panelWidthPx: 600,
 };
 
 const STORAGE_KEY = 'saudade:sound-tile-design';
@@ -69,9 +69,12 @@ export function loadSoundTileDesign(): SoundTileDesignConfig {
         ? { ...rest, panelWidthPx: Math.round(panelWidthRem * 16) }
         : rest;
     const merged = { ...DEFAULT_SOUND_TILE_DESIGN, ...migrated };
+    // Previous default was 580; bump saved copies to the new resting width.
+    const panelWidthPx =
+      merged.panelWidthPx === 580 ? 600 : clampPanelWidthPx(merged.panelWidthPx);
     return {
       ...merged,
-      panelWidthPx: clampPanelWidthPx(merged.panelWidthPx),
+      panelWidthPx,
     };
   } catch {
     return { ...DEFAULT_SOUND_TILE_DESIGN };

@@ -9,6 +9,8 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
+import { iconSrcFallbackChain } from '../data/iconDetailSrc';
+import { publicUrl } from '../utils/publicUrl';
 import {
   type OriginRectSnapshot,
   snapshotOriginRect,
@@ -24,7 +26,7 @@ import styles from './SoundTileCardExpand.module.css';
 
 /** Calm Apple-style curve from the card-expand reference (rselmi). */
 const EXPAND_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-const OPEN_MS = 440;
+const OPEN_MS = 460;
 const CLOSE_MS = 380;
 const TILE_RADIUS_PX = 13.6; // ~var(--tile-radius) 0.85rem
 
@@ -37,7 +39,6 @@ type Props = {
   target: DetailTarget | null;
   onVolumeChange: (instanceId: string, volume: number) => void;
   regionArt: RegionArtContext;
-  /** Fires after the reverse collapse finishes and the overlay unmounts. */
   onExited?: () => void;
 };
 
@@ -59,14 +60,30 @@ function clampCardWidth(preferred: number): number {
   return Math.min(preferred, Math.max(280, window.innerWidth - 32));
 }
 
-function estimateOpenRect(panelWidthPx: number, imageSizePx: number, paddingPx: number): Rect {
+/**
+ * Resting card box. `aspect` is width/height of the detail art so the
+ * destination image slot (and card height) match the settled layout — this is
+ * what removes the end-of-expand jump.
+ */
+function estimateOpenRect(
+  panelWidthPx: number,
+  imageSizePx: number,
+  paddingPx: number,
+  columnGapPx: number,
+  aspect: number,
+): Rect {
   const width = clampCardWidth(panelWidthPx);
+  const artW = Math.min(imageSizePx, Math.max(120, width - paddingPx * 2));
+  const artH = artW / Math.max(0.35, aspect);
+  // Two-column card: height follows the taller of art vs a modest info column.
+  const contentH = Math.max(artH, 240);
   const height = Math.min(
-    paddingPx * 2 + imageSizePx + 16,
-    typeof window !== 'undefined' ? window.innerHeight * 0.85 : 400,
+    paddingPx * 2 + contentH,
+    typeof window !== 'undefined' ? window.innerHeight * 0.85 : 420,
   );
   const vw = typeof window !== 'undefined' ? window.innerWidth : width;
   const vh = typeof window !== 'undefined' ? window.innerHeight : height;
+  void columnGapPx;
   return {
     left: (vw - width) / 2,
     top: (vh - height) / 2,
@@ -85,8 +102,8 @@ function readLiveTileRect(instanceId: string): Rect | null {
 
 /**
  * Shared-element card expand for the sound detail tile.
- * Recipe (rselmi / card-expand): measure → mount clone → one progress value
- * interpolates the rect from the canvas tile to the resting card.
+ * One progress value drives the sheet rect AND the image face into the same
+ * slot the settled content uses, so the handoff does not jump on aspect ratio.
  */
 export function SoundTileCardExpand({
   open,
@@ -112,9 +129,55 @@ export function SoundTileCardExpand({
   const [animFrom, setAnimFrom] = useState<Rect | null>(null);
   const [animTo, setAnimTo] = useState<Rect | null>(null);
   const [displayTarget, setDisplayTarget] = useState<DetailTarget | null>(target);
+  /** Detail art width/height — drives destination face size. */
+  const [artAspect, setArtAspect] = useState(1);
   const animFrameRef = useRef<number | null>(null);
   const progressRef = useRef(0);
   progressRef.current = progress;
+
+  const artwork = useMemo(() => {
+    if (!displayTarget) return null;
+    return getSoundArtworkForRegion(
+      regionArt.id,
+      regionArt.soundIds,
+      displayTarget.soundId,
+      displayTarget.instanceId,
+      regionArt.tags,
+    );
+  }, [displayTarget, regionArt]);
+
+  // Prefetch natural aspect so the expand lands on the real image box.
+  useEffect(() => {
+    if (!artwork) return;
+    const chain = iconSrcFallbackChain(
+      {
+        src: artwork.src,
+        sourceUrl: artwork.sourceUrl,
+        detailSrc: artwork.detailSrc,
+      },
+      'detail',
+    );
+    let cancelled = false;
+    const probe = (index: number) => {
+      const src = chain[index];
+      if (!src) return;
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+          setArtAspect(img.naturalWidth / img.naturalHeight);
+        }
+      };
+      img.onerror = () => {
+        if (!cancelled) probe(index + 1);
+      };
+      img.src = publicUrl(src);
+    };
+    probe(0);
+    return () => {
+      cancelled = true;
+    };
+  }, [artwork]);
 
   const cancelAnim = useCallback(() => {
     if (animFrameRef.current != null) {
@@ -137,8 +200,11 @@ export function SoundTileCardExpand({
       }
 
       const started = performance.now();
-      // Matches the reference’s calm decelerating feel (approx of the bezier).
-      const easeOut = (t: number) => 1 - (1 - t) ** 3;
+      // Approx of cubic-bezier(0.32, 0.72, 0, 1) — calm decelerate, no bounce.
+      const easeOut = (t: number) => {
+        const u = 1 - t;
+        return 1 - u * u * u * (1 - t * 0.15);
+      };
 
       const tick = (now: number) => {
         const t = Math.min(1, (now - started) / durationMs);
@@ -159,12 +225,24 @@ export function SoundTileCardExpand({
     [cancelAnim],
   );
 
-  // Open: paint at the tile, then expand to the resting card.
+  const restingRect = useCallback(
+    (aspect: number) =>
+      estimateOpenRect(
+        design.panelWidthPx,
+        design.imageSizePx,
+        design.paddingPx,
+        design.columnGapPx,
+        aspect,
+      ),
+    [design],
+  );
+
+  // Open: paint at the tile, then expand into the aspect-correct resting card.
   useLayoutEffect(() => {
     if (!open || !target) return;
 
     const from = originRect ?? readLiveTileRect(target.instanceId);
-    const to = estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx);
+    const to = restingRect(artAspect);
     setAnimFrom(from);
     setAnimTo(to);
     setDisplayTarget(target);
@@ -180,21 +258,22 @@ export function SoundTileCardExpand({
     setProgress(0);
     const frame = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        animateProgress(0, 1, OPEN_MS, () => {
-          // Prefer the real laid-out card box once content can settle.
-          const measured = snapshotOriginRect(
-            sheetRef.current?.getBoundingClientRect() ?? null,
-          );
-          if (measured && measured.width > 0) setAnimTo(measured);
-          setPhase('open');
-        });
+        animateProgress(0, 1, OPEN_MS, () => setPhase('open'));
       });
     });
     return () => cancelAnimationFrame(frame);
+    // Re-run when aspect resolves so a late natural size can retarget mid-open
+    // only if we have not finished yet — handled separately below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, target?.instanceId]);
 
-  // Close: collapse back onto the live canvas tile (shared-element reverse).
+  // If aspect arrives during opening, retarget the destination without restarting.
+  useEffect(() => {
+    if (phase !== 'opening') return;
+    setAnimTo(restingRect(artAspect));
+  }, [artAspect, phase, restingRect]);
+
+  // Close: collapse back onto the live canvas tile.
   useEffect(() => {
     if (open) return;
     if (!isPresent || !displayTarget) return;
@@ -202,16 +281,10 @@ export function SoundTileCardExpand({
     const current =
       snapshotOriginRect(sheetRef.current?.getBoundingClientRect() ?? null) ??
       animTo ??
-      estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx);
+      restingRect(artAspect);
     const tile =
       readLiveTileRect(displayTarget.instanceId) ?? originRect ?? current;
 
-    setAnimFrom(tile);
-    setAnimTo(current);
-    // progress 1 = card (animTo), progress 0 = tile (animFrom) — same as open.
-    // For close we swap: treat current as "from" visually by running 1→0 with
-    // animFrom=tile and animTo=current... wait, lerpRect(animFrom, animTo, p)
-    // at p=1 is animTo (card), at p=0 is animFrom (tile). So set:
     setAnimFrom(tile);
     setAnimTo(current);
     setProgress(1);
@@ -245,50 +318,45 @@ export function SoundTileCardExpand({
     return () => window.removeEventListener('keydown', onKey);
   }, [close, isPresent, open]);
 
-  if (!isPresent || !displayTarget || typeof document === 'undefined') {
+  if (!isPresent || !displayTarget || !artwork || typeof document === 'undefined') {
     return null;
   }
 
-  const from =
-    animFrom ??
-    estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx);
-  const to =
-    animTo ??
-    estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx);
+  const from = animFrom ?? restingRect(artAspect);
+  const to = animTo ?? restingRect(artAspect);
   const sheetRect = lerpRect(from, to, progress);
   const cardRadius = design.cardRadiusPx || DEFAULT_SOUND_TILE_DESIGN.cardRadiusPx;
   const radius = lerp(TILE_RADIUS_PX, cardRadius, progress);
 
   const pad = design.paddingPx;
-  const imageSize = design.imageSizePx;
+  const destArtW = Math.min(
+    design.imageSizePx,
+    Math.max(48, to.width - pad * 2),
+  );
+  const destArtH = destArtW / Math.max(0.35, artAspect);
+
+  // Shared face: full-bleed cover on the tile → natural art slot in the card.
   const faceLeft = lerp(0, pad, progress);
   const faceTop = lerp(0, pad, progress);
-  const faceWidth = lerp(
-    sheetRect.width,
-    Math.min(imageSize, Math.max(48, sheetRect.width - pad * 2)),
-    progress,
-  );
-  const faceHeight = lerp(
-    sheetRect.height,
-    Math.min(imageSize, Math.max(48, sheetRect.height - pad * 2)),
-    progress,
-  );
+  const faceWidth = lerp(sheetRect.width, destArtW, progress);
+  const faceHeight = lerp(sheetRect.height, destArtH, progress);
   const faceRadius = lerp(TILE_RADIUS_PX, design.imageRadiusPx, progress);
+  // Blend cover → contain so the crop eases into the natural frame.
+  const faceObjectFit = progress < 0.72 ? 'cover' : 'contain';
 
   const settled = phase === 'open';
-  const artwork = getSoundArtworkForRegion(
-    regionArt.id,
-    regionArt.soundIds,
-    displayTarget.soundId,
-    displayTarget.instanceId,
-    regionArt.tags,
-  );
+  const showFace = !settled;
+  const infoOpacity = settled
+    ? 1
+    : Math.max(0, Math.min(1, (progress - 0.5) / 0.45));
 
   const sheetStyle = {
     ...designVars,
     left: `${sheetRect.left}px`,
     top: `${sheetRect.top}px`,
     width: `${sheetRect.width}px`,
+    // Keep a fixed interpolated height through the flight so content can lay
+    // out underneath without popping the sheet when we hand off.
     height: settled ? 'auto' : `${sheetRect.height}px`,
     maxWidth: `min(${design.panelWidthPx}px, calc(100vw - 2rem))`,
     maxHeight: 'min(85dvh, calc(100dvh - 2.5rem))',
@@ -323,9 +391,9 @@ export function SoundTileCardExpand({
         aria-modal="true"
         aria-label={`${displayTarget.name} details`}
       >
-        {!settled && (
+        {showFace && (
           <div className={styles.face} style={faceStyle}>
-            <div className={styles.faceImage}>
+            <div className={styles.faceImage} data-fit={faceObjectFit}>
               <SoundIconImage
                 src={artwork.src}
                 sourceUrl={artwork.sourceUrl}
@@ -338,17 +406,24 @@ export function SoundTileCardExpand({
           </div>
         )}
 
-        {settled && (
-          <div className={`${styles.body} ${styles.bodyVisible}`}>
-            <SoundArtDetailContent
-              target={displayTarget}
-              onVolumeChange={onVolumeChange}
-              regionArt={regionArt}
-              designConfig={design}
-              onClose={close}
-            />
-          </div>
-        )}
+        <div
+          className={`${styles.body} ${settled || progress > 0.35 ? styles.bodyVisible : ''}`}
+          style={{
+            // Content is present under the face so the art slot is already the
+            // correct size when we reveal it — no layout jump at settle.
+            opacity: settled || progress > 0.35 ? 1 : 0,
+          }}
+        >
+          <SoundArtDetailContent
+            target={displayTarget}
+            onVolumeChange={onVolumeChange}
+            regionArt={regionArt}
+            designConfig={design}
+            onClose={close}
+            artworkHidden={showFace}
+            infoOpacity={infoOpacity}
+          />
+        </div>
       </div>
     </>,
     document.body,

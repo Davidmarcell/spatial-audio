@@ -56,12 +56,10 @@
   max-width: var(--sound-tile-image-size);
   align-self: start;
   flex-shrink: 0;
-  /* Shadow lives on the wrap so overflow:hidden on the image cannot clip it. */
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.1))
-    drop-shadow(0 32px 32px rgba(0, 0, 0, 0.09))
-    drop-shadow(0 73px 44px rgba(0, 0, 0, 0.05))
-    drop-shadow(0 129px 52px rgba(0, 0, 0, 0.01))
-    drop-shadow(0 201px 56px rgba(0, 0, 0, 0));
+}
+
+.artworkHidden {
+  visibility: hidden;
 }
 
 .artwork {
