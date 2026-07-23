@@ -12,10 +12,10 @@
 }
 
 .tabs {
-  display: inline-flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.35rem;
-  max-width: 100%;
+  width: 100%;
   padding: 0.2rem;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -29,6 +29,10 @@
 
 .tab,
 .tabActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
@@ -99,6 +103,10 @@
   color: var(--text-muted);
   font-size: 0.88rem;
   line-height: 1.55;
+}
+
+.copy + .copy {
+  margin-top: 0.85rem;
 }
 
 /* Static diagram explaining the spatial canvas. Purely illustrative (not wired

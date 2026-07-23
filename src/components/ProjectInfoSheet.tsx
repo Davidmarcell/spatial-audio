@@ -125,35 +125,19 @@ export function ProjectInfoSheet({ open, onOpenChange }: Props) {
               This project
             </h3>
             <p className={styles.copy}>
-              Saudade is a place to compose soundscapes in space. Choose a
-              location, drag sounds across the canvas, and listen as distance and
-              direction shape what you hear. Each scene is a small world you can share.
+              Like taste, sound rarely arrives alone. It carries memory with it:
+              rain against a window, a station announcement, birds beyond an open
+              door. We hear what is present, but also the places, seasons, and
+              absences it recalls.
             </p>
-          </section>
-
-          <section className={styles.section} aria-labelledby="project-info-about-memory">
-            <h3 className={styles.heading} id="project-info-about-memory">
-              Sound and memory
-            </h3>
             <p className={styles.copy}>
-              Environmental sound carries place. A distant bird, rain on stone, traffic
-              fading - these textures embed in memory faster than sight alone. When you
-              hear them again, even faintly, the mind returns: a street, a season,
-              someone else&apos;s window. Spatial audio lets you arrange those echoes and
-              feel them move around you.
-            </p>
-          </section>
-
-          <section className={styles.section} aria-labelledby="project-info-about-saudade">
-            <h3 className={styles.heading} id="project-info-about-saudade">
-              Saudade
-            </h3>
-            <p className={styles.copy}>
-              Saudade is a Portuguese word for a bittersweet longing - the presence of
-              something absent. A soundscape can hold that feeling: waves from a shore you
-              haven&apos;t returned to, birdsong from a childhood summer, cafe murmur from
-              a city far away. Here, sound is not just heard. It is remembered, imagined,
-              and gently missed.
+              Saudade is a place to compose soundscapes in space with that bond in
+              mind. You choose a location, arrange sounds around the listener, and
+              let distance and direction shape the feeling of return: a shore kept
+              at the edge of the room, birdsong brought close, cafe murmur left
+              slightly behind you. The name comes from the Portuguese word for a
+              bittersweet longing, when something absent becomes briefly present
+              again through listening.
             </p>
           </section>
 
