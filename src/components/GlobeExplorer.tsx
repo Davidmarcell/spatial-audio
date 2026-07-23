@@ -358,6 +358,16 @@ export function GlobeExplorer({
     () => locations.filter((location) => matchesSearch(location, searchQuery)),
     [locations, searchQuery],
   );
+  const curatedLocationCount = useMemo(
+    () => locations.filter((location) => !location.custom).length,
+    [locations],
+  );
+  const globeHeaderCopy = useMemo(() => {
+    if (curatedLocationCount <= 0) {
+      return 'Pick from places around the world to listen to different sounds and memories.';
+    }
+    return `Pick from ${curatedLocationCount} ${curatedLocationCount === 1 ? 'place' : 'places'} around the world to listen to different sounds and memories.`;
+  }, [curatedLocationCount]);
 
   // The Places list always shows the full curated set; searching now happens in
   // the spotlight below the globe rather than filtering this column.
@@ -1224,11 +1234,14 @@ export function GlobeExplorer({
 
   return (
     <div className={styles.root} aria-labelledby="globe-explorer-title">
-      <h2 id="globe-explorer-title" className={styles.srOnly}>
-        Explore the world
-      </h2>
-
       <div className={styles.body}>
+        <header className={styles.pageHeader}>
+          <h2 id="globe-explorer-title" className={styles.pageTitle}>
+            Globe
+          </h2>
+          <p className={styles.pageSubtitle}>World map</p>
+          <p className={styles.pageCopy}>{globeHeaderCopy}</p>
+        </header>
         <div className={styles.globeColumn}>
           <div className={styles.globeHost}>
             <div ref={zoomLayerRef} className={styles.zoomLayer}>

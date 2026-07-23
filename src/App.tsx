@@ -142,13 +142,24 @@ export default function App() {
   const [randomizeTransitionToken, setRandomizeTransitionToken] = useState(0);
   // Bumped on every covered scene entry so the workspace assets (the canvas of
   // sound tiles and the bottom control bar) rise up into place as the cover
-  // panel reveals them, matching the entrance parallax of the other sheets. 0 at
-  // boot means no rise on the very first paint.
+  // panel reveals them, matching the entrance parallax of the other sheets. This
+  // same rise is also reused when closing the globe back into an existing
+  // soundscape, so the tiles/UI push up from below rather than just fading in. 0
+  // at boot means no rise on the very first paint.
   const [sceneRiseToken, setSceneRiseToken] = useState(0);
   // True for the scene-rise window so the bottom bar's portalled search pill
   // tracks the rising bar instead of staying pinned to its resting anchor while
   // the bar rises around it. Cleared once the rise animation settles.
   const [sceneRising, setSceneRising] = useState(false);
+  // True only while the globe is opening over an already-entered soundscape. The
+  // workspace stays mounted and lifts beneath the rising globe so the transition
+  // reads as stacked sheets rather than the map simply appearing over a static
+  // background. Cleared once the globe has fully arrived.
+  const [workspaceGlobeOpening, setWorkspaceGlobeOpening] = useState(false);
+  // Tracks that the currently-open globe was launched from an existing
+  // soundscape, so the bottom chrome can stay mounted beneath it instead of
+  // hiding/fading out as if there were no workspace under the globe.
+  const [globeOverWorkspace, setGlobeOverWorkspace] = useState(false);
   // True while the landing is the OUTGOING page (Enter -> globe, or landing ->
   // location). It STAYS mounted and visible and is gently lifted + dimmed
   // beneath the incoming sheet (the rising globe, or the rising cover panel) so
@@ -886,12 +897,16 @@ export default function App() {
   // random): rise the cover panel over the outgoing page and arm the canvas to
   // hold its tile radiate-in until the panel finishes rising and reveals the
   // canvas, so it reads as "sheet rises up to reveal, then the tiles push out".
-  const playSceneEntryCover = useCallback(() => {
-    setSceneEntranceDelayMs(SHEET_SCENE_REVEAL_MS);
+  const playSceneRevealRise = useCallback(() => {
     setSceneRising(true);
     setSceneRiseToken((token) => token + 1);
+  }, []);
+
+  const playSceneEntryCover = useCallback(() => {
+    setSceneEntranceDelayMs(SHEET_SCENE_REVEAL_MS);
+    playSceneRevealRise();
     playCover();
-  }, [playCover]);
+  }, [playCover, playSceneRevealRise]);
 
   // Rise the revealed soundscape assets. When a scene enters behind the cover
   // panel, the canvas (sound tiles, rings, listener) and the bottom control bar
@@ -946,6 +961,7 @@ export default function App() {
   const handleGlobeSelect = useCallback(
     (location: WorldLocation) => {
       void unlock();
+      setWorkspaceGlobeOpening(false);
       playSceneEntryCover();
       if (location.custom) {
         setCustomGlobeLocation(location);
@@ -1032,13 +1048,19 @@ export default function App() {
   const handleGlobeOpenChange = useCallback((open: boolean) => {
     if (open) {
       // Opening the map: the globe rises as its real self (approach A) on top of
-      // the workspace beneath it, so no cover panel is needed. This is not a
-      // location entry, so no radiate-in.
+      // the workspace beneath it, so no cover panel is needed. When opening from
+      // an already-entered soundscape, keep that workspace mounted and lifting so
+      // the globe visibly pushes it upward like the other stacked-sheet moves.
+      // This is not a location entry, so no radiate-in.
+      const openingFromWorkspace = hasEntered && !browsingFromLanding;
+      setWorkspaceGlobeOpening(openingFromWorkspace);
+      setGlobeOverWorkspace(openingFromWorkspace);
       setShowGlobe(true);
       return;
     }
     // Closing the map: the outgoing globe lifts up (parallax) and stays visible
     // beneath the incoming page rising over it.
+    setWorkspaceGlobeOpening(false);
     setShowGlobe(false);
     setGlobeExiting(true);
     if (browsingFromLanding) {
@@ -1055,17 +1077,22 @@ export default function App() {
     } else {
       // Returning to the workspace: the soundscape canvas is stacked BELOW the
       // globe and cannot be raised above it, so the shared cover panel rises up
-      // over the lifting globe and reveals it. The panel (z-index 500) sits above
-      // the globe page (z-index 400); `onCovered` unmounts the globe once the
-      // panel has fully risen.
+      // over the lifting globe and reveals it. Reuse the existing scene-rise so
+      // the canvas + bottom UI rise from below as the reveal lands, rather than
+      // fading back in flat. The panel (z-index 500) sits above the globe page
+      // (z-index 400); `onCovered` unmounts the globe once the panel has fully
+      // risen.
+      playSceneRevealRise();
       playCover();
     }
-  }, [browsingFromLanding, playCover]);
+  }, [browsingFromLanding, hasEntered, playCover, playSceneRevealRise]);
 
   // The header wordmark doubles as a "home" control: always return to the
   // landing gate (enabling it if the DEV toggle had it off), with the outgoing
   // page pushing up in parallax while landing rises over it.
   const handleGoHome = useCallback(() => {
+    setWorkspaceGlobeOpening(false);
+    setGlobeOverWorkspace(false);
     if (showGlobe) setGlobeExiting(true);
     setShowGlobe(false);
     setDetailTarget(null);
@@ -1090,6 +1117,8 @@ export default function App() {
   // beneath it now that it is fully covered.
   const handleLandingEntered = useCallback(() => {
     setLandingEntering(false);
+    setWorkspaceGlobeOpening(false);
+    setGlobeOverWorkspace(false);
     setGlobeExiting(false);
   }, []);
 
@@ -1349,7 +1378,9 @@ export default function App() {
 
       <main
         className={`${styles.main} ${
-          (coverActive || landingEntering) && !globeExiting ? styles.pageExitLift : ''
+          (coverActive || landingEntering || workspaceGlobeOpening) && !globeExiting
+            ? styles.pageExitLift
+            : ''
         }`}
         ref={mainRef}
       >
@@ -1400,7 +1431,7 @@ export default function App() {
 
       <nav
         ref={bottomBarRef}
-        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe ? styles.bottomBarHidden : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
+        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe && !globeOverWorkspace ? styles.bottomBarHidden : ''} ${(coverActive || landingEntering || workspaceGlobeOpening) && !globeExiting ? styles.pageExitLift : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
         aria-label="Main controls"
         onPointerMove={(event) => syncBottomBarTooltip(event.target)}
         onPointerLeave={() => setBottomBarTooltip(null)}
@@ -1505,6 +1536,7 @@ export default function App() {
           // The globe (approach-A incoming) has finished rising into place, so
           // settle the outgoing landing beneath it back to rest (it stays mounted
           // while browsing, now fully covered by the globe).
+          setWorkspaceGlobeOpening(false);
           setLandingExiting(false);
         }}
         onOpenChange={handleGlobeOpenChange}
@@ -1522,6 +1554,8 @@ export default function App() {
           // The cover panel now fully covers the viewport: unmount the lifted
           // outgoing page(s) so the following cross-fade reveals the true
           // destination beneath, not the outgoing layer.
+          setWorkspaceGlobeOpening(false);
+          setGlobeOverWorkspace(false);
           setGlobeExiting(false);
           setLandingExiting(false);
         }}
