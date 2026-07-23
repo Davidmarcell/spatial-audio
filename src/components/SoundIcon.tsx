@@ -23,6 +23,8 @@ type Props = {
    * small and faded at the listener centre and glides to its resting position.
    */
   entering?: boolean;
+  /** When true, the tile collapses back into the listener during randomize. */
+  sucking?: boolean;
   /** Per-tile stagger (ms) so tiles further out land a touch later. */
   entranceDelayMs?: number;
   selected: boolean;
@@ -52,6 +54,7 @@ export function SoundIcon({
   sway,
   isDragging,
   entering = false,
+  sucking = false,
   entranceDelayMs = 0,
   selected,
   hiddenForGhost = false,
@@ -100,13 +103,13 @@ export function SoundIcon({
 
   return (
     <div
-      className={`${styles.wrapper} ${selected ? styles.selected : ''} ${isDragging ? styles.dragging : ''} ${entering ? styles.entering : ''}`}
+      className={`${styles.wrapper} ${selected ? styles.selected : ''} ${isDragging ? styles.dragging : ''} ${entering ? styles.entering : ''} ${sucking ? styles.sucking : ''}`}
       style={{
         left,
         top,
         zIndex: isDragging ? 470 : depthZIndex(distance),
         visibility: hiddenForGhost || hiddenForDetailExpand ? 'hidden' : undefined,
-        ...(entering
+        ...(entering || sucking
           ? ({
               '--entrance-dx': `${entranceDx}cqw`,
               '--entrance-dy': `${entranceDy}cqh`,

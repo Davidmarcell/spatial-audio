@@ -137,6 +137,9 @@ export default function App() {
   // panel finishes rising and reveals the canvas rather than under it. 0 at boot
   // (no transition), then set to the reveal point for every covered entry.
   const [sceneEntranceDelayMs, setSceneEntranceDelayMs] = useState(0);
+  // Token for the random-location-only tile transition: current tiles collapse
+  // into the listener, then the new scene loads and reuses the normal radiate-in.
+  const [randomizeTransitionToken, setRandomizeTransitionToken] = useState(0);
   // Bumped on every covered scene entry so the workspace assets (the canvas of
   // sound tiles and the bottom control bar) rise up into place as the cover
   // panel reveals them, matching the entrance parallax of the other sheets. 0 at
@@ -210,6 +213,12 @@ export default function App() {
   // updateDragPreview that resolves afterwards can detect it lost the race and
   // not leave an orphaned, never-cleaned-up preview source playing.
   const dragPreviewGenRef = useRef(0);
+  const randomizeTransitionSeqRef = useRef(0);
+  const pendingRandomRegionRef = useRef<{
+    environmentId: string;
+    regionId: string;
+    token: number;
+  } | null>(null);
 
   const {
     engine,
@@ -1130,11 +1139,34 @@ export default function App() {
 
   const handleRandomRegion = useCallback(
     (nextEnvironmentId: string, nextRegionId: string) => {
-      playSceneEntryCover();
-      applyRegion(nextEnvironmentId, nextRegionId);
+      setSceneEntranceDelayMs(0);
+      setSceneRising(false);
+      if (prefersReducedMotion() || activeSounds.length === 0) {
+        pendingRandomRegionRef.current = null;
+        applyRegion(nextEnvironmentId, nextRegionId);
+        return;
+      }
+      randomizeTransitionSeqRef.current += 1;
+      const token = randomizeTransitionSeqRef.current;
+      pendingRandomRegionRef.current = {
+        environmentId: nextEnvironmentId,
+        regionId: nextRegionId,
+        token,
+      };
+      setRandomizeTransitionToken(token);
       // Mid-session switch: respect the transport rather than forcing playback.
     },
-    [applyRegion, playSceneEntryCover],
+    [activeSounds.length, applyRegion],
+  );
+
+  const handleRandomizeTransitionComplete = useCallback(
+    (token: number) => {
+      const pending = pendingRandomRegionRef.current;
+      if (!pending || pending.token !== token) return;
+      pendingRandomRegionRef.current = null;
+      applyRegion(pending.environmentId, pending.regionId);
+    },
+    [applyRegion],
   );
 
   const handleLocationSearchChange = useCallback(
@@ -1360,6 +1392,8 @@ export default function App() {
             ringVariant={ringVariant}
             isPlaying={isPlaying}
             entranceHoldMs={sceneEntranceDelayMs}
+            randomizeTransitionToken={randomizeTransitionToken}
+            onRandomizeTransitionComplete={handleRandomizeTransitionComplete}
           />
         </section>
       </main>

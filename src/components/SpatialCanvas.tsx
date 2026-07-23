@@ -45,6 +45,10 @@ type Props = {
    * clears rather than under it. 0 (default) fires immediately, as at boot.
    */
   entranceHoldMs?: number;
+  /** Bumped when Random location should collapse the current tiles into centre. */
+  randomizeTransitionToken?: number;
+  /** Fired once the randomize-only tile collapse has finished. */
+  onRandomizeTransitionComplete?: (token: number) => void;
 };
 
 type DragState = {
@@ -68,6 +72,7 @@ const DRAG_THRESHOLD_PX = 8;
 const ENTRANCE_DURATION_MS = 640;
 const ENTRANCE_DELAY_PER_DISTANCE_MS = 300;
 const ENTRANCE_MAX_DELAY_MS = 320;
+const RANDOMIZE_SUCK_DURATION_MS = 420;
 
 export function SpatialCanvas({
   canvasRef: externalCanvasRef,
@@ -89,6 +94,8 @@ export function SpatialCanvas({
   ringVariant,
   isPlaying = false,
   entranceHoldMs = 0,
+  randomizeTransitionToken = 0,
+  onRandomizeTransitionComplete,
 }: Props) {
   const internalCanvasRef = useRef<HTMLDivElement>(null);
   const canvasRef = externalCanvasRef ?? internalCanvasRef;
@@ -100,6 +107,7 @@ export function SpatialCanvas({
   const onDragBeginRef = useRef(onDragBegin);
   const onDockDragHoverRef = useRef(onDockDragHover);
   const dockHitTestRef = useRef(dockHitTest);
+  const onRandomizeTransitionCompleteRef = useRef(onRandomizeTransitionComplete);
   const activeSoundsRef = useRef(activeSounds);
   const reducedMotionRef = useRef(false);
   const movingRef = useRef<Map<string, boolean>>(new Map());
@@ -109,13 +117,16 @@ export function SpatialCanvas({
   // their per-tile stagger delays. Kept off the physics loop so the flight is a
   // pure CSS transform/opacity animation with no per-frame React churn.
   const [enteringIds, setEnteringIds] = useState<Set<string>>(() => new Set());
+  const [suckingIds, setSuckingIds] = useState<Set<string>>(() => new Set());
   const [ringsEntering, setRingsEntering] = useState(false);
+  const [listenerSucking, setListenerSucking] = useState(false);
   const entranceDelaysRef = useRef<Map<string, number>>(new Map());
   const entranceTimerRef = useRef<number | null>(null);
   // Timer that holds the radiate-in until the shared page wipe has revealed the
   // canvas, and a ref mirror of the current hold so the entrance effect reads a
   // live value without re-subscribing.
   const entranceStartTimerRef = useRef<number | null>(null);
+  const randomizeSuckTimerRef = useRef<number | null>(null);
   const entranceHoldRef = useRef(0);
   // Tracks the region whose entrance we last played, and whether a fresh scene
   // is armed but still waiting for its sounds to populate.
@@ -154,6 +165,10 @@ export function SpatialCanvas({
   }, [onDockDragHover]);
 
   useEffect(() => {
+    onRandomizeTransitionCompleteRef.current = onRandomizeTransitionComplete;
+  }, [onRandomizeTransitionComplete]);
+
+  useEffect(() => {
     dockHitTestRef.current = dockHitTest;
   }, [dockHitTest]);
 
@@ -173,8 +188,37 @@ export function SpatialCanvas({
     return () => {
       if (entranceTimerRef.current) window.clearTimeout(entranceTimerRef.current);
       if (entranceStartTimerRef.current) window.clearTimeout(entranceStartTimerRef.current);
+      if (randomizeSuckTimerRef.current) window.clearTimeout(randomizeSuckTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (randomizeTransitionToken === 0) return;
+
+    const liveSounds = activeSoundsRef.current;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (randomizeSuckTimerRef.current) window.clearTimeout(randomizeSuckTimerRef.current);
+    if (entranceTimerRef.current) window.clearTimeout(entranceTimerRef.current);
+    if (entranceStartTimerRef.current) window.clearTimeout(entranceStartTimerRef.current);
+    setEnteringIds(new Set());
+    setRingsEntering(false);
+
+    if (reducedMotion || liveSounds.length === 0) {
+      setSuckingIds(new Set());
+      setListenerSucking(false);
+      onRandomizeTransitionCompleteRef.current?.(randomizeTransitionToken);
+      return;
+    }
+
+    setSuckingIds(new Set(liveSounds.map((item) => item.instanceId)));
+    setListenerSucking(true);
+    randomizeSuckTimerRef.current = window.setTimeout(() => {
+      setSuckingIds(new Set());
+      setListenerSucking(false);
+      onRandomizeTransitionCompleteRef.current?.(randomizeTransitionToken);
+    }, RANDOMIZE_SUCK_DURATION_MS);
+  }, [randomizeTransitionToken]);
 
   // Play the radiate-in entrance whenever a fresh soundscape lands: a new region
   // is picked, or the very first scene populates. Detecting it here (rather than
@@ -528,6 +572,7 @@ export function SpatialCanvas({
           const physics = renderStates.get(item.instanceId) ?? createPhysics(item.position);
           const isDragging = draggingId === item.instanceId;
           const entering = enteringIds.has(item.instanceId);
+          const sucking = suckingIds.has(item.instanceId);
 
           return (
             <SoundIcon
@@ -539,6 +584,7 @@ export function SpatialCanvas({
               sway={physics.sway}
               isDragging={isDragging}
               entering={entering}
+              sucking={sucking}
               entranceDelayMs={entranceDelaysRef.current.get(item.instanceId) ?? 0}
               hiddenForGhost={isDragging && dockGhost !== null}
               hiddenForDetailExpand={detailExpandInstanceId === item.instanceId}
@@ -551,7 +597,10 @@ export function SpatialCanvas({
             />
           );
         })}
-        <div className={styles.listener} aria-label="You — listener position">
+        <div
+          className={`${styles.listener} ${listenerSucking ? styles.listenerSucking : ''}`}
+          aria-label="You — listener position"
+        >
           <span className={styles.listenerDot} aria-hidden />
           <span className={styles.listenerLabel}>You</span>
         </div>

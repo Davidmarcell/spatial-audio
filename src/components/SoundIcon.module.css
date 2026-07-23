@@ -29,6 +29,12 @@
     var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1)) both;
 }
 
+.sucking {
+  will-change: transform, opacity;
+  animation: soundIconSuck var(--randomize-suck-duration, 420ms)
+    cubic-bezier(0.32, 0, 0.12, 1) both;
+}
+
 @keyframes soundIconRadiate {
   from {
     transform: translate(-50%, -50%)
@@ -47,6 +53,27 @@
     transform: translate(-50%, -50%) translate(0, 0) scale(1);
     opacity: 1;
   }
+}
+
+@keyframes soundIconSuck {
+  from {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  62% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translate(-50%, -50%)
+      translate(var(--entrance-dx, 0), var(--entrance-dy, 0)) scale(0.18);
+    opacity: 0;
+  }
+}
+
+.sucking .iconBody {
+  pointer-events: none;
 }
 
 .iconBodyDragging {
@@ -227,7 +254,8 @@
   .hoverOverlay,
   .actionButton,
   .dismissing .icon,
-  .entering {
+  .entering,
+  .sucking {
     animation: none;
     transition: none;
   }
