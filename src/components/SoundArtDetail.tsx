@@ -27,6 +27,11 @@ type Props = {
   presentation?: 'card' | 'sheet';
   /** Hide artwork while a shared-element face covers the same slot. */
   artworkHidden?: boolean;
+  /**
+   * `shared` keeps the canvas tile image (cover + crop) in a square slot so
+   * the expand handoff matches the flying face exactly.
+   */
+  artworkMode?: 'natural' | 'shared';
   /** Fade the meta/volume column during card-expand (0–1). */
   infoOpacity?: number;
 };
@@ -39,6 +44,7 @@ export function SoundArtDetailContent({
   onClose,
   presentation = 'card',
   artworkHidden = false,
+  artworkMode = 'natural',
   infoOpacity = 1,
 }: Props) {
   const artwork = getSoundArtworkForRegion(
@@ -72,15 +78,23 @@ export function SoundArtDetailContent({
         </button>
       )}
 
-      <div className={`${styles.artworkWrap} ${artworkHidden ? styles.artworkHidden : ''}`}>
-        <div className={styles.artwork}>
+      <div
+        className={[
+          styles.artworkWrap,
+          artworkMode === 'shared' ? styles.artworkWrapShared : '',
+          artworkHidden ? styles.artworkHidden : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <div className={`${styles.artwork} ${artworkMode === 'shared' ? styles.artworkShared : ''}`}>
           <SoundIconImage
             src={artwork.src}
             sourceUrl={artwork.sourceUrl}
             detailSrc={artwork.detailSrc}
             alt={artwork.title}
             soundId={target.soundId}
-            size="detailNatural"
+            size={artworkMode === 'shared' ? 'canvas' : 'detailNatural'}
           />
         </div>
       </div>

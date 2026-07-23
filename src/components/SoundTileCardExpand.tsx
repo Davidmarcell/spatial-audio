@@ -9,8 +9,6 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
-import { iconSrcFallbackChain } from '../data/iconDetailSrc';
-import { publicUrl } from '../utils/publicUrl';
 import {
   type OriginRectSnapshot,
   snapshotOriginRect,
@@ -26,7 +24,7 @@ import styles from './SoundTileCardExpand.module.css';
 
 /** Calm Apple-style curve from the card-expand reference (rselmi). */
 const EXPAND_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-const OPEN_MS = 460;
+const OPEN_MS = 440;
 const CLOSE_MS = 380;
 const TILE_RADIUS_PX = 13.6; // ~var(--tile-radius) 0.85rem
 
@@ -55,35 +53,50 @@ function lerpRect(from: Rect, to: Rect, t: number): Rect {
   };
 }
 
+/** Approximate cubic-bezier(0.32, 0.72, 0, 1) for rAF progress. */
+function easeCardExpand(t: number): number {
+  // Sampled cubic bezier — calm decelerate, zero bounce.
+  const c1x = 0.32;
+  const c1y = 0.72;
+  const c2x = 0;
+  const c2y = 1;
+  // Newton solve for x, then evaluate y.
+  let x = t;
+  for (let i = 0; i < 5; i += 1) {
+    const u = 1 - x;
+    const bx = 3 * u * u * x * c1x + 3 * u * x * x * c2x + x * x * x;
+    const dx =
+      3 * u * u * c1x + 6 * u * x * (c2x - c1x) + 3 * x * x * (1 - c2x);
+    if (Math.abs(dx) < 1e-6) break;
+    x -= (bx - t) / dx;
+    x = Math.min(1, Math.max(0, x));
+  }
+  const u = 1 - x;
+  return 3 * u * u * x * c1y + 3 * u * x * x * c2y + x * x * x;
+}
+
 function clampCardWidth(preferred: number): number {
   if (typeof window === 'undefined') return preferred;
   return Math.min(preferred, Math.max(280, window.innerWidth - 32));
 }
 
 /**
- * Resting card box. `aspect` is width/height of the detail art so the
- * destination image slot (and card height) match the settled layout — this is
- * what removes the end-of-expand jump.
+ * Resting card for shared-element expand. Art slot stays a square matching the
+ * canvas tile crop, so the same image (src + cover + crop) never changes shape.
  */
 function estimateOpenRect(
   panelWidthPx: number,
   imageSizePx: number,
   paddingPx: number,
-  columnGapPx: number,
-  aspect: number,
 ): Rect {
   const width = clampCardWidth(panelWidthPx);
-  const artW = Math.min(imageSizePx, Math.max(120, width - paddingPx * 2));
-  const artH = artW / Math.max(0.35, aspect);
-  // Two-column card: height follows the taller of art vs a modest info column.
-  const contentH = Math.max(artH, 240);
+  const art = Math.min(imageSizePx, Math.max(120, width - paddingPx * 2));
   const height = Math.min(
-    paddingPx * 2 + contentH,
+    paddingPx * 2 + Math.max(art, 240),
     typeof window !== 'undefined' ? window.innerHeight * 0.85 : 420,
   );
   const vw = typeof window !== 'undefined' ? window.innerWidth : width;
   const vh = typeof window !== 'undefined' ? window.innerHeight : height;
-  void columnGapPx;
   return {
     left: (vw - width) / 2,
     top: (vh - height) / 2,
@@ -101,9 +114,9 @@ function readLiveTileRect(instanceId: string): Rect | null {
 }
 
 /**
- * Shared-element card expand for the sound detail tile.
- * One progress value drives the sheet rect AND the image face into the same
- * slot the settled content uses, so the handoff does not jump on aspect ratio.
+ * Shared-element card expand.
+ * The flying face is the SAME canvas tile image (src + crop + cover) for the
+ * whole flight and the settled art slot — never swapped for a detail asset mid-way.
  */
 export function SoundTileCardExpand({
   open,
@@ -129,11 +142,7 @@ export function SoundTileCardExpand({
   const [animFrom, setAnimFrom] = useState<Rect | null>(null);
   const [animTo, setAnimTo] = useState<Rect | null>(null);
   const [displayTarget, setDisplayTarget] = useState<DetailTarget | null>(target);
-  /** Detail art width/height — drives destination face size. */
-  const [artAspect, setArtAspect] = useState(1);
   const animFrameRef = useRef<number | null>(null);
-  const progressRef = useRef(0);
-  progressRef.current = progress;
 
   const artwork = useMemo(() => {
     if (!displayTarget) return null;
@@ -145,39 +154,6 @@ export function SoundTileCardExpand({
       regionArt.tags,
     );
   }, [displayTarget, regionArt]);
-
-  // Prefetch natural aspect so the expand lands on the real image box.
-  useEffect(() => {
-    if (!artwork) return;
-    const chain = iconSrcFallbackChain(
-      {
-        src: artwork.src,
-        sourceUrl: artwork.sourceUrl,
-        detailSrc: artwork.detailSrc,
-      },
-      'detail',
-    );
-    let cancelled = false;
-    const probe = (index: number) => {
-      const src = chain[index];
-      if (!src) return;
-      const img = new Image();
-      img.onload = () => {
-        if (cancelled) return;
-        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-          setArtAspect(img.naturalWidth / img.naturalHeight);
-        }
-      };
-      img.onerror = () => {
-        if (!cancelled) probe(index + 1);
-      };
-      img.src = publicUrl(src);
-    };
-    probe(0);
-    return () => {
-      cancelled = true;
-    };
-  }, [artwork]);
 
   const cancelAnim = useCallback(() => {
     if (animFrameRef.current != null) {
@@ -193,29 +169,19 @@ export function SoundTileCardExpand({
         typeof window !== 'undefined' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduced) {
-        progressRef.current = to;
         setProgress(to);
         onDone?.();
         return;
       }
 
       const started = performance.now();
-      // Approx of cubic-bezier(0.32, 0.72, 0, 1) — calm decelerate, no bounce.
-      const easeOut = (t: number) => {
-        const u = 1 - t;
-        return 1 - u * u * u * (1 - t * 0.15);
-      };
-
       const tick = (now: number) => {
         const t = Math.min(1, (now - started) / durationMs);
-        const value = lerp(from, to, easeOut(t));
-        progressRef.current = value;
-        setProgress(value);
+        setProgress(lerp(from, to, easeCardExpand(t)));
         if (t < 1) {
           animFrameRef.current = requestAnimationFrame(tick);
         } else {
           animFrameRef.current = null;
-          progressRef.current = to;
           setProgress(to);
           onDone?.();
         }
@@ -226,23 +192,15 @@ export function SoundTileCardExpand({
   );
 
   const restingRect = useCallback(
-    (aspect: number) =>
-      estimateOpenRect(
-        design.panelWidthPx,
-        design.imageSizePx,
-        design.paddingPx,
-        design.columnGapPx,
-        aspect,
-      ),
+    () => estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx),
     [design],
   );
 
-  // Open: paint at the tile, then expand into the aspect-correct resting card.
   useLayoutEffect(() => {
     if (!open || !target) return;
 
     const from = originRect ?? readLiveTileRect(target.instanceId);
-    const to = restingRect(artAspect);
+    const to = restingRect();
     setAnimFrom(from);
     setAnimTo(to);
     setDisplayTarget(target);
@@ -262,18 +220,9 @@ export function SoundTileCardExpand({
       });
     });
     return () => cancelAnimationFrame(frame);
-    // Re-run when aspect resolves so a late natural size can retarget mid-open
-    // only if we have not finished yet — handled separately below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, target?.instanceId]);
 
-  // If aspect arrives during opening, retarget the destination without restarting.
-  useEffect(() => {
-    if (phase !== 'opening') return;
-    setAnimTo(restingRect(artAspect));
-  }, [artAspect, phase, restingRect]);
-
-  // Close: collapse back onto the live canvas tile.
   useEffect(() => {
     if (open) return;
     if (!isPresent || !displayTarget) return;
@@ -281,7 +230,7 @@ export function SoundTileCardExpand({
     const current =
       snapshotOriginRect(sheetRef.current?.getBoundingClientRect() ?? null) ??
       animTo ??
-      restingRect(artAspect);
+      restingRect();
     const tile =
       readLiveTileRect(displayTarget.instanceId) ?? originRect ?? current;
 
@@ -322,42 +271,36 @@ export function SoundTileCardExpand({
     return null;
   }
 
-  const from = animFrom ?? restingRect(artAspect);
-  const to = animTo ?? restingRect(artAspect);
+  const from = animFrom ?? restingRect();
+  const to = animTo ?? restingRect();
   const sheetRect = lerpRect(from, to, progress);
   const cardRadius = design.cardRadiusPx || DEFAULT_SOUND_TILE_DESIGN.cardRadiusPx;
   const radius = lerp(TILE_RADIUS_PX, cardRadius, progress);
 
   const pad = design.paddingPx;
-  const destArtW = Math.min(
-    design.imageSizePx,
-    Math.max(48, to.width - pad * 2),
-  );
-  const destArtH = destArtW / Math.max(0.35, artAspect);
+  const destArt = Math.min(design.imageSizePx, Math.max(48, to.width - pad * 2));
 
-  // Shared face: full-bleed cover on the tile → natural art slot in the card.
+  // Same square-ish cover image the whole way: fill the tile sheet → art slot.
   const faceLeft = lerp(0, pad, progress);
   const faceTop = lerp(0, pad, progress);
-  const faceWidth = lerp(sheetRect.width, destArtW, progress);
-  const faceHeight = lerp(sheetRect.height, destArtH, progress);
+  const faceWidth = lerp(sheetRect.width, destArt, progress);
+  const faceHeight = lerp(sheetRect.height, destArt, progress);
   const faceRadius = lerp(TILE_RADIUS_PX, design.imageRadiusPx, progress);
-  // Blend cover → contain so the crop eases into the natural frame.
-  const faceObjectFit = progress < 0.72 ? 'cover' : 'contain';
 
   const settled = phase === 'open';
+  // Keep the shared face mounted until fully settled, then reveal the identical
+  // square art underneath (same canvas image) — no asset swap mid-flight.
   const showFace = !settled;
   const infoOpacity = settled
     ? 1
-    : Math.max(0, Math.min(1, (progress - 0.5) / 0.45));
+    : Math.max(0, Math.min(1, (progress - 0.55) / 0.4));
 
   const sheetStyle = {
     ...designVars,
     left: `${sheetRect.left}px`,
     top: `${sheetRect.top}px`,
     width: `${sheetRect.width}px`,
-    // Keep a fixed interpolated height through the flight so content can lay
-    // out underneath without popping the sheet when we hand off.
-    height: settled ? 'auto' : `${sheetRect.height}px`,
+    height: `${sheetRect.height}px`,
     maxWidth: `min(${design.panelWidthPx}px, calc(100vw - 2rem))`,
     maxHeight: 'min(85dvh, calc(100dvh - 2.5rem))',
     borderRadius: `${radius}px`,
@@ -370,6 +313,17 @@ export function SoundTileCardExpand({
     height: `${faceHeight}px`,
     borderRadius: `${faceRadius}px`,
   } as CSSProperties;
+
+  const sharedImage = (
+    <SoundIconImage
+      src={artwork.src}
+      sourceUrl={artwork.sourceUrl}
+      detailSrc={artwork.detailSrc}
+      alt={artwork.title}
+      soundId={displayTarget.soundId}
+      size="canvas"
+    />
+  );
 
   return createPortal(
     <>
@@ -393,25 +347,14 @@ export function SoundTileCardExpand({
       >
         {showFace && (
           <div className={styles.face} style={faceStyle}>
-            <div className={styles.faceImage} data-fit={faceObjectFit}>
-              <SoundIconImage
-                src={artwork.src}
-                sourceUrl={artwork.sourceUrl}
-                detailSrc={artwork.detailSrc}
-                alt={artwork.title}
-                soundId={displayTarget.soundId}
-                size="detail"
-              />
-            </div>
+            <div className={styles.faceImage}>{sharedImage}</div>
           </div>
         )}
 
         <div
-          className={`${styles.body} ${settled || progress > 0.35 ? styles.bodyVisible : ''}`}
+          className={styles.body}
           style={{
-            // Content is present under the face so the art slot is already the
-            // correct size when we reveal it — no layout jump at settle.
-            opacity: settled || progress > 0.35 ? 1 : 0,
+            opacity: settled || progress > 0.4 ? 1 : 0,
           }}
         >
           <SoundArtDetailContent
@@ -421,6 +364,7 @@ export function SoundTileCardExpand({
             designConfig={design}
             onClose={close}
             artworkHidden={showFace}
+            artworkMode="shared"
             infoOpacity={infoOpacity}
           />
         </div>
