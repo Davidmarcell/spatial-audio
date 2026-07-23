@@ -1,7 +1,5 @@
 import type { CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
-import { resolveTileIconSrc } from '../data/iconDetailSrc';
-import { publicUrl } from '../utils/publicUrl';
 import { SoundIconImage } from './SoundIconImage';
 import {
   loadSoundTileDesign,
@@ -101,17 +99,13 @@ export function SoundArtDetailContent({
       >
         <div className={`${styles.artwork} ${artworkMode === 'shared' ? styles.artworkShared : ''}`}>
           {artworkMode === 'shared' ? (
-            <img
-              className={styles.sharedImg}
-              src={publicUrl(
-                resolveTileIconSrc({
-                  src: artwork.src,
-                  sourceUrl: artwork.sourceUrl,
-                  detailSrc: artwork.detailSrc,
-                }),
-              )}
+            <SoundIconImage
+              src={artwork.src}
+              sourceUrl={artwork.sourceUrl}
+              detailSrc={artwork.detailSrc}
               alt={artwork.title}
-              draggable={false}
+              soundId={target.soundId}
+              size="canvas"
             />
           ) : (
             <SoundIconImage

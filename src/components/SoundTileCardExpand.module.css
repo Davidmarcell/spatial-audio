@@ -31,16 +31,9 @@
   overflow: hidden;
   background: var(--surface-solid, #f3efe8);
   pointer-events: none;
-}
-
-.faceImg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  pointer-events: none;
-  user-select: none;
+  /* Match SoundIconImage frame: clip scaled/cover art to the flying radius. */
+  border-radius: inherit;
+  transform: translateZ(0);
 }
 
 .body {

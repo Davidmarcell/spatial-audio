@@ -16,6 +16,7 @@ import {
   snapshotOriginRect,
 } from '../utils/overlayOriginAnimation';
 import { SoundArtDetailContent, type DetailTarget } from './SoundArtDetail';
+import { SoundIconImage } from './SoundIconImage';
 import {
   DEFAULT_SOUND_TILE_DESIGN,
   loadSoundTileDesign,
@@ -402,11 +403,15 @@ export function SoundTileCardExpand({
       >
         {showFace && (
           <div className={styles.face} style={faceStyle}>
-            <img
-              className={styles.faceImg}
-              src={tileSrc}
+            {/* Same SoundIconImage path as the canvas tile (center-cover, no
+                crop zoom) so the open handoff never reframes the art. */}
+            <SoundIconImage
+              src={artwork.src}
+              sourceUrl={artwork.sourceUrl}
+              detailSrc={artwork.detailSrc}
               alt={artwork.title}
-              draggable={false}
+              soundId={displayTarget.soundId}
+              size="canvas"
             />
           </div>
         )}
