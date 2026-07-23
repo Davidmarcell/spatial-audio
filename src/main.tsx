@@ -18,6 +18,11 @@ initTheme();
 applySearchSpotlightAnimation(loadSearchSpotlightAnimation());
 applyPlayingBarEdgeGradient(loadPlayingBarEdgeGradient());
 
+// Warm Romie before first paint of the Saudade wordmark (pairs with <link rel=preload>).
+if (typeof document !== 'undefined' && 'fonts' in document) {
+  void document.fonts.load('400 1em Romie').catch(() => undefined);
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SearchSpotlightAnimationProvider>

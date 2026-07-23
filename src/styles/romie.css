@@ -15,6 +15,8 @@
   font-family: 'Romie';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  /* Preloaded in index.html. `block` holds the wordmark invisible briefly until
+     Romie is ready, avoiding a Georgia→Romie flicker from `swap`. */
+  font-display: block;
   src: url('/fonts/romie/Romie-Regular.woff2') format('woff2');
 }

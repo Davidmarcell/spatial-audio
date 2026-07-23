@@ -276,19 +276,12 @@
   z-index: 1;
   margin: 0;
   padding: 0;
-  /* Reserve the tile's space but stay invisible until the art has decoded (the
-     row gains `data-tiles-ready`). This keeps late-decoding images from popping
-     in after layout: by the time a tile rises its image is ready to paint. */
-  opacity: 0;
-}
-
-/* Play the staggered fan entrance only once the tile art has decoded, so the
-   whole row rises in cleanly as one beat rather than each image snapping in. */
-.locationRow[data-tiles-ready] .locationItem {
+  /* Fan rises from the entrance clock (fan reveal delay), not after decode, so
+     it can overlap the wordmark cascade. */
   --gate-rise: var(--landing-fan-rise, 12px);
-  animation: gateRise var(--landing-fan-duration, 0.6s) var(--ease-premium-enter) both;
+  animation: gateRise var(--landing-fan-duration, 0.46s) var(--ease-premium-enter) both;
   animation-delay: calc(
-    var(--landing-fan-delay, 0.2s) + var(--landing-index) * var(--landing-fan-stagger, 0.06s)
+    var(--landing-fan-delay, 0.14s) + var(--landing-index) * var(--landing-fan-stagger, 0.045s)
   );
 }
 
@@ -427,8 +420,7 @@
   .tagline,
   .headphones,
   .searchSlot,
-  .locationItem,
-  .locationRow[data-tiles-ready] .locationItem {
+  .locationItem {
     animation: none;
   }
 
@@ -466,8 +458,8 @@
     transform: none;
   }
 
-  /* No staggered rise, so reveal the tiles the instant their art is ready. */
-  .locationRow[data-tiles-ready] .locationItem {
+  /* No staggered rise — show the fan immediately. */
+  .locationItem {
     opacity: 1;
   }
 

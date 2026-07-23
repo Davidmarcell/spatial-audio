@@ -1,8 +1,9 @@
 /**
  * Live-tunable timing for the landing gate's entrance / loading animation. The
  * hero stack cascades in on mount as one choreographed beat: the wordmark
- * cascades letter by letter, the fan of tiles rises once its art has decoded,
- * then the tagline, the search pill and finally the Enter button. Every delay,
+ * cascades letter by letter, the fan of tiles rises on its own reveal delay
+ * (overlapping the wordmark — not gated on image decode), then the tagline,
+ * the search pill and finally the Enter button. Every delay,
  * duration and rise distance below is written onto the document root as a CSS
  * custom property (see `applyLandingEntranceAnimation`) and consumed by the
  * `gateRise` / `landingSearchRise` keyframes in `LandingGate.module.css` and
@@ -29,7 +30,7 @@ export type LandingEntranceConfig = {
   /** Wordmark: rise distance each letter travels up into place, in px. */
   wordmarkRisePx: number;
 
-  /** Fan tiles: delay after the art is decode-ready before the row rises, in ms. */
+  /** Fan tiles: delay from mount before the row rises, in ms (overlaps wordmark). */
   fanRevealDelayMs: number;
   /** Fan tiles: stagger step between neighbouring tiles, in ms. */
   fanStaggerMs: number;
@@ -120,7 +121,7 @@ export const LANDING_ENTRANCE_GROUPS: LandingEntranceGroup[] = [
   {
     title: 'Fan tiles',
     fields: [
-      { key: 'fanRevealDelayMs', label: 'Reveal delay (after decode)', min: 0, max: 1000, step: 10, unit: 'ms' },
+      { key: 'fanRevealDelayMs', label: 'Reveal delay', min: 0, max: 1000, step: 10, unit: 'ms' },
       { key: 'fanStaggerMs', label: 'Stagger between tiles', min: 0, max: 200, step: 5, unit: 'ms' },
       { key: 'fanDurationMs', label: 'Duration', min: 100, max: 1200, step: 10, unit: 'ms' },
       { key: 'fanRisePx', label: 'Rise distance', min: 0, max: 48, step: 1, unit: 'px' },

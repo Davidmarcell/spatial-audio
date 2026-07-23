@@ -3,7 +3,6 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
-  useState,
   type PointerEvent,
   type ReactNode,
 } from 'react';
@@ -172,35 +171,16 @@ export function LandingGate({
     return shuffle(candidates).slice(0, LANDING_TILE_COUNT);
   }, []);
 
-  // The tile art is decoded off-screen before the fan is allowed to animate in,
-  // so images are ready to paint the instant each tile rises rather than popping
-  // in after layout once their own async decode finishes. A short fallback makes
-  // sure a slow or failed decode can never trap the fan hidden. Until ready the
-  // tiles reserve their full space and simply stay invisible (no layout shift).
-  const [tilesReady, setTilesReady] = useState(false);
+  // Prefetch tile art in the background so paints stay smooth, but do NOT gate
+  // the fan entrance on decode — the reveal delay is measured from mount so the
+  // tiles can overlap the wordmark cascade.
   useEffect(() => {
-    if (locations.length === 0) {
-      setTilesReady(true);
-      return;
-    }
-    let cancelled = false;
-    const decodes = locations.map(({ src }) => {
+    if (locations.length === 0) return;
+    locations.forEach(({ src }) => {
       const image = new Image();
       image.src = src;
-      return image.decode().catch(() => undefined);
+      void image.decode().catch(() => undefined);
     });
-    const fallback = window.setTimeout(() => {
-      if (!cancelled) setTilesReady(true);
-    }, 600);
-    void Promise.all(decodes).then(() => {
-      if (cancelled) return;
-      window.clearTimeout(fallback);
-      setTilesReady(true);
-    });
-    return () => {
-      cancelled = true;
-      window.clearTimeout(fallback);
-    };
   }, [locations]);
 
   const handleTilePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
@@ -257,7 +237,6 @@ export function LandingGate({
         </h1>
         <ul
           className={styles.locationRow}
-          data-tiles-ready={tilesReady ? 'true' : undefined}
           style={
             {
               '--overlap': `${fan.overlapRem}rem`,
