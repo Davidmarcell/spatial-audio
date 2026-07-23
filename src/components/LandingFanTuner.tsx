@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   DEFAULT_FAN_CONFIG,
   fanConfigSummary,
@@ -124,7 +125,7 @@ export function LandingFanTuner({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  if (!import.meta.env.DEV) return null;
+  if (!import.meta.env.DEV || typeof document === 'undefined') return null;
 
   const hidePanel = () => {
     setVisible(false);
@@ -141,7 +142,7 @@ export function LandingFanTuner({
       preset.config.scaleFalloff === config.scaleFalloff,
   )?.id;
 
-  return (
+  return createPortal(
     <>
       <div className={styles.launcherDock}>
         <button
@@ -295,6 +296,7 @@ export function LandingFanTuner({
           )}
         </aside>
       )}
-    </>
+    </>,
+    document.body,
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   DEFAULT_LANDING_ENTRANCE_CONFIG,
   isLandingEntranceTunerEnabled,
@@ -64,8 +65,9 @@ export function LandingEntranceTuner({ config, onChange, onReplay }: LandingEntr
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('entranceDebug') === '1') showPanel();
+    // Always surface the panel on the landing so timings are editable without
+    // hunting for a chip (Shift+E / ?entranceDebug=1 still work).
+    showPanel(false);
   }, []);
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export function LandingEntranceTuner({ config, onChange, onReplay }: LandingEntr
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  if (!import.meta.env.DEV) return null;
+  if (!import.meta.env.DEV || typeof document === 'undefined') return null;
 
   const hidePanel = () => {
     setVisible(false);
@@ -103,7 +105,8 @@ export function LandingEntranceTuner({ config, onChange, onReplay }: LandingEntr
 
   const patch = (next: Partial<LandingEntranceConfig>) => onChange({ ...config, ...next });
 
-  return (
+  // Portal to <body> so SheetStack transforms cannot trap / bury the controls.
+  return createPortal(
     <>
       <div className={styles.launcherDock}>
         <button
@@ -206,6 +209,7 @@ export function LandingEntranceTuner({ config, onChange, onReplay }: LandingEntr
           )}
         </aside>
       )}
-    </>
+    </>,
+    document.body,
   );
 }

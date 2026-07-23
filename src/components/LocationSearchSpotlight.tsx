@@ -429,6 +429,28 @@ export function LocationSearchSpotlight({
   // whole pill travels up with the sheet, so a second, separate hero fade-up
   // would double the motion.
   const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !riseWithGate);
+  // Defer mounting the body-portalled pill until the hero search delay elapses.
+  // The portal paints white glass at opacity 1 for a frame before CSS animation
+  // fill can hide it; keeping it out of the DOM until its beat removes that flash.
+  const [landingPortalAllowed, setLandingPortalAllowed] = useState(
+    () => !enlarged || riseWithGate,
+  );
+
+  useLayoutEffect(() => {
+    if (!enlarged || riseWithGate || !landingEntranceArmed) {
+      setLandingPortalAllowed(true);
+      return;
+    }
+    setLandingPortalAllowed(false);
+    const raw = getComputedStyle(document.documentElement)
+      .getPropertyValue('--landing-search-delay')
+      .trim();
+    let delayMs = 520;
+    if (raw.endsWith('ms')) delayMs = Number.parseFloat(raw) || delayMs;
+    else if (raw.endsWith('s')) delayMs = (Number.parseFloat(raw) || 0.52) * 1000;
+    const timer = window.setTimeout(() => setLandingPortalAllowed(true), Math.max(0, delayMs));
+    return () => window.clearTimeout(timer);
+  }, [enlarged, landingEntranceArmed, riseWithGate]);
 
   useEffect(() => {
     if (phase === 'opening-width') setTrendingToken((token) => token + 1);
@@ -1156,6 +1178,7 @@ export function LocationSearchSpotlight({
     <div className={styles.root} ref={rootRef} data-size={enlarged ? 'lg' : undefined}>
       {panelAnchor &&
         !blocked &&
+        landingPortalAllowed &&
         typeof document !== 'undefined' &&
         createPortal(
           <div
@@ -1164,6 +1187,7 @@ export function LocationSearchSpotlight({
             data-expand={expandDirection}
             data-size={enlarged ? 'lg' : undefined}
             data-landing-entrance={landingEntranceArmed ? 'in' : undefined}
+            data-entrance-deferred={enlarged && landingEntranceArmed ? 'true' : undefined}
             data-rising={riseWithGate ? 'true' : undefined}
             data-recessed={recessed ? 'true' : undefined}
             data-theme={theme}

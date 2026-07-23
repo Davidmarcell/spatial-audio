@@ -276,6 +276,9 @@
   min-width: min(25rem, 62vw);
   max-width: min(25rem, 62vw);
   --search-shell-collapsed-height: 3.68rem;
+  /* In-flow node is only a layout spacer; the visible pill is portalled. */
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .panelAnchor[data-size='lg'] {
@@ -319,6 +322,11 @@
   visibility: hidden;
   animation: landingSearchRise var(--landing-search-duration, 0.42s) var(--ease-premium-enter)
     var(--landing-search-delay, 0.52s) both;
+}
+
+/* Portal was deferred in JS until the search delay — play the rise immediately. */
+.panelAnchor[data-size='lg'][data-landing-entrance='in'][data-entrance-deferred='true'] .panel {
+  animation-delay: 0s;
 }
 
 @keyframes landingSearchRise {

@@ -251,6 +251,11 @@ export default function App() {
     return region.name;
   }, [customGlobeLocation, environmentId, regionId, region.name]);
 
+  // Workspace chrome (bottom search, play, etc.) must wait until the landing
+  // exit cover has finished — otherwise "Search places" flashes under the
+  // rising sheet the moment a fan tile is clicked.
+  const showWorkspaceChrome = hasEntered && !landingExiting && !landingEntering;
+
   const globeLocations = useMemo(() => {
     const curated = worldLocations.filter((location) => !location.custom);
     if (customGlobeLocation) return [...curated, customGlobeLocation];
@@ -1244,12 +1249,11 @@ export default function App() {
               backdrop={false}
               enlarged
               recenterOnExpand
-              // Hide during globe browse so the landing pill cannot flash for a
-              // frame above the rising sheet; keep it for home-return rise.
-              blocked={showGlobe && !landingEntering}
-              // Track the gate on both exit (Enter -> globe) and enter (home)
-              // so the portalled pill moves with the stacked sheet.
-              riseWithGate={landingEntering || landingExiting}
+              // Hide while browsing the globe, and immediately when leaving the
+              // landing for a place (so the pill cannot linger over the cover).
+              blocked={(showGlobe && !landingEntering) || landingExiting}
+              // Track the gate on home-return rise only (exit uses blocked above).
+              riseWithGate={landingEntering}
             />
           }
         />
@@ -1368,7 +1372,7 @@ export default function App() {
         onPointerMove={(event) => syncBottomBarTooltip(event.target)}
         onPointerLeave={() => setBottomBarTooltip(null)}
       >
-        {hasEntered && (
+        {showWorkspaceChrome && (
           <div className={styles.bottomBarPlay}>
             <PlayCluster
               engine={engine}
@@ -1378,7 +1382,7 @@ export default function App() {
           </div>
         )}
         <div className={styles.bottomBarRow}>
-          {hasEntered && (
+          {showWorkspaceChrome && (
             <div className={styles.leftActionGroup}>
               <UseMyLocationButton onMatch={handleGeoMatch} />
               <RandomizeLocationButton
@@ -1388,7 +1392,7 @@ export default function App() {
               />
             </div>
           )}
-          {hasEntered && (
+          {showWorkspaceChrome && (
             <LocationSearchSpotlight
               appLocations={appLocations}
               worldLocations={worldLocations}
@@ -1402,7 +1406,7 @@ export default function App() {
               riseWithBar={sceneRising}
             />
           )}
-          {hasEntered && (
+          {showWorkspaceChrome && (
             <div className={styles.rightActionGroup}>
               <MapButton onClick={() => handleGlobeOpenChange(true)} />
               <ShareButton onShare={handleShare} />
