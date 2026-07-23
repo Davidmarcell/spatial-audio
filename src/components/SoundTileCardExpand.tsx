@@ -24,11 +24,18 @@ import {
 } from './soundTileDesign';
 import styles from './SoundTileCardExpand.module.css';
 
-/** Calm Apple-style curve from the card-expand reference (rselmi). */
+/** Card flight timing — linear so the settle doesn't decelerate/drag. */
 const EXPAND_EASE = 'linear';
 const OPEN_MS = 440;
 const CLOSE_MS = 380;
 const TILE_RADIUS_PX = 13.6;
+/**
+ * Art box reaches its resting size/aspect by this fraction of the card flight.
+ * Finishing early keeps the portrait morph from fighting the wider card travel
+ * (same clock, different distances); the image then sits contained while the
+ * sheet finishes widening.
+ */
+const ART_SETTLE_AT = 0.55;
 
 type Rect = OriginRectSnapshot;
 
@@ -58,6 +65,12 @@ function lerpRect(from: Rect, to: Rect, t: number): Rect {
 /** Linear progress — constant speed into the resting slot (no end deceleration). */
 function easeCardExpand(t: number): number {
   return t;
+}
+
+/** Remap card progress so the art box hits 1.0 at `settleAt`, then holds. */
+function artProgressFor(progress: number, settleAt = ART_SETTLE_AT): number {
+  if (settleAt <= 0) return 1;
+  return Math.min(1, Math.max(0, progress / settleAt));
 }
 
 function clampCardWidth(preferred: number): number {
@@ -99,9 +112,10 @@ function readLiveTileRect(instanceId: string): Rect | null {
 
 /**
  * Shared-element card expand.
- * Same tile image throughout; the frame grows from the square crop into the
- * natural art ratio (taller for portraits like Tui) so more of the illustration
- * is revealed. Copy only fades in once the card is at resting width.
+ * Same tile image throughout. The art frame morphs square → natural ratio on a
+ * shorter clock than the card width (settles early, then stays contained), so
+ * portrait height growth does not fight the wider sheet travel. Copy fades in
+ * once the card is near resting width.
  */
 export function SoundTileCardExpand({
   open,
@@ -335,12 +349,19 @@ export function SoundTileCardExpand({
   const destArtW = Math.min(design.imageSizePx, Math.max(48, to.width - pad * 2));
   const destArtH = destArtW / Math.max(0.4, artAspect);
 
-  // Frame: square tile → natural art box. Same image + cover reveals more as it grows.
-  const faceLeft = lerp(0, pad, progress);
-  const faceTop = lerp(0, pad, progress);
-  const faceWidth = lerp(sheetRect.width, destArtW, progress);
-  const faceHeight = lerp(sheetRect.height, destArtH, progress);
-  const faceRadius = lerp(TILE_RADIUS_PX, design.imageRadiusPx, progress);
+  // Art morph finishes early; card keeps traveling on `progress`.
+  const artT = artProgressFor(progress);
+  const faceLeft = lerp(0, pad, artT);
+  const faceTop = lerp(0, pad, artT);
+  // Grow from the origin tile size (not the live sheet), so width/height share
+  // one destination box and don't track the card's different travel distance.
+  const targetFaceW = lerp(from.width, destArtW, artT);
+  const targetFaceH = lerp(from.height, destArtH, artT);
+  // Contain inside the sheet so an early-settled image never overflows mid-flight
+  // (and on close, the art holds until the shrinking card forces it down).
+  const faceWidth = Math.min(targetFaceW, Math.max(0, sheetRect.width - faceLeft * 2));
+  const faceHeight = Math.min(targetFaceH, Math.max(0, sheetRect.height - faceTop * 2));
+  const faceRadius = lerp(TILE_RADIUS_PX, design.imageRadiusPx, artT);
 
   const settled = phase === 'open';
   const showFace = !settled;
