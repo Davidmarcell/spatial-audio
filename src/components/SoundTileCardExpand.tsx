@@ -25,7 +25,7 @@ import {
 import styles from './SoundTileCardExpand.module.css';
 
 /** Calm Apple-style curve from the card-expand reference (rselmi). */
-const EXPAND_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const EXPAND_EASE = 'linear';
 const OPEN_MS = 440;
 const CLOSE_MS = 380;
 const TILE_RADIUS_PX = 13.6;
@@ -55,23 +55,9 @@ function lerpRect(from: Rect, to: Rect, t: number): Rect {
   };
 }
 
+/** Linear progress — constant speed into the resting slot (no end deceleration). */
 function easeCardExpand(t: number): number {
-  const c1x = 0.32;
-  const c1y = 0.72;
-  const c2x = 0;
-  const c2y = 1;
-  let x = t;
-  for (let i = 0; i < 5; i += 1) {
-    const u = 1 - x;
-    const bx = 3 * u * u * x * c1x + 3 * u * x * x * c2x + x * x * x;
-    const dx =
-      3 * u * u * c1x + 6 * u * x * (c2x - c1x) + 3 * x * x * (1 - c2x);
-    if (Math.abs(dx) < 1e-6) break;
-    x -= (bx - t) / dx;
-    x = Math.min(1, Math.max(0, x));
-  }
-  const u = 1 - x;
-  return 3 * u * u * x * c1y + 3 * u * x * x * c2y + x * x * x;
+  return t;
 }
 
 function clampCardWidth(preferred: number): number {
