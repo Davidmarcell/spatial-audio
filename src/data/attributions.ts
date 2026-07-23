@@ -8,7 +8,7 @@ import { audioAttributionsFromPools } from './soundPools';
 export const uiAudioAttributions: Attribution[] = [
   {
     file: 'public/audio/ui/enter-whoosh.mp3',
-    title: 'Swooshes, whoosh, short, deep (trimmed ~1.35s)',
+    title: 'Swooshes, whoosh, short, deep (extended ~2.2s with soft fade)',
     author: 'susssounds',
     license: 'CC0 1.0',
     sourceUrl: 'https://freesound.org/people/susssounds/sounds/752068/',

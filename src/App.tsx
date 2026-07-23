@@ -39,7 +39,7 @@ import { GlobeMapSheet } from './components/GlobeMapSheet';
 import { AddSoundSheet } from './components/AddSoundSheet';
 import { LandingGate } from './components/LandingGate';
 import { EnterTransition } from './components/EnterTransition';
-import { SHEET_SCENE_REVEAL_MS, prefersReducedMotion } from './components/sheetRise';
+import { SHEET_SCENE_REVEAL_MS, SCENE_AUTOPLAY_AFTER_MS, prefersReducedMotion } from './components/sheetRise';
 import { loadLandingFanConfig, type FanConfig } from './components/landingFan';
 import { LandingFanTuner } from './components/LandingFanTuner';
 import { LandingEntranceTuner } from './components/LandingEntranceTuner';
@@ -93,8 +93,8 @@ type ReturnFlight = {
 
 /** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~1300ms). */
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
-/** One-shot level relative to master headroom (baseMasterLevel 0.9). */
-const ENTER_WHOOSH_VOLUME = 0.55;
+/** Half the previous one-shot level so the whoosh sits under the reveal. */
+const ENTER_WHOOSH_VOLUME = 0.275;
 /** Quiet wind bed while browsing the globe from the landing. */
 const GLOBE_AMBIENT_SRC = '/audio/ui/globe-ambient.mp3';
 const GLOBE_AMBIENT_ID = 'ui:globe-ambient';
@@ -215,6 +215,7 @@ export default function App() {
     engine,
     unlock,
     play,
+    pause,
     playOneShot,
     playLoop,
     stopLoop,
@@ -458,6 +459,7 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
+    let autoPlayTimer: number | null = null;
 
     const sync = async () => {
       const activeIds = new Set(activeSounds.map((item) => item.instanceId));
@@ -502,6 +504,16 @@ export default function App() {
       if (autoPlayOnLoad) {
         await unlock();
         if (cancelled) return;
+        // Wait until the entry cover dissolves and canvas tiles finish radiating
+        // before starting the soundscape, so audio does not lead the visuals.
+        const delayMs = prefersReducedMotion() ? 0 : SCENE_AUTOPLAY_AFTER_MS;
+        if (delayMs > 0) {
+          await new Promise<void>((resolve) => {
+            autoPlayTimer = window.setTimeout(resolve, delayMs);
+          });
+          autoPlayTimer = null;
+        }
+        if (cancelled) return;
         await play();
         if (cancelled) return;
         setAutoPlayOnLoad(false);
@@ -511,6 +523,10 @@ export default function App() {
     void sync();
     return () => {
       cancelled = true;
+      if (autoPlayTimer != null) {
+        window.clearTimeout(autoPlayTimer);
+        autoPlayTimer = null;
+      }
     };
   }, [
     activeSounds,
@@ -1040,6 +1056,8 @@ export default function App() {
     setShowGlobe(false);
     setDetailTarget(null);
     setDetailOriginRect(null);
+    setAutoPlayOnLoad(false);
+    pause();
     if (!landingEnabled) {
       setLandingEnabled(true);
       persistLandingGateEnabled(true);
@@ -1051,7 +1069,7 @@ export default function App() {
     setHasEntered(false);
     setLandingEntering(true);
     setLandingReplayKey((key) => key + 1);
-  }, [landingEnabled, showGlobe]);
+  }, [landingEnabled, pause, showGlobe]);
 
   // The incoming landing has finished rising home over the outgoing page, so
   // settle the rise (drop the raised stacking) and unmount the lifted globe

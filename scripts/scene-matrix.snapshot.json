@@ -582,11 +582,13 @@
       "global-surf": "waves-pebble",
       "global-traffic": "city-latam-aguascalientes",
       "global-wind": "wind-fir-forest",
+      "redwoods-canopy": "forest-1",
+      "redwoods-drip": "legacy-stream-distant",
       "redwoods-jay": "corvid-stellers-jay",
       "redwoods-raven": "corvid-common-raven"
     },
     "image": {
-      "global-forest": "/icons/met/11306.jpg",
+      "global-forest": "/icons/met/371022.jpg",
       "global-gull": "/icons/pool/seabird-americas.jpg",
       "global-insects": "/icons/merian-suriname-butterfly.jpg",
       "global-jazz": "/icons/pool/music-accordion.jpg",
@@ -596,7 +598,9 @@
       "global-stream": "/icons/met/12586.jpg",
       "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/DT5026.jpg",
       "global-traffic": "/icons/met/853645.jpg",
-      "global-wind": "/icons/met/11131.jpg",
+      "global-wind": "/icons/met/11306.jpg",
+      "redwoods-canopy": "/icons/redwoods-bierstadt.jpg",
+      "redwoods-drip": "/icons/forest-stream.jpg",
       "redwoods-jay": "/icons/redwoods-stellers-jay-audubon.jpg",
       "redwoods-raven": "/icons/redwoods-raven-audubon.jpg"
     }

@@ -61,7 +61,7 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 
 | File | Title | Author | License | Source |
 |------|-------|--------|---------|--------|
-| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (trimmed ~1.35s) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
+| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (extended ~2.2s with soft fade) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
 | `public/audio/ui/globe-ambient.mp3` | Wind in tall grass (quiet globe bed) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0908](https://bigsoundbank.com/wind-in-tall-grass-s0908.html) |
 
 ## Re-downloading assets

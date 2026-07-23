@@ -220,11 +220,13 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // Two corvids now play by default: a Common Raven croak and a Steller's Jay
     // call, each pinned to its own sourced nearctic clip + bespoke plate, over
     // the redwood canopy, Pacific wren song, dripping canopy and distant surf.
-    bed('forest', { name: 'Redwood Canopy' }),
+    // Canopy + drip layers use bespoke ids so they keep Bierstadt / Mønsted
+    // plates instead of the generic Met forest/stream pool draws.
+    bed('forest', { id: 'redwoods-canopy', name: 'Redwood Canopy' }),
     bed('songbird', { name: 'Pacific Wren & Varied Thrush' }),
     bed('corvid', { id: 'redwoods-raven', name: 'Common Raven', vol: 0.4, clip: 'corvid-common-raven' }),
     bed('corvid', { id: 'redwoods-jay', name: "Steller's Jay", vol: 0.42, clip: 'corvid-stellers-jay' }),
-    bed('stream', { name: 'Dripping Canopy', vol: 0.42 }),
+    bed('stream', { id: 'redwoods-drip', name: 'Dripping Canopy', vol: 0.42 }),
     bed('surf', { name: 'Distant Pacific', vol: 0.3 }),
     option('owl', { name: 'Spotted Owl' }),
   ] },

@@ -65,9 +65,10 @@ export const iconCropBySrc: Record<string, IconCrop> = {
   '/icons/paris-notre-dame-delauney.jpg': { scale: 1.3, y: '42%' },
   '/icons/paris-house-sparrow-naumann.jpg': { scale: 1.28, y: '38%' },
   '/icons/paris-boulevard-pissarro.jpg': { scale: 1.2, y: '46%' },
-  // Redwoods corvid plates.
+  // Redwoods corvid + canopy / drip plates.
   '/icons/redwoods-raven-audubon.jpg': { scale: 1.5, y: '54%' },
   '/icons/redwoods-stellers-jay-audubon.jpg': { scale: 1.12, y: '48%' },
+  '/icons/redwoods-bierstadt.jpg': { scale: 1.22, y: '44%' },
 };
 
 export const iconCropBySound: Record<string, IconCrop> = {

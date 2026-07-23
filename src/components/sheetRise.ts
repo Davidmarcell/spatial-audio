@@ -24,6 +24,19 @@ export const SHEET_REVEAL_FADE_MS = 200;
  */
 export const SHEET_SCENE_REVEAL_MS = SHEET_RISE_DURATION_MS;
 /**
+ * Canvas tile radiate-in duration (must stay in sync with SpatialCanvas).
+ * Used to defer soundscape autoplay until tiles have finished entering.
+ */
+export const SCENE_TILE_ENTRANCE_MS = 640;
+/** Max per-tile stagger for the radiate-in (SpatialCanvas). */
+export const SCENE_TILE_STAGGER_MAX_MS = 320;
+/**
+ * Delay from scene-entry cover start until autoplay is safe: cover reveal +
+ * last tile stagger + radiate duration.
+ */
+export const SCENE_AUTOPLAY_AFTER_MS =
+  SHEET_SCENE_REVEAL_MS + SCENE_TILE_STAGGER_MAX_MS + SCENE_TILE_ENTRANCE_MS;
+/**
  * Peak depth of the curved leading edge at the start of the rise, as a fraction
  * of viewport height. The edge starts this deeply bowed and eases to flat by the
  * end, which is the "stretched fabric" feel we are matching.

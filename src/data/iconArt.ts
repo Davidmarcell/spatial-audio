@@ -78,9 +78,13 @@ const extendedFixedIcons: Record<string, string> = {
   'paris-bells': '/icons/paris-notre-dame-delauney.jpg',
   'paris-sparrows': '/icons/paris-house-sparrow-naumann.jpg',
   'paris-cityhum': '/icons/paris-boulevard-pissarro.jpg',
-  // Redwoods: the two new default corvids get their own species plates.
+  // Redwoods: the two new default corvids get their own species plates; canopy
+  // and drip layers leave the generic Met forest/stream sketches for Bierstadt
+  // Giant Redwoods and Mønsted's forest stream.
   'redwoods-raven': '/icons/redwoods-raven-audubon.jpg',
   'redwoods-jay': '/icons/redwoods-stellers-jay-audubon.jpg',
+  'redwoods-canopy': '/icons/redwoods-bierstadt.jpg',
+  'redwoods-drip': '/icons/forest-stream.jpg',
 };
 
 /** Attributions for the extended fixed plates above (kept out of the generated file). */
@@ -175,6 +179,22 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     author: 'After John James Audubon, The Birds of America',
     license: 'Public domain',
     sourceUrl: "https://commons.wikimedia.org/wiki/File:Steller's_Jay_(illustration).jpg",
+  },
+  {
+    file: '/icons/redwoods-bierstadt.jpg',
+    title: 'Giant Redwood Trees of California',
+    author: 'Albert Bierstadt (1874), The Berkshire Museum',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Albert_Bierstadt_-_Giant_Redwood_Trees_of_California_-_Google_Art_Project.jpg',
+  },
+  {
+    file: '/icons/forest-stream.jpg',
+    title: 'A Forest Stream',
+    author: 'Peder Mørk Mønsted (1905)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:A_Forest_Stream_by_Peder_Mork_Monsted.jpg',
   },
 ];
 
