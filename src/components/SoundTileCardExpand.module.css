@@ -31,23 +31,16 @@
   overflow: hidden;
   background: var(--surface-solid, #f3efe8);
   pointer-events: none;
-  /* Inherit into SoundIconImage so corners stay concentric. */
-  border-radius: inherit;
 }
 
-.faceImage {
+.faceImg {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: inherit;
-  overflow: hidden;
-}
-
-.faceImage > span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
 }
 
 .body {

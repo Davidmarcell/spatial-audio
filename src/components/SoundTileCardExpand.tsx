@@ -9,12 +9,13 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
+import { resolveTileIconSrc } from '../data/iconDetailSrc';
+import { publicUrl } from '../utils/publicUrl';
 import {
   type OriginRectSnapshot,
   snapshotOriginRect,
 } from '../utils/overlayOriginAnimation';
 import { SoundArtDetailContent, type DetailTarget } from './SoundArtDetail';
-import { SoundIconImage } from './SoundIconImage';
 import {
   DEFAULT_SOUND_TILE_DESIGN,
   loadSoundTileDesign,
@@ -26,7 +27,7 @@ import styles from './SoundTileCardExpand.module.css';
 const EXPAND_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const OPEN_MS = 440;
 const CLOSE_MS = 380;
-const TILE_RADIUS_PX = 13.6; // ~var(--tile-radius) 0.85rem
+const TILE_RADIUS_PX = 13.6;
 
 type Rect = OriginRectSnapshot;
 
@@ -53,14 +54,11 @@ function lerpRect(from: Rect, to: Rect, t: number): Rect {
   };
 }
 
-/** Approximate cubic-bezier(0.32, 0.72, 0, 1) for rAF progress. */
 function easeCardExpand(t: number): number {
-  // Sampled cubic bezier — calm decelerate, zero bounce.
   const c1x = 0.32;
   const c1y = 0.72;
   const c2x = 0;
   const c2y = 1;
-  // Newton solve for x, then evaluate y.
   let x = t;
   for (let i = 0; i < 5; i += 1) {
     const u = 1 - x;
@@ -80,19 +78,18 @@ function clampCardWidth(preferred: number): number {
   return Math.min(preferred, Math.max(280, window.innerWidth - 32));
 }
 
-/**
- * Resting card for shared-element expand. Art slot stays a square matching the
- * canvas tile crop, so the same image (src + cover + crop) never changes shape.
- */
+/** width/height of the art — portrait images are taller (aspect < 1). */
 function estimateOpenRect(
   panelWidthPx: number,
   imageSizePx: number,
   paddingPx: number,
+  aspect: number,
 ): Rect {
   const width = clampCardWidth(panelWidthPx);
-  const art = Math.min(imageSizePx, Math.max(120, width - paddingPx * 2));
+  const artW = Math.min(imageSizePx, Math.max(120, width - paddingPx * 2));
+  const artH = artW / Math.max(0.4, aspect);
   const height = Math.min(
-    paddingPx * 2 + Math.max(art, 240),
+    paddingPx * 2 + Math.max(artH, 240),
     typeof window !== 'undefined' ? window.innerHeight * 0.85 : 420,
   );
   const vw = typeof window !== 'undefined' ? window.innerWidth : width;
@@ -115,8 +112,9 @@ function readLiveTileRect(instanceId: string): Rect | null {
 
 /**
  * Shared-element card expand.
- * The flying face is the SAME canvas tile image (src + crop + cover) for the
- * whole flight and the settled art slot — never swapped for a detail asset mid-way.
+ * Same tile image throughout; the frame grows from the square crop into the
+ * natural art ratio (taller for portraits like Tui) so more of the illustration
+ * is revealed. Copy only fades in once the card is at resting width.
  */
 export function SoundTileCardExpand({
   open,
@@ -142,7 +140,11 @@ export function SoundTileCardExpand({
   const [animFrom, setAnimFrom] = useState<Rect | null>(null);
   const [animTo, setAnimTo] = useState<Rect | null>(null);
   const [displayTarget, setDisplayTarget] = useState<DetailTarget | null>(target);
+  /** Natural width/height of the tile image (portrait < 1). */
+  const [artAspect, setArtAspect] = useState(1);
+  const aspectReadyRef = useRef(false);
   const animFrameRef = useRef<number | null>(null);
+  const openStartedRef = useRef(false);
 
   const artwork = useMemo(() => {
     if (!displayTarget) return null;
@@ -154,6 +156,31 @@ export function SoundTileCardExpand({
       regionArt.tags,
     );
   }, [displayTarget, regionArt]);
+
+  const tileSrc = useMemo(() => {
+    if (!artwork) return '';
+    return publicUrl(
+      resolveTileIconSrc({
+        src: artwork.src,
+        sourceUrl: artwork.sourceUrl,
+        detailSrc: artwork.detailSrc,
+      }),
+    );
+  }, [artwork]);
+
+  // Measure the SAME tile image the canvas shows, before/while opening.
+  useEffect(() => {
+    if (!tileSrc) return;
+    aspectReadyRef.current = false;
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        setArtAspect(img.naturalWidth / img.naturalHeight);
+        aspectReadyRef.current = true;
+      }
+    };
+    img.src = tileSrc;
+  }, [tileSrc]);
 
   const cancelAnim = useCallback(() => {
     if (animFrameRef.current != null) {
@@ -191,37 +218,76 @@ export function SoundTileCardExpand({
     [cancelAnim],
   );
 
-  const restingRect = useCallback(
-    () => estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx),
+  const restingRectFor = useCallback(
+    (aspect: number) =>
+      estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx, aspect),
     [design],
+  );
+
+  const beginOpen = useCallback(
+    (instanceId: string, aspect: number) => {
+      const from = originRect ?? readLiveTileRect(instanceId);
+      const to = restingRectFor(aspect);
+      setAnimFrom(from);
+      setAnimTo(to);
+      setPhase('opening');
+      if (!from) {
+        setProgress(1);
+        setPhase('open');
+        return;
+      }
+      setProgress(0);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          animateProgress(0, 1, OPEN_MS, () => setPhase('open'));
+        });
+      });
+    },
+    [animateProgress, originRect, restingRectFor],
   );
 
   useLayoutEffect(() => {
     if (!open || !target) return;
-
-    const from = originRect ?? readLiveTileRect(target.instanceId);
-    const to = restingRect();
-    setAnimFrom(from);
-    setAnimTo(to);
+    openStartedRef.current = false;
     setDisplayTarget(target);
     setIsPresent(true);
+    setProgress(0);
     setPhase('opening');
 
-    if (!from) {
-      setProgress(1);
-      setPhase('open');
+    // Prefer starting once aspect is known so the destination height is right
+    // from the first frame (avoids the grow→reset jump).
+    const start = (aspect: number) => {
+      if (openStartedRef.current) return;
+      openStartedRef.current = true;
+      beginOpen(target.instanceId, aspect);
+    };
+
+    if (aspectReadyRef.current) {
+      start(artAspect);
       return;
     }
 
-    setProgress(0);
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        animateProgress(0, 1, OPEN_MS, () => setPhase('open'));
-      });
-    });
-    return () => cancelAnimationFrame(frame);
+    // Soft fallback: start with square, retarget only the resting height once
+    // aspect arrives (before the animation finishes).
+    const fallbackTimer = window.setTimeout(() => start(1), 40);
+    return () => window.clearTimeout(fallbackTimer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, target?.instanceId]);
+
+  // Aspect resolved after open began — lock destination if still opening.
+  useEffect(() => {
+    if (!open || phase !== 'opening' || !openStartedRef.current) return;
+    if (!aspectReadyRef.current) return;
+    setAnimTo(restingRectFor(artAspect));
+  }, [artAspect, open, phase, restingRectFor]);
+
+  // If aspect was ready after the layout effect's fallback path, kick open.
+  useEffect(() => {
+    if (!open || !target || openStartedRef.current) return;
+    if (!aspectReadyRef.current) return;
+    openStartedRef.current = true;
+    beginOpen(target.instanceId, artAspect);
+  }, [artAspect, beginOpen, open, target]);
 
   useEffect(() => {
     if (open) return;
@@ -230,7 +296,7 @@ export function SoundTileCardExpand({
     const current =
       snapshotOriginRect(sheetRef.current?.getBoundingClientRect() ?? null) ??
       animTo ??
-      restingRect();
+      restingRectFor(artAspect);
     const tile =
       readLiveTileRect(displayTarget.instanceId) ?? originRect ?? current;
 
@@ -238,6 +304,7 @@ export function SoundTileCardExpand({
     setAnimTo(current);
     setProgress(1);
     setPhase('closing');
+    openStartedRef.current = false;
 
     animateProgress(1, 0, CLOSE_MS, () => {
       setIsPresent(false);
@@ -267,33 +334,32 @@ export function SoundTileCardExpand({
     return () => window.removeEventListener('keydown', onKey);
   }, [close, isPresent, open]);
 
-  if (!isPresent || !displayTarget || !artwork || typeof document === 'undefined') {
+  if (!isPresent || !displayTarget || !artwork || !tileSrc || typeof document === 'undefined') {
     return null;
   }
 
-  const from = animFrom ?? restingRect();
-  const to = animTo ?? restingRect();
+  const from = animFrom ?? restingRectFor(artAspect);
+  const to = animTo ?? restingRectFor(artAspect);
   const sheetRect = lerpRect(from, to, progress);
   const cardRadius = design.cardRadiusPx || DEFAULT_SOUND_TILE_DESIGN.cardRadiusPx;
   const radius = lerp(TILE_RADIUS_PX, cardRadius, progress);
 
   const pad = design.paddingPx;
-  const destArt = Math.min(design.imageSizePx, Math.max(48, to.width - pad * 2));
+  const destArtW = Math.min(design.imageSizePx, Math.max(48, to.width - pad * 2));
+  const destArtH = destArtW / Math.max(0.4, artAspect);
 
-  // Same square-ish cover image the whole way: fill the tile sheet → art slot.
+  // Frame: square tile → natural art box. Same image + cover reveals more as it grows.
   const faceLeft = lerp(0, pad, progress);
   const faceTop = lerp(0, pad, progress);
-  const faceWidth = lerp(sheetRect.width, destArt, progress);
-  const faceHeight = lerp(sheetRect.height, destArt, progress);
+  const faceWidth = lerp(sheetRect.width, destArtW, progress);
+  const faceHeight = lerp(sheetRect.height, destArtH, progress);
   const faceRadius = lerp(TILE_RADIUS_PX, design.imageRadiusPx, progress);
 
   const settled = phase === 'open';
-  // Keep the shared face mounted until fully settled, then reveal the identical
-  // square art underneath (same canvas image) — no asset swap mid-flight.
   const showFace = !settled;
-  const infoOpacity = settled
-    ? 1
-    : Math.max(0, Math.min(1, (progress - 0.55) / 0.4));
+  // Copy only appears once the card is essentially at resting width — no reflow.
+  const showCopy = settled || progress >= 0.92;
+  const infoOpacity = settled ? 1 : showCopy ? Math.min(1, (progress - 0.92) / 0.08) : 0;
 
   const sheetStyle = {
     ...designVars,
@@ -313,17 +379,6 @@ export function SoundTileCardExpand({
     height: `${faceHeight}px`,
     borderRadius: `${faceRadius}px`,
   } as CSSProperties;
-
-  const sharedImage = (
-    <SoundIconImage
-      src={artwork.src}
-      sourceUrl={artwork.sourceUrl}
-      detailSrc={artwork.detailSrc}
-      alt={artwork.title}
-      soundId={displayTarget.soundId}
-      size="canvas"
-    />
-  );
 
   return createPortal(
     <>
@@ -347,27 +402,30 @@ export function SoundTileCardExpand({
       >
         {showFace && (
           <div className={styles.face} style={faceStyle}>
-            <div className={styles.faceImage}>{sharedImage}</div>
+            <img
+              className={styles.faceImg}
+              src={tileSrc}
+              alt={artwork.title}
+              draggable={false}
+            />
           </div>
         )}
 
-        <div
-          className={styles.body}
-          style={{
-            opacity: settled || progress > 0.4 ? 1 : 0,
-          }}
-        >
-          <SoundArtDetailContent
-            target={displayTarget}
-            onVolumeChange={onVolumeChange}
-            regionArt={regionArt}
-            designConfig={design}
-            onClose={close}
-            artworkHidden={showFace}
-            artworkMode="shared"
-            infoOpacity={infoOpacity}
-          />
-        </div>
+        {showCopy && (
+          <div className={styles.body}>
+            <SoundArtDetailContent
+              target={displayTarget}
+              onVolumeChange={onVolumeChange}
+              regionArt={regionArt}
+              designConfig={design}
+              onClose={close}
+              artworkHidden={showFace}
+              artworkMode="shared"
+              artAspect={artAspect}
+              infoOpacity={infoOpacity}
+            />
+          </div>
+        )}
       </div>
     </>,
     document.body,

@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
+import { resolveTileIconSrc } from '../data/iconDetailSrc';
+import { publicUrl } from '../utils/publicUrl';
 import { SoundIconImage } from './SoundIconImage';
 import {
   loadSoundTileDesign,
@@ -28,10 +30,12 @@ type Props = {
   /** Hide artwork while a shared-element face covers the same slot. */
   artworkHidden?: boolean;
   /**
-   * `shared` keeps the canvas tile image (cover + crop) in a square slot so
-   * the expand handoff matches the flying face exactly.
+   * `shared` keeps the same tile image through expand, in a natural-aspect
+   * slot (portrait art grows taller so more of the illustration is visible).
    */
   artworkMode?: 'natural' | 'shared';
+  /** Natural width/height used when `artworkMode="shared"`. */
+  artAspect?: number;
   /** Fade the meta/volume column during card-expand (0–1). */
   infoOpacity?: number;
 };
@@ -45,6 +49,7 @@ export function SoundArtDetailContent({
   presentation = 'card',
   artworkHidden = false,
   artworkMode = 'natural',
+  artAspect = 1,
   infoOpacity = 1,
 }: Props) {
   const artwork = getSoundArtworkForRegion(
@@ -86,16 +91,38 @@ export function SoundArtDetailContent({
         ]
           .filter(Boolean)
           .join(' ')}
+        style={
+          artworkMode === 'shared'
+            ? ({
+                '--sound-tile-art-aspect': `${Math.max(0.4, artAspect)}`,
+              } as CSSProperties)
+            : undefined
+        }
       >
         <div className={`${styles.artwork} ${artworkMode === 'shared' ? styles.artworkShared : ''}`}>
-          <SoundIconImage
-            src={artwork.src}
-            sourceUrl={artwork.sourceUrl}
-            detailSrc={artwork.detailSrc}
-            alt={artwork.title}
-            soundId={target.soundId}
-            size={artworkMode === 'shared' ? 'canvas' : 'detailNatural'}
-          />
+          {artworkMode === 'shared' ? (
+            <img
+              className={styles.sharedImg}
+              src={publicUrl(
+                resolveTileIconSrc({
+                  src: artwork.src,
+                  sourceUrl: artwork.sourceUrl,
+                  detailSrc: artwork.detailSrc,
+                }),
+              )}
+              alt={artwork.title}
+              draggable={false}
+            />
+          ) : (
+            <SoundIconImage
+              src={artwork.src}
+              sourceUrl={artwork.sourceUrl}
+              detailSrc={artwork.detailSrc}
+              alt={artwork.title}
+              soundId={target.soundId}
+              size="detailNatural"
+            />
+          )}
         </div>
       </div>
 
@@ -103,7 +130,11 @@ export function SoundArtDetailContent({
         className={styles.infoColumn}
         style={
           infoOpacity < 1
-            ? { opacity: infoOpacity, transform: `translateY(${(1 - infoOpacity) * 12}px)` }
+            ? {
+                opacity: infoOpacity,
+                // Fade only — never scale/reflow the type during expand.
+                pointerEvents: infoOpacity < 0.95 ? 'none' : undefined,
+              }
             : undefined
         }
       >
