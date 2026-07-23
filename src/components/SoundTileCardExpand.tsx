@@ -26,9 +26,12 @@ import styles from './SoundTileCardExpand.module.css';
 
 /** Card flight: prior iOS-style decelerating ease (kept with linked W/H growth). */
 const EXPAND_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-const OPEN_MS = 440;
-const CLOSE_MS = 380;
+/** Snappier than the original 440/380 while keeping the same ease shape. */
+const OPEN_MS = 320;
+const CLOSE_MS = 280;
 const TILE_RADIUS_PX = 13.6;
+/** Copy fades in after this progress — body is already laid out at resting width. */
+const COPY_REVEAL_AT = 0.9;
 
 type Rect = OriginRectSnapshot;
 
@@ -364,9 +367,14 @@ export function SoundTileCardExpand({
 
   const settled = phase === 'open';
   const showFace = !settled;
-  // Copy only appears once the card is essentially at resting width — no reflow.
-  const showCopy = settled || progress >= 0.92;
-  const infoOpacity = settled ? 1 : showCopy ? Math.min(1, (progress - 0.92) / 0.08) : 0;
+  // Body is locked to the resting card width (see below), so type never reflows
+  // as the sheet finishes — it only fades in at full wrap.
+  const showCopy = settled || progress >= COPY_REVEAL_AT;
+  const infoOpacity = settled
+    ? 1
+    : showCopy
+      ? Math.min(1, (progress - COPY_REVEAL_AT) / Math.max(0.001, 1 - COPY_REVEAL_AT))
+      : 0;
 
   const sheetStyle = {
     ...designVars,
@@ -423,7 +431,17 @@ export function SoundTileCardExpand({
         )}
 
         {showCopy && (
-          <div className={styles.body}>
+          <div
+            className={styles.body}
+            style={{
+              // Lay out at the resting card width immediately so title/artist
+              // wrap at their final line breaks; the sheet clips until it
+              // catches up — no mid-settle reflow.
+              width: `${to.width}px`,
+              minWidth: `${to.width}px`,
+              flexShrink: 0,
+            }}
+          >
             <SoundArtDetailContent
               target={displayTarget}
               onVolumeChange={onVolumeChange}

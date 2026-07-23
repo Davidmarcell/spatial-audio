@@ -43,6 +43,9 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  /* Prefer the resting width from the expand driver; don't let flex shrink
+     the copy column mid-flight (that reflows wrapping title/artist lines). */
+  box-sizing: border-box;
 }
 
 @media (prefers-reduced-motion: reduce) {
