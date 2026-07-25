@@ -103,6 +103,13 @@ type RiseOptions = {
   duration?: number;
   /** Fired once the element has fully risen into a flat, full-viewport cover. */
   onDone?: () => void;
+  /**
+   * Fired with the live vertical offset (px) every frame, BEFORE the frame is
+   * painted. Lets chrome that cannot be a child of the rising sheet (the search
+   * pill is portalled to `document.body`) travel on this exact clock instead of
+   * running a parallel animation that drifts a frame or two out of step.
+   */
+  onFrame?: (translateY: number, progress: number) => void;
 };
 
 /**
@@ -121,7 +128,7 @@ type RiseOptions = {
  */
 export function animateRise(
   el: HTMLElement,
-  { duration = SHEET_RISE_DURATION_MS, onDone }: RiseOptions = {},
+  { duration = SHEET_RISE_DURATION_MS, onDone, onFrame }: RiseOptions = {},
 ) {
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -138,6 +145,7 @@ export function animateRise(
       `path('M 0 ${depth.toFixed(2)} `
       + `Q ${(width / 2).toFixed(2)} ${(-depth).toFixed(2)} ${width} ${depth.toFixed(2)} `
       + `L ${width} ${bottom} L 0 ${bottom} Z')`;
+    onFrame?.(translateY, progress);
   };
 
   el.style.willChange = 'transform, clip-path';

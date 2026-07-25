@@ -41,6 +41,14 @@ const WORDMARK_TEXT = 'Saudade';
 const COMPACT_MQ = '(max-width: 768px)';
 
 /**
+ * Live vertical offset of the gate's home-rise, published on the document root
+ * each frame. Body-portalled landing chrome (the search pill) reads this so it
+ * rides the exact same clock as the gate — see `data-page-motion='rise-home'`
+ * in LocationSearchSpotlight.module.css.
+ */
+const GATE_RISE_VAR = '--landing-rise-y';
+
+/**
  * Hold at centre until the letter cascade has landed, then begin the
  * centre → rest settle (no second static beat, and do not wait on fan art).
  * Letter timing: delay 0.05s + 7×0.06s stagger + 0.62s rise ≈ 1.09s.
@@ -293,11 +301,23 @@ export function LandingGate({
       return undefined;
     }
 
+    // The search pill is portalled to <body>, so it cannot be carried by the
+    // gate's transform. Publish the live rise offset each frame and let the pill
+    // consume it, so pill and Enter button travel on one clock (a parallel CSS
+    // animation drifts a frame or two out of step, which reads as two assets
+    // moving at different speeds through the steep part of the curve).
+    const root = document.documentElement;
+    const clearRiseVar = () => root.style.removeProperty(GATE_RISE_VAR);
+
     const cancel = animateRise(el, {
+      onFrame: (translateY) => {
+        root.style.setProperty(GATE_RISE_VAR, `${translateY.toFixed(2)}px`);
+      },
       onDone: () => {
         el.style.transform = '';
         el.style.clipPath = '';
         el.style.willChange = '';
+        clearRiseVar();
         onEnteredRef.current?.();
       },
     });
@@ -306,6 +326,7 @@ export function LandingGate({
       el.style.transform = '';
       el.style.clipPath = '';
       el.style.willChange = '';
+      clearRiseVar();
     };
   }, [entering]);
 

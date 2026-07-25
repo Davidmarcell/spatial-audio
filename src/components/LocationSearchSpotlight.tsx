@@ -405,6 +405,8 @@ export function LocationSearchSpotlight({
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
   const [panelAnchor, setPanelAnchor] = useState<PanelAnchor | null>(null);
+  const panelAnchorRef = useRef<PanelAnchor | null>(panelAnchor);
+  panelAnchorRef.current = panelAnchor;
   const [query, setQuery] = useState('');
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [geocodeResults, setGeocodeResults] = useState<GeocodeResult[]>([]);
@@ -752,9 +754,11 @@ export function LocationSearchSpotlight({
     // nor the close transition can shift the collapsed/expanded pill off the
     // row the round buttons sit on.
     if (phaseRef.current !== 'closed') return;
-    // While a rise-tracking loop owns the anchor, do not clobber it with a
-    // resting measurement (that would freeze the pill mid-rise).
-    if (trackingActiveRef.current) return;
+    // While a page animation carries the pill, keep the anchor we already
+    // committed — re-measuring mid-flight would fight the animation. A pill
+    // that mounts INTO a transition still needs its first measurement though,
+    // otherwise the portal never appears (it has no anchor to render at).
+    if (trackingActiveRef.current && panelAnchorRef.current) return;
     const anchor = measureRestingAnchor();
     if (anchor) setPanelAnchor(anchor);
   }, [measureRestingAnchor]);
@@ -876,19 +880,31 @@ export function LocationSearchSpotlight({
     };
   }, [blocked, measureRestingAnchor, resetToken, trackingActive]);
 
-  // `exit-lift` mirrors the page's `translate(-18vh) scale(0.96)`, which scales
-  // about the PAGE centre. A portalled pill scaling about its own box would
-  // travel a few px short, so resolve the page transform at the pill's centre
-  // and hand the deltas to the keyframes.
+  // `exit-lift` mirrors the host's `translate(-18vh) scale(0.96)`. That scale is
+  // about the HOST's own box — the full-viewport landing gate, or the short
+  // bottom bar — so resolve the host's transform at the pill's centre and hand
+  // the resulting deltas to the keyframes. Scaling about the pill's own box
+  // instead would leave it drifting ~14px away from the row it belongs to.
+  // Cached per motion so a mid-flight re-render never re-measures a moving host.
+  const exitOriginRef = useRef<{ x: number; y: number } | null>(null);
   const pageMotionVars = useMemo<CSSProperties | undefined>(() => {
     if (pageMotion !== 'exit-lift' || !panelAnchor || typeof window === 'undefined') {
+      exitOriginRef.current = null;
       return undefined;
     }
+    if (!exitOriginRef.current) {
+      const node = rootRef.current;
+      const host = node?.closest('[data-landing-gate]') ?? node?.closest('nav');
+      const rect = host?.getBoundingClientRect();
+      exitOriginRef.current = rect
+        ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+        : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    }
+    const origin = exitOriginRef.current;
     const scale = PAGE_EXIT_SCALE;
     const lift = -PAGE_EXIT_LIFT_VH * window.innerHeight;
-    const dx = (scale - 1) * (panelAnchor.centerX - window.innerWidth / 2);
-    const dy =
-      (scale - 1) * (panelAnchor.top + panelAnchor.height / 2 - window.innerHeight / 2) + lift;
+    const dx = (scale - 1) * (panelAnchor.centerX - origin.x);
+    const dy = (scale - 1) * (panelAnchor.top + panelAnchor.height / 2 - origin.y) + lift;
     return {
       '--page-motion-dx': `${dx.toFixed(2)}px`,
       '--page-motion-dy': `${dy.toFixed(2)}px`,

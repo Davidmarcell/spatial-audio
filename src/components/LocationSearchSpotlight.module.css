@@ -237,6 +237,9 @@
    rather than lagging a frame behind a per-frame measurement. */
 .panelAnchor[data-page-motion='exit-lift'] {
   pointer-events: none;
+  /* The deltas are computed for a centre-origin scale (the pill's own centre is
+     mapped through the host's transform), so override the resting pill origin. */
+  transform-origin: 50% 50%;
   animation: searchPageExitLift 1.3s var(--ease-in-out-strong) both;
 }
 
@@ -256,20 +259,18 @@
   }
 }
 
-/* Matches `animateRise` (sheetRise.ts): the whole page rises a viewport height
-   from below on the shared ease. No scale — the sheet only translates + clips. */
+/* Home-rise is driven by `animateRise`'s own rAF clock: LandingGate publishes
+   the live offset as `--landing-rise-y` in the same frame it transforms the
+   gate, so the pill is welded to the page rather than running a parallel
+   animation that drifts through the steep part of the curve. */
 .panelAnchor[data-page-motion='rise-home'] {
   pointer-events: none;
-  animation: searchPageRiseHome 1.3s var(--ease-in-out-strong) both;
-}
-
-@keyframes searchPageRiseHome {
-  from {
-    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 100vh, 0);
-  }
-  to {
-    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 0, 0);
-  }
+  transition: none;
+  transform: translate3d(
+    calc(-50% + var(--recenter-anchor, 0px)),
+    var(--landing-rise-y, 0px),
+    0
+  );
 }
 
 /* Matches the workspace asset nudge (App.tsx scene rise: 44px, 620ms after the
