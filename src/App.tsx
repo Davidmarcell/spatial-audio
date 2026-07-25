@@ -1448,9 +1448,15 @@ export default function App() {
               onChange={handleLocationSearchChange}
               onOpenChange={setLocationSearchOpen}
               resetToken={locationSearchResetToken}
-              blocked={showGlobe}
+              // Keep the pill mounted while the globe rises over an open
+              // soundscape (globeOverWorkspace) — blocking on showGlobe alone
+              // made "Kyoto, Japan" vanish mid-transition. Only hard-block when
+              // the bar itself is hidden (e.g. landing browse).
+              blocked={showGlobe && !globeOverWorkspace}
               recessed={detailTarget !== null}
-              riseWithBar={sceneRising}
+              // Track the bottom bar's pageExitLift so the portalled pill rises
+              // with the outgoing soundscape instead of freezing in place.
+              riseWithBar={sceneRising || workspaceGlobeOpening}
             />
           )}
           {showWorkspaceChrome && (
