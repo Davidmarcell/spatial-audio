@@ -49,7 +49,9 @@ const PRELOAD_WORDMARK_LAND_MS = 1200;
 /** Cap so a slow tile never blocks the fan forever. */
 const PRELOAD_ART_TIMEOUT_MS = 4200;
 /** One continuous centre → rest motion for the hero wordmark. */
-const PRELOAD_WORDMARK_SETTLE_MS = 200;
+const PRELOAD_WORDMARK_SETTLE_MS = 400;
+/** Eased in and out of the settle, weighted so it leaves the centre gently. */
+const PRELOAD_WORDMARK_SETTLE_EASE = 'cubic-bezier(0.5, 0.02, 0.2, 1)';
 /** Reduced-motion: still show a centred hold, then snap to rest + assets. */
 const PRELOAD_REDUCED_HOLD_MS = 700;
 
@@ -414,7 +416,7 @@ export function LandingGate({
     el.style.transitionProperty = 'transform';
     el.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
     void el.offsetWidth;
-    el.style.transition = `transform ${PRELOAD_WORDMARK_SETTLE_MS}ms cubic-bezier(0.33, 0.0, 0.2, 1)`;
+    el.style.transition = `transform ${PRELOAD_WORDMARK_SETTLE_MS}ms ${PRELOAD_WORDMARK_SETTLE_EASE}`;
     el.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
 
     const clear = () => {

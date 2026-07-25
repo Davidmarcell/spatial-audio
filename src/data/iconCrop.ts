@@ -58,6 +58,11 @@ export const iconCropBySrc: Record<string, IconCrop> = {
   '/icons/barbet.jpg': { scale: 1.35, y: '44%' },
   '/icons/met/544094.jpg': { scale: 1.6, y: '44%' },
   '/icons/lion.jpg': { scale: 1.2, y: '42%' },
+  // Kuhnert lion plates: the animal sits left of centre in the wide canvases,
+  // so pull in and bias the crop towards the head.
+  '/icons/lion-kuhnert-awakening.jpg': { scale: 1.5, x: '32%', y: '40%' },
+  '/icons/lion-kuhnert-ruaha-tanzania.jpg': { scale: 1.6, x: '58%', y: '46%' },
+  '/icons/lion-kuhnert-head.jpg': { scale: 1.08, x: '42%', y: '46%' },
   // Paris sound plates.
   '/icons/paris-accordion-de-smet.jpg': { scale: 1.12, y: '42%' },
   '/icons/paris-cafe-beraud.jpg': { scale: 1.18, y: '48%' },

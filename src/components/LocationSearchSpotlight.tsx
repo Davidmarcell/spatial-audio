@@ -86,26 +86,24 @@ type Props = {
    */
   recenterOnExpand?: boolean;
   /**
-   * Landing only: true for the one shot while the landing gate is RISING home
-   * (map/globe close -> landing). The pill is portalled to document.body and
-   * normally pinned to its resting anchor, so it would otherwise sit still while
-   * the gate rises and only "pop" in at the end. While this is set, the pill
-   * tracks the gate's live rise each frame (so it travels up with the sheet) and
-   * lifts above the outgoing globe, then settles onto its resting anchor as the
-   * rise completes.
+   * The pill is portalled to `document.body`, so it does NOT inherit the page
+   * transform that carries its host (the landing gate, or the workspace bottom
+   * bar) during a page transition. Rather than measuring the host every frame
+   * (which lags a frame and reads as two separate assets moving at different
+   * speeds), the portal replays the SAME animation on the SAME clock:
+   *
+   *   • `exit-lift`  — host page is lifting away (landing exit / workspace push
+   *                    under a rising sheet). Mirrors `pageExitLift`.
+   *   • `rise-home`  — host page is rising home from below (`animateRise`).
+   *   • `scene-rise` — workspace assets nudge up as a cover reveals the scene.
+   *
+   * The pill's resting anchor is frozen for the duration, so the animation is
+   * the only motion and it lands exactly where it started/belongs.
    */
-  riseWithGate?: boolean;
-  /**
-   * Bottom-bar only: true for the scene-entry window while the workspace assets
-   * (canvas and bottom control bar) rise up as the cover panel reveals them. The
-   * pill is portalled and pinned to its resting anchor, so without this it would
-   * stay put while the bar rose around it. While set, the pill tracks its live
-   * in-row position each frame so it rises in lockstep with the bar, then settles
-   * back onto its resting anchor. Unlike `riseWithGate` it is never lifted above
-   * the cover: it stays beneath the fading cover, which hides the brief start.
-   */
-  riseWithBar?: boolean;
+  pageMotion?: PageMotion;
 };
+
+export type PageMotion = 'none' | 'exit-lift' | 'rise-home' | 'scene-rise';
 
 type SearchItem = {
   key: string;
@@ -143,6 +141,12 @@ function prefersReducedMotion(): boolean {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }
+
+// Outgoing-page push, kept in sync with `pageExitLift` (App.module.css) and
+// `landingExitLift` (LandingGate.module.css) so the portalled pill lifts on
+// exactly the same geometry as the page that owns it.
+const PAGE_EXIT_SCALE = 0.96;
+const PAGE_EXIT_LIFT_VH = 0.18;
 
 // Read an element's current translateY (px) from its computed transform matrix.
 // Used to strip a transformed ancestor's live vertical offset off a measured
@@ -378,14 +382,14 @@ export function LocationSearchSpotlight({
   backdrop = true,
   enlarged = false,
   recenterOnExpand = false,
-  riseWithGate = false,
-  riseWithBar = false,
+  pageMotion = 'none',
 }: Props) {
-  // Either rise mode makes the pill follow its live in-row position each frame
-  // instead of pinning to the resting anchor, so it travels with the sheet/bar.
-  const trackingActive = riseWithGate || riseWithBar;
+  // While the page carries the pill, freeze the resting anchor: the CSS page
+  // animation supplies all the motion, so any re-measure would fight it.
+  const trackingActive = pageMotion !== 'none';
   const trackingActiveRef = useRef(trackingActive);
   trackingActiveRef.current = trackingActive;
+  const risingHome = pageMotion === 'rise-home';
   const { config: animationConfig } = useSearchSpotlightAnimation();
   const listboxId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -425,20 +429,20 @@ export function LocationSearchSpotlight({
   // transform) and, as a fallback, once the entrance has finished, and is never
   // re-armed. This guarantees the rise plays only on the initial landing mount,
   // never on a later open / close / hover / focus. It is also suppressed when
-  // the pill mounts as part of a gate home-rise (`riseWithGate`): there the
+  // the pill mounts as part of a gate home-rise (`rise-home`): there the
   // whole pill travels up with the sheet, so a second, separate hero fade-up
   // would double the motion.
-  const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !riseWithGate);
+  const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !risingHome);
   // Keep the portal unmounted until it can rise with Enter. Inside LandingGate
   // the in-flow spacer is mounted during preload for layout, but the visible
   // pill must wait for data-hero-ready so it pairs with Enter after settle.
   const [landingPortalAllowed, setLandingPortalAllowed] = useState(
-    () => !enlarged || riseWithGate,
+    () => !enlarged || risingHome,
   );
   const [pairEntranceImmediate, setPairEntranceImmediate] = useState(false);
 
   useLayoutEffect(() => {
-    if (!enlarged || riseWithGate || !landingEntranceArmed) {
+    if (!enlarged || risingHome || !landingEntranceArmed) {
       setLandingPortalAllowed(true);
       setPairEntranceImmediate(false);
       return;
@@ -473,7 +477,7 @@ export function LocationSearchSpotlight({
     else if (raw.endsWith('s')) delayMs = (Number.parseFloat(raw) || 0.56) * 1000;
     const timer = window.setTimeout(() => setLandingPortalAllowed(true), Math.max(0, delayMs));
     return () => window.clearTimeout(timer);
-  }, [enlarged, landingEntranceArmed, riseWithGate]);
+  }, [enlarged, landingEntranceArmed, risingHome]);
 
   useEffect(() => {
     if (phase === 'opening-width') setTrendingToken((token) => token + 1);
@@ -698,7 +702,7 @@ export function LocationSearchSpotlight({
   // Measure the pill's anchor. `subtractGate` strips the landing gate's live
   // rise transform so the anchor describes the RESTING row; passing false keeps
   // the gate's live translateY in the measurement so the portalled pill can
-  // TRACK the gate as it rises home (see the `riseWithGate` loop below).
+  // TRACK the gate as it rises home (see the page-motion animations below).
   const measureAnchor = useCallback((subtractGate: boolean): PanelAnchor | null => {
     const node = rootRef.current;
     const rect = node?.getBoundingClientRect();
@@ -740,22 +744,6 @@ export function LocationSearchSpotlight({
     (): PanelAnchor | null => measureAnchor(true),
     [measureAnchor],
   );
-
-  // The pill's live on-screen position with NO ancestor transform stripped, so
-  // the portalled pill can follow a rising sheet/bar frame by frame (gate home-
-  // rise, or the bottom bar rising as a scene reveals). Because those rises all
-  // end at translateY 0, the live position resolves to the resting anchor with no
-  // jump when the rise completes.
-  const measureLiveAnchor = useCallback((): PanelAnchor | null => {
-    const node = rootRef.current;
-    const rect = node?.getBoundingClientRect();
-    if (!node || !rect) return null;
-    return {
-      top: rect.top,
-      height: rect.height,
-      centerX: rect.left + rect.width / 2,
-    };
-  }, []);
 
   const syncPanelAnchor = useCallback(() => {
     // Only ever commit the anchor while the search is at its resting (closed)
@@ -888,34 +876,25 @@ export function LocationSearchSpotlight({
     };
   }, [blocked, measureRestingAnchor, resetToken, trackingActive]);
 
-  // Rise tracking: follow a rising sheet/bar frame by frame. The pill is
-  // portalled to document.body and so does not inherit its in-row ancestor's
-  // live translateY; without this it would sit pinned at its resting anchor while
-  // the gate (home-rise) or the bottom bar (scene reveal) rose around it, then
-  // "pop" into place once the rise finished. Re-measuring the pill's live
-  // position every frame lets it travel in lockstep with the sheet, and because
-  // those rises end at translateY 0 the tracked position resolves to the resting
-  // anchor with no jump. A final resting measurement on cleanup commits that
-  // baseline once the sheet has settled.
-  useLayoutEffect(() => {
-    if (!trackingActive) return undefined;
-    if (phaseRef.current !== 'closed') return undefined;
-    let frame = 0;
-    let cancelled = false;
-    const track = () => {
-      if (cancelled) return;
-      const anchor = measureLiveAnchor();
-      if (anchor) setPanelAnchor(anchor);
-      frame = window.requestAnimationFrame(track);
-    };
-    frame = window.requestAnimationFrame(track);
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(frame);
-      const resting = measureRestingAnchor();
-      if (resting) setPanelAnchor(resting);
-    };
-  }, [measureLiveAnchor, measureRestingAnchor, trackingActive]);
+  // `exit-lift` mirrors the page's `translate(-18vh) scale(0.96)`, which scales
+  // about the PAGE centre. A portalled pill scaling about its own box would
+  // travel a few px short, so resolve the page transform at the pill's centre
+  // and hand the deltas to the keyframes.
+  const pageMotionVars = useMemo<CSSProperties | undefined>(() => {
+    if (pageMotion !== 'exit-lift' || !panelAnchor || typeof window === 'undefined') {
+      return undefined;
+    }
+    const scale = PAGE_EXIT_SCALE;
+    const lift = -PAGE_EXIT_LIFT_VH * window.innerHeight;
+    const dx = (scale - 1) * (panelAnchor.centerX - window.innerWidth / 2);
+    const dy =
+      (scale - 1) * (panelAnchor.top + panelAnchor.height / 2 - window.innerHeight / 2) + lift;
+    return {
+      '--page-motion-dx': `${dx.toFixed(2)}px`,
+      '--page-motion-dy': `${dy.toFixed(2)}px`,
+      '--page-motion-scale': scale.toString(),
+    } as CSSProperties;
+  }, [pageMotion, panelAnchor]);
 
   const selectLocal = useCallback(
     (item: SearchItem) => {
@@ -1212,7 +1191,8 @@ export function LocationSearchSpotlight({
             data-landing-entrance={landingEntranceArmed ? 'in' : undefined}
             data-entrance-deferred={enlarged && landingEntranceArmed ? 'true' : undefined}
             data-pair-immediate={pairEntranceImmediate ? 'true' : undefined}
-            data-rising={riseWithGate ? 'true' : undefined}
+            data-rising={risingHome ? 'true' : undefined}
+            data-page-motion={pageMotion !== 'none' ? pageMotion : undefined}
             data-recessed={recessed ? 'true' : undefined}
             data-theme={theme}
             style={
@@ -1221,6 +1201,7 @@ export function LocationSearchSpotlight({
                 left: `${panelAnchor.centerX}px`,
                 height: `${panelAnchor.height}px`,
                 '--recenter-x': `${recenterX}px`,
+                ...pageMotionVars,
               } as CSSProperties
             }
           >

@@ -230,6 +230,63 @@
   z-index: 451;
 }
 
+/* —— Page motion ——
+   The pill is portalled to <body>, so it cannot inherit the transform that
+   carries its host page. Instead it replays the SAME animation on the SAME
+   clock, which keeps it welded to the Enter button / bottom bar beside it
+   rather than lagging a frame behind a per-frame measurement. */
+.panelAnchor[data-page-motion='exit-lift'] {
+  pointer-events: none;
+  animation: searchPageExitLift 1.3s var(--ease-in-out-strong) both;
+}
+
+/* Matches `pageExitLift` / `landingExitLift`, resolved at the pill's centre so
+   the page's scale-about-its-own-centre lands the pill in the right place. */
+@keyframes searchPageExitLift {
+  from {
+    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(
+        calc(-50% + var(--recenter-anchor, 0px) + var(--page-motion-dx, 0px)),
+        var(--page-motion-dy, 0px),
+        0
+      )
+      scale(var(--page-motion-scale, 1));
+  }
+}
+
+/* Matches `animateRise` (sheetRise.ts): the whole page rises a viewport height
+   from below on the shared ease. No scale — the sheet only translates + clips. */
+.panelAnchor[data-page-motion='rise-home'] {
+  pointer-events: none;
+  animation: searchPageRiseHome 1.3s var(--ease-in-out-strong) both;
+}
+
+@keyframes searchPageRiseHome {
+  from {
+    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 100vh, 0);
+  }
+  to {
+    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 0, 0);
+  }
+}
+
+/* Matches the workspace asset nudge (App.tsx scene rise: 44px, 620ms after the
+   cover has risen) so the pill arrives with the bar it sits in. */
+.panelAnchor[data-page-motion='scene-rise'] {
+  animation: searchSceneRise 620ms var(--ease-ios) 1300ms both;
+}
+
+@keyframes searchSceneRise {
+  from {
+    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 44px, 0);
+  }
+  to {
+    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 0, 0);
+  }
+}
+
 /* Sound-tile (and similar) overlays sit at z-index 500+. Keep the portalled
    search pill in the page chrome layer and visually recessed so it cannot
    compete with the open tile. */
@@ -511,7 +568,9 @@
   padding: 0.55rem 1rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  line-height: 1;
+  /* Descenders (the g in "Serengeti") need real line-box room: the labels below
+     clip with overflow:hidden, so a 1.0 line-height shaved the glyph tails. */
+  line-height: 1.4;
   border-top: 1px solid transparent;
   box-sizing: border-box;
 }
@@ -613,7 +672,7 @@
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
-  line-height: 1;
+  line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -624,14 +683,14 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  height: 1.5rem;
+  height: 1.7rem;
   border: none;
   background: transparent;
   color: var(--text);
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.4;
   text-align: left;
   padding: 0 0 0 calc(0.875rem + 0.55rem);
   margin: 0;
@@ -970,7 +1029,7 @@
 .resultName {
   font-size: 0.84rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.45;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1130,6 +1189,10 @@
 
   .panel {
     will-change: auto;
+  }
+
+  .panelAnchor[data-page-motion] {
+    animation: none;
   }
 
   .panel,

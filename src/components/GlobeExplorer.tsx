@@ -1239,7 +1239,6 @@ export function GlobeExplorer({
           <h2 id="globe-explorer-title" className={styles.pageTitle}>
             Globe
           </h2>
-          <p className={styles.pageSubtitle}>World map</p>
           <p className={styles.pageCopy}>{globeHeaderCopy}</p>
         </header>
         <div className={styles.globeColumn}>
@@ -1307,8 +1306,11 @@ export function GlobeExplorer({
                     </p>
                   ) : (
                     <ul className={styles.spotlightResults}>
-                      {filteredLocations.map((location) => (
-                        <li key={location.id}>
+                      {filteredLocations.map((location, index) => (
+                        <li
+                          key={location.id}
+                          style={{ '--row-index': index } as CSSProperties}
+                        >
                           <button
                             type="button"
                             className={styles.spotlightRow}
@@ -1343,8 +1345,11 @@ export function GlobeExplorer({
                     )}
                     {geocodeResults.length > 0 && (
                       <ul className={styles.spotlightResults}>
-                        {geocodeResults.map((result) => (
-                          <li key={result.placeId}>
+                        {geocodeResults.map((result, index) => (
+                          <li
+                            key={result.placeId}
+                            style={{ '--row-index': index } as CSSProperties}
+                          >
                             <button
                               type="button"
                               className={styles.spotlightRow}

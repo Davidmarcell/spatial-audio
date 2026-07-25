@@ -159,6 +159,7 @@
   animation: radarRingsEnter 820ms var(--ease-ios) both;
 }
 
+/* Straight expand to rest — no overshoot/settle bounce on the rings. */
 @keyframes radarRingsEnter {
   from {
     opacity: 0;
@@ -167,15 +168,6 @@
 
   55% {
     opacity: 1;
-  }
-
-  72% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-
-  86% {
-    transform: scale(0.98);
   }
 
   to {

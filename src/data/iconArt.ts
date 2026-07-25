@@ -94,6 +94,11 @@ const extendedFixedIcons: Record<string, string> = {
   'kyoto-stream': '/icons/kyoto-garden-stream-hiroshige.jpg',
   'kyoto-crows': '/icons/kyoto-jungle-crow-kyosai.jpg',
   'kyoto-frogs': '/icons/kyoto-kajika-frog.jpg',
+  // Serengeti's signature layer. Kuhnert painted lions from life in what is now
+  // Tanzania, so the plate is both regionally right and legible at tile size.
+  // Alternates in the `lion` pool below: `lion-kuhnert-ruaha-tanzania.jpg`
+  // (lion on the Ruaha river bank) and `lion-kuhnert-head.jpg` (head study).
+  'global-lion': '/icons/lion-kuhnert-awakening.jpg',
 };
 
 /** Attributions for the extended fixed plates above (kept out of the generated file). */
@@ -105,6 +110,14 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     license: 'Public domain',
     sourceUrl:
       'https://commons.wikimedia.org/wiki/File:Houghton_Typ_805L.34_-_John_Gould,_Ramphastos_toco,_1834.jpg',
+  },
+  {
+    file: '/icons/lion-kuhnert-awakening.jpg',
+    title: 'Des Löwen Erwachen (The Lion Awakens)',
+    author: 'Wilhelm Kuhnert (before 1929)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Des_L%C3%B6wen_Erwachen.jpg',
   },
   {
     file: '/icons/kereru.jpg',
@@ -739,6 +752,24 @@ const speciesArtPools: Record<string, IconPoolEntry[]> = {
     },
   ],
   lion: [
+    {
+      src: '/icons/lion-kuhnert-ruaha-tanzania.jpg',
+      title: 'Leeuw aan de Ruaharivier, Tanzania, Afrika (Lion on the Ruaha River)',
+      author: 'Wilhelm Kuhnert (between 1880 and 1926), Rijksmuseum Twenthe',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_-_Leeuw_aan_de_Ruaharivier,_Tanzania,_Afrika_-_0194_-_Rijksmuseum_Twenthe.jpg',
+      tags: ['african', 'savanna'],
+    },
+    {
+      src: '/icons/lion-kuhnert-head.jpg',
+      title: 'Kopf eines Löwen (Head of a Lion)',
+      author: 'Wilhelm Kuhnert (1896)',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Kopf_eines_L%C3%B6wen.jpg',
+      tags: ['african', 'savanna'],
+    },
     {
       src: '/icons/lion.jpg',
       title: 'Lion (Felis leo capensis) — Brehms Het Leven der Dieren',

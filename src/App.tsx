@@ -179,6 +179,9 @@ export default function App() {
   // panel that cross-fades out. Cleared by the gate's `onEntered` once it has
   // fully risen, which is also when the outgoing globe is unmounted.
   const [landingEntering, setLandingEntering] = useState(false);
+  // True while the workspace page (and its bottom bar) is being pushed away by
+  // the landing rising home, so its chrome stays mounted for the whole lift.
+  const [workspaceLeaving, setWorkspaceLeaving] = useState(false);
   const [customGlobeLocation, setCustomGlobeLocation] = useState<WorldLocation | null>(null);
   const [showProjectInfo, setShowProjectInfo] = useState(false);
   const [showAddSounds, setShowAddSounds] = useState(false);
@@ -274,7 +277,13 @@ export default function App() {
   // Workspace chrome (bottom search, play, etc.) must wait until the landing
   // exit cover has finished — otherwise "Search places" flashes under the
   // rising sheet the moment a fan tile is clicked.
-  const showWorkspaceChrome = hasEntered && !landingExiting && !landingEntering;
+  // The workspace and its bottom bar are ONE unit: while the workspace is being
+  // pushed away (wordmark home), its chrome must stay mounted and lift with it
+  // rather than vanishing the instant `hasEntered` flips.
+  const showWorkspaceChrome = (hasEntered || workspaceLeaving) && !landingExiting;
+  // The bottom bar / main are pushed up under a rising sheet.
+  const workspacePageLifting =
+    (coverActive || landingEntering || workspaceGlobeOpening) && !globeExiting;
 
   const globeLocations = useMemo(() => {
     const curated = worldLocations.filter((location) => !location.custom);
@@ -1107,10 +1116,13 @@ export default function App() {
     // page (globe or workspace) with the shared curved edge.
     setBrowsingFromLanding(false);
     setLandingExiting(false);
+    // Keep the outgoing workspace chrome mounted so the whole page — canvas,
+    // bottom bar, play cluster and search pill — lifts away as one unit.
+    setWorkspaceLeaving(hasEntered);
     setHasEntered(false);
     setLandingEntering(true);
     setLandingReplayKey((key) => key + 1);
-  }, [landingEnabled, pause, showGlobe]);
+  }, [hasEntered, landingEnabled, pause, showGlobe]);
 
   // The incoming landing has finished rising home over the outgoing page, so
   // settle the rise (drop the raised stacking) and unmount the lifted globe
@@ -1120,6 +1132,7 @@ export default function App() {
     setWorkspaceGlobeOpening(false);
     setGlobeOverWorkspace(false);
     setGlobeExiting(false);
+    setWorkspaceLeaving(false);
   }, []);
 
   // Dev toggle (Landing switch): persist the preference and reflect it live.
@@ -1310,12 +1323,13 @@ export default function App() {
               backdrop={false}
               enlarged
               recenterOnExpand
-              // Hide while browsing the globe, and the instant the landing
-              // leaves for a place / the map — otherwise the body-portalled
-              // "Search or create your own" pill lingers as an empty white bar
-              // over the rising soundscape. Home-return still tracks the gate.
-              blocked={(showGlobe && !landingEntering) || landingExiting}
-              riseWithGate={landingEntering}
+              // Only hard-hide once the landing has actually left the screen.
+              // While it is exiting the pill must stay and lift WITH the page,
+              // welded to the Enter button beside it.
+              blocked={showGlobe && !landingEntering && !landingExiting}
+              pageMotion={
+                landingEntering ? 'rise-home' : landingExiting ? 'exit-lift' : 'none'
+              }
             />
           }
         />
@@ -1360,11 +1374,7 @@ export default function App() {
       </header>
 
       <main
-        className={`${styles.main} ${
-          (coverActive || landingEntering || workspaceGlobeOpening) && !globeExiting
-            ? styles.pageExitLift
-            : ''
-        }`}
+        className={`${styles.main} ${workspacePageLifting ? styles.pageExitLift : ''}`}
         ref={mainRef}
       >
         <section className={styles.workspace} aria-label="Soundscape">
@@ -1414,7 +1424,7 @@ export default function App() {
 
       <nav
         ref={bottomBarRef}
-        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe && !globeOverWorkspace ? styles.bottomBarHidden : ''} ${(coverActive || landingEntering || workspaceGlobeOpening) && !globeExiting ? styles.pageExitLift : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
+        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe && !globeOverWorkspace ? styles.bottomBarHidden : ''} ${workspacePageLifting ? styles.pageExitLift : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
         aria-label="Main controls"
         onPointerMove={(event) => syncBottomBarTooltip(event.target)}
         onPointerLeave={() => setBottomBarTooltip(null)}
@@ -1454,9 +1464,11 @@ export default function App() {
               // the bar itself is hidden (e.g. landing browse).
               blocked={showGlobe && !globeOverWorkspace}
               recessed={detailTarget !== null}
-              // Track the bottom bar's pageExitLift so the portalled pill rises
-              // with the outgoing soundscape instead of freezing in place.
-              riseWithBar={sceneRising || workspaceGlobeOpening}
+              // Replay the bar's own page animation so the portalled pill is
+              // part of the same unit rather than lagging behind it.
+              pageMotion={
+                workspacePageLifting ? 'exit-lift' : sceneRising ? 'scene-rise' : 'none'
+              }
             />
           )}
           {showWorkspaceChrome && (
