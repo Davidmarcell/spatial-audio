@@ -205,9 +205,10 @@
 }
 
 .radarRing:nth-child(3) {
-  /* Outer ring kisses the shorter viewport edge. */
-  width: 100cqmin;
-  height: 100cqmin;
+  /* Sit on the shorter viewport edge; 2px inset keeps the dashed stroke
+     visible when the playing canvas clips overflow. */
+  width: calc(100cqmin - 2px);
+  height: calc(100cqmin - 2px);
 }
 
 .radarRingsPlaying .radarRing {

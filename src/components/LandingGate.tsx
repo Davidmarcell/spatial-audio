@@ -41,11 +41,11 @@ const WORDMARK_TEXT = 'Saudade';
 const COMPACT_MQ = '(max-width: 768px)';
 
 /**
- * Hold only long enough for the letter cascade to land, then immediately begin
- * the center → rest settle so the two never read as separate beats.
- * (delay 0.05s + 7×0.06s stagger + ~0.55s of the letter rise ≈ 1.02s)
+ * Hold only until the letter cascade has landed, then immediately begin the
+ * center → rest settle (no second static beat, and do not wait on fan art).
+ * Letter timing: delay 0.05s + 7×0.06s stagger + 0.62s rise ≈ 1.09s.
  */
-const MOBILE_WORDMARK_LAND_MS = 720;
+const MOBILE_WORDMARK_LAND_MS = 1000;
 /** Cap so a slow tile never blocks the fan forever. */
 const MOBILE_PRELOAD_TIMEOUT_MS = 4200;
 /** One continuous center → rest motion for the compact wordmark. */
