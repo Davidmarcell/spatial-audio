@@ -21,7 +21,7 @@ import { ShareButton } from './components/ShareButton';
 import { SoundArtDetailSheet, type DetailTarget } from './components/SoundArtDetailSheet';
 import { SoundTileDesignTuner } from './components/SoundTileDesignTuner';
 import {
-  CANVAS_TILE_SIZE,
+  getCanvasTileSize,
   DOCK_BASE_SIZE,
   DRAG_THRESHOLD,
   reorderDockDefaultIds,
@@ -1319,12 +1319,6 @@ export default function App() {
         />
       )}
 
-      {hasEntered && !isUnlocked && (
-        <button type="button" className={styles.unlockBanner} onClick={() => void unlock()}>
-          Tap to enable audio · press Play when you are ready
-        </button>
-      )}
-
       <div className={styles.topFabGroup}>
         <ThemeToggle />
         <AboutButton onClick={() => setShowProjectInfo(true)} />
@@ -1486,7 +1480,7 @@ export default function App() {
           name={displaySoundName(soundDrag.sound)}
           x={soundDrag.x}
           y={soundDrag.y}
-          size={soundDrag.active ? CANVAS_TILE_SIZE : DOCK_BASE_SIZE}
+          size={soundDrag.active ? getCanvasTileSize() : DOCK_BASE_SIZE}
           showLabel={false}
           regionArt={regionArt}
           elevated={soundDrag.source === 'palette'}

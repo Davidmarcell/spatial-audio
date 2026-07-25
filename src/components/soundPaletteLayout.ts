@@ -6,7 +6,24 @@ export const DOCK_SLOT_GAP = 0;
 export const DOCK_LIST_PAD_Y = 0.6;
 export const DOCK_PAD_X = 5.3;
 export const CANVAS_TILE_SIZE = 84;
+/** Compact canvas tile edge — keeps mobile soundscapes from reading as a pile. */
+export const MOBILE_CANVAS_TILE_SIZE = 50;
 export const DRAG_THRESHOLD = 6;
+
+const COMPACT_MQ = '(max-width: 768px)';
+
+export function isCompactViewport(): boolean {
+  return (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(COMPACT_MQ).matches
+  );
+}
+
+/** Drag-ghost / hit-target size for the current viewport. */
+export function getCanvasTileSize(): number {
+  return isCompactViewport() ? MOBILE_CANVAS_TILE_SIZE : CANVAS_TILE_SIZE;
+}
 
 /**
  * Floor for how many tiles the dock will always allow. The dock is no longer

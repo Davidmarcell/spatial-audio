@@ -7,6 +7,7 @@ import {
   scaleFromDistance,
 } from '../audio/spatialMath';
 import type { SpatialPoint } from '../data/types';
+import { isCompactViewport } from './soundPaletteLayout';
 import { SoundIconImage } from './SoundIconImage';
 import { UiIcon } from './UiIcon';
 import styles from './SoundIcon.module.css';
@@ -76,8 +77,11 @@ export function SoundIcon({
   const entranceDy = 50 - topPercent;
   const swayDeg = (sway * 180) / Math.PI;
   const distance = distanceFromListener(position);
-  const proximityScale = scaleFromDistance(distance);
-  const dragBoost = isDragging ? 1.06 : 1;
+  // Phones use a smaller base tile; damp proximity scaling so near sounds do not
+  // inflate back into a crowded overlap.
+  const proximityScale =
+    scaleFromDistance(distance) * (isCompactViewport() ? 0.78 : 1);
+  const dragBoost = isDragging ? 1.04 : 1;
   const scale = proximityScale * dragBoost;
 
   const handleDismiss = (event: React.MouseEvent) => {

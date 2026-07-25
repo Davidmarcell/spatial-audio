@@ -243,24 +243,24 @@
 
   .addWrap {
     min-height: auto;
-    min-width: 4.1rem;
+    min-width: 2.85rem;
     width: auto;
     flex-shrink: 0;
-    padding: 0 0.15rem;
+    padding: 0 0.1rem;
   }
 
   .itemWrap {
     min-height: auto;
-    min-width: 4.85rem;
-    width: 4.85rem;
+    min-width: 3.35rem;
+    width: 3.35rem;
     flex-shrink: 0;
     overflow: visible;
   }
 
   .itemWrapLift {
-    min-width: 4.1rem;
-    max-width: 4.1rem;
-    width: 4.1rem;
+    min-width: 2.85rem;
+    max-width: 2.85rem;
+    width: 2.85rem;
     overflow: hidden;
   }
 
@@ -274,8 +274,8 @@
   }
 
   .item {
-    width: 68px;
-    height: 68px;
+    width: 46px;
+    height: 46px;
     transform-origin: center bottom;
   }
 }

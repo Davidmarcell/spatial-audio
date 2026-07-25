@@ -433,13 +433,17 @@
     left: 0;
     right: 0;
     top: auto;
-    bottom: calc(7.35rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(6.15rem + env(safe-area-inset-bottom, 0px));
     width: 100%;
     max-width: 100%;
     transform: none;
     display: flex;
     justify-content: center;
-    padding-inline: 0.55rem;
+    padding-inline: 0.45rem;
     box-sizing: border-box;
+  }
+
+  .unlockBanner {
+    display: none;
   }
 }

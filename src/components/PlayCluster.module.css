@@ -8,6 +8,13 @@
   align-items: center;
 }
 
+@media (max-width: 768px) {
+  .cluster {
+    --control-size: 2.55rem;
+    --volume-gap: 0.45rem;
+  }
+}
+
 .playSlot {
   position: relative;
   display: inline-flex;
