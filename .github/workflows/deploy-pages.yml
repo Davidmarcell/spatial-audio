@@ -1,0 +1,69 @@
+name: Deploy to GitHub Pages
+
+# Publishes a permanent, always-current build of the app so there is a stable
+# link to open on a phone instead of an ad-hoc tunnel that dies with whatever
+# machine started it.
+#
+#   URL: https://davidmarcell.github.io/spatial-audio/
+#
+# One-time setup: repo Settings -> Pages -> Build and deployment -> Source:
+# "GitHub Actions". Until that is set, this workflow will fail at the deploy
+# step with an error about Pages not being enabled.
+#
+# Runs on every push to main, and on demand from the Actions tab (pick any
+# branch in the "Run workflow" dropdown) so a branch can be published without
+# merging it first. Note that GitHub only offers the manual run once this file
+# is on the default branch.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# `deploy-pages` needs id-token to authenticate the deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; the newest push wins.
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # `build:portfolio` is the plain build plus `--base=/spatial-audio/`,
+      # which Pages needs because the site is served from a repo subpath. It
+      # also runs the audio/art/scene validators, so a broken asset reference
+      # fails here rather than shipping.
+      - run: npm run build:portfolio
+
+      - uses: actions/configure-pages@v5
+
+      # ~370MB, nearly all of it the audio pool, so this step takes a few
+      # minutes. Well inside the 1GB Pages site limit.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
