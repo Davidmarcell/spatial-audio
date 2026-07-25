@@ -213,6 +213,11 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
+    /* Lift the tray so the full-width bar reads on a white canvas (plain
+       glass-fill was disappearing into the page). */
+    background-color: var(--surface-elevated);
+    box-shadow: var(--shadow-md);
+    border-color: var(--glass-border-strong, var(--glass-border));
   }
 
   .palette .dock::-webkit-scrollbar {
