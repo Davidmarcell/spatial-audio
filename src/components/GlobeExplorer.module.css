@@ -55,13 +55,13 @@
   white-space: nowrap;
 }
 
-/* Top-right, on the same inset the header copy uses so the close reads as part
-   of the page's padding rather than floating at a tighter offset. */
+/* Top-right of the sheet, on the same inset the header content uses (the header
+   is `calc(100% - 2.5rem)` wide and centred, so 1.25rem each side). */
 .topControls {
   position: absolute;
   top: max(1.15rem, env(safe-area-inset-top, 0px));
-  right: 1.15rem;
-  z-index: 5;
+  right: 1.25rem;
+  z-index: 8;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -490,7 +490,7 @@
   flex: none;
   width: min(26rem, 100%);
   /* Pulled up closer under the globe. */
-  margin: -4.1rem auto 0;
+  margin: -5.4rem auto 0;
   padding: 0 1rem 0.55rem;
   z-index: 6;
 }

@@ -1234,6 +1234,15 @@ export function GlobeExplorer({
 
   return (
     <div className={styles.root} aria-labelledby="globe-explorer-title">
+      {/* Page-level, so the close sits in the sheet's own top-right corner on the
+          same inset as the header content rather than beside the globe. */}
+      {showCloseButton && (
+        <div className={styles.topControls}>
+          <button type="button" className={styles.close} aria-label="Close map" onClick={onClose}>
+            <UiIcon icon="xmark" size="md" className={styles.controlIcon} />
+          </button>
+        </div>
+      )}
       <div className={styles.body}>
         <header className={styles.pageHeader}>
           <h2 id="globe-explorer-title" className={styles.pageTitle}>
@@ -1286,13 +1295,6 @@ export function GlobeExplorer({
                 />
               ))}
             </div>
-            {showCloseButton && (
-              <div className={styles.topControls}>
-                <button type="button" className={styles.close} aria-label="Close map" onClick={onClose}>
-                  <UiIcon icon="xmark" size="sm" className={styles.controlIcon} />
-                </button>
-              </div>
-            )}
           </div>
 
           <div className={styles.searchHost} ref={searchHostRef}>
