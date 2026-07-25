@@ -294,7 +294,11 @@ export class AudioEngine {
     const panner = ctx.createPanner();
     panner.panningModel = 'equalpower';
     panner.distanceModel = 'inverse';
-    panner.refDistance = 0.35;
+    // Raised alongside `PANNER_LATERAL_GAIN`: widening the stereo field pushes
+    // side-placed sources further from the listener, and on the old 0.35 ref the
+    // inverse curve dimmed them by ~25%. This keeps their loudness where it was
+    // so the wider image is heard as direction, not as a volume drop.
+    panner.refDistance = 0.5;
     panner.maxDistance = 3;
     panner.rolloffFactor = 1.2;
     panner.coneInnerAngle = 360;

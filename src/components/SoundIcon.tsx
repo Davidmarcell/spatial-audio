@@ -1,9 +1,12 @@
 import { useRef, type CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import {
+  CANVAS_SPREAD_COMPACT,
+  CANVAS_SPREAD_DEFAULT,
   depthZIndex,
   distanceFromListener,
   normalizedToPercent,
+  normalizedToPercentValues,
   scaleFromDistance,
 } from '../audio/spatialMath';
 import type { SpatialPoint } from '../data/types';
@@ -67,20 +70,20 @@ export function SoundIcon({
   regionArt,
 }: Props) {
   const iconRef = useRef<HTMLButtonElement>(null);
-  const { left, top } = normalizedToPercent(position);
+  const compact = isCompactViewport();
+  // Phones spread the placement space so the tiles sit further out from the
+  // listener instead of bunching around it; spatial coordinates are untouched.
+  const spread = compact ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
+  const { left, top } = normalizedToPercent(position, spread);
   // Vector from the tile's resting spot back to the listener centre (50%, 50%),
   // expressed in container-query units so the entrance offset tracks the canvas
   // size. The tile animates from this offset (at centre) to zero (at rest).
-  const leftPercent = ((position.x + 1) / 2) * 100;
-  const topPercent = (1 - position.y) * 100;
+  const { leftPercent, topPercent } = normalizedToPercentValues(position, spread);
   const entranceDx = 50 - leftPercent;
   const entranceDy = 50 - topPercent;
   const swayDeg = (sway * 180) / Math.PI;
   const distance = distanceFromListener(position);
-  // Phones use a smaller base tile; damp proximity scaling so near sounds do not
-  // inflate back into a crowded overlap.
-  const proximityScale =
-    scaleFromDistance(distance) * (isCompactViewport() ? 0.88 : 1);
+  const proximityScale = scaleFromDistance(distance);
   const dragBoost = isDragging ? 1.04 : 1;
   const scale = proximityScale * dragBoost;
 

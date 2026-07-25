@@ -9,7 +9,13 @@ import {
   stepPhysics,
   type IconPhysics,
 } from '../audio/iconPhysics';
-import { canvasToNormalized, distanceFromListener } from '../audio/spatialMath';
+import {
+  CANVAS_SPREAD_COMPACT,
+  CANVAS_SPREAD_DEFAULT,
+  canvasToNormalized,
+  distanceFromListener,
+} from '../audio/spatialMath';
+import { isCompactViewport } from './soundPaletteLayout';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import type { ActiveSound, SoundDef, SpatialPoint } from '../data/types';
 import { displaySoundName } from '../utils/soundCatalog';
@@ -65,6 +71,11 @@ type PendingDragState = {
 };
 
 const DRAG_THRESHOLD_PX = 8;
+
+/** Placement spread in force for this viewport (phones push tiles further out). */
+function canvasSpread(): number {
+  return isCompactViewport() ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
+}
 
 // Entrance ("radiate in") timing. Tiles start small and faded at the listener
 // centre and glide out to their resting spot; those resting further away land
@@ -398,7 +409,12 @@ export function SpatialCanvas({
     const canvas = canvasRef.current;
     if (!drag || !canvas) return;
 
-    drag.target = canvasToNormalized(clientX, clientY, canvas.getBoundingClientRect());
+    drag.target = canvasToNormalized(
+      clientX,
+      clientY,
+      canvas.getBoundingClientRect(),
+      canvasSpread(),
+    );
     setRenderStates(new Map(physicsRef.current));
   }, []);
 
@@ -430,6 +446,7 @@ export function SpatialCanvas({
                 event.clientX,
                 event.clientY,
                 canvas.getBoundingClientRect(),
+                canvasSpread(),
               ),
             };
             setDraggingId(pending.instanceId);

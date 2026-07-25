@@ -250,7 +250,9 @@
 
 @media (max-width: 768px) {
   .icon {
-    --canvas-tile-size: 3.75rem; /* ~60px — ~20% larger than the prior compact size */
+    /* ~72px. The tiles sit further apart on phones now (see CANVAS_SPREAD_COMPACT),
+       so a larger face reads clearly without crowding its neighbours. */
+    --canvas-tile-size: 4.5rem;
   }
 
   .label {

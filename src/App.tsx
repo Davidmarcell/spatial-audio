@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SheetStack } from '@silk-hq/components';
-import { canvasToNormalized } from './audio/spatialMath';
+import {
+  CANVAS_SPREAD_COMPACT,
+  CANVAS_SPREAD_DEFAULT,
+  canvasToNormalized,
+} from './audio/spatialMath';
 import { DRAG_PREVIEW_INSTANCE_ID, isDragPreviewInstance } from './audio/dragPreview';
 import type { PlaybackRecipe } from './audio/AudioEngine';
 import { LocationSearchSpotlight } from './components/LocationSearchSpotlight';
@@ -22,6 +26,7 @@ import { SoundArtDetailSheet, type DetailTarget } from './components/SoundArtDet
 import { SoundTileDesignTuner } from './components/SoundTileDesignTuner';
 import {
   getCanvasTileSize,
+  isCompactViewport,
   DOCK_BASE_SIZE,
   DRAG_THRESHOLD,
   reorderDockDefaultIds,
@@ -92,6 +97,10 @@ type ReturnFlight = {
 };
 
 /** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~1300ms). */
+/** Placement spread in force for this viewport (phones push tiles further out). */
+const canvasSpread = () =>
+  isCompactViewport() ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
+
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
 /** Half the previous one-shot level so the whoosh sits under the reveal. */
 const ENTER_WHOOSH_VOLUME = 0.275;
@@ -737,7 +746,7 @@ export default function App() {
         event.clientY <= rect.bottom;
 
       if (inside) {
-        const position = canvasToNormalized(event.clientX, event.clientY, rect);
+        const position = canvasToNormalized(event.clientX, event.clientY, rect, canvasSpread());
         void updateDragPreview(drag.sound, position);
       } else {
         removeDragPreview();
@@ -771,7 +780,7 @@ export default function App() {
           event.clientY <= rect.bottom;
 
         if (inside) {
-          const position = canvasToNormalized(event.clientX, event.clientY, rect);
+          const position = canvasToNormalized(event.clientX, event.clientY, rect, canvasSpread());
           addSound(drag.sound, position);
           void ensureScenePlaying();
           if (drag.source === 'library') {
