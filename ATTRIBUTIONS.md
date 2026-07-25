@@ -64,6 +64,20 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 | `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (extended ~2.2s with soft fade) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
 | `public/audio/ui/globe-ambient.mp3` | Wind in tall grass (quiet globe bed) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0908](https://bigsoundbank.com/wind-in-tall-grass-s0908.html) |
 
+## Icon fonts
+
+The UI icons prefer **Font Awesome 6 Pro (Regular)**, which is licensed and not
+redistributable — `public/fonts/fontawesome/` is gitignored, so that file only
+exists on a machine with the Pro install. Because relying on it alone left every
+icon blank on phones and on any deploy, the bundled **Font Awesome Free**
+webfonts are appended to the same family stack as per-glyph fallbacks. Font
+Awesome uses one codepoint per icon across styles, so the glyphs are the same
+icons; only the stroke weight differs where a Pro-only Regular cut is missing.
+
+| Package | Files | License | Source |
+|---------|-------|---------|--------|
+| `@fortawesome/fontawesome-free` | `webfonts/fa-regular-400.woff2`, `webfonts/fa-solid-900.woff2` | Fonts: SIL OFL 1.1 · Code: MIT | [fontawesome.com/license/free](https://fontawesome.com/license/free) |
+
 ## Re-downloading assets
 
 ```bash

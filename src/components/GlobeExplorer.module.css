@@ -766,6 +766,29 @@
     font-size: 0.88rem;
   }
 
+  /* Phones: the globe should fill the screen width bar a 32px gutter each side.
+     cobe draws the sphere at ~0.8 × the canvas box, so the square is oversized
+     by 1/0.8 to land the SPHERE on `100vw - 64px`. The canvas is transparent
+     outside the sphere, so the overhang paints nothing. */
+  .globeColumn {
+    padding: 0.4rem 0 0.35rem;
+  }
+
+  .globeHost {
+    padding: 0.25rem 0 0.5rem;
+  }
+
+  /* cobe draws the sphere across 0.8 of the canvas box (see `projectMarker`'s
+     GLOBE_RADIUS mapping), so oversize the square by 1/0.8 to land the SPHERE
+     itself on `100vw - 64px`. The canvas is transparent outside the sphere. */
+  .globeViewport,
+  .globeLoader {
+    width: calc((100vw - 64px) / 0.8);
+    height: calc((100vw - 64px) / 0.8);
+    /* Even out the space above/below: the host runs on under the search row. */
+    inset: -28px 0 0;
+  }
+
   .body {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr auto;

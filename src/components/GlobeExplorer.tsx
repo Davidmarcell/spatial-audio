@@ -41,6 +41,11 @@ const SCALE_MIN = 0.85;
 const SCALE_MAX = 1.22;
 const SCALE_DEFAULT = 1;
 const WHEEL_ZOOM_SENSITIVITY = 0.0022;
+/** Pixels of horizontal / vertical drag per radian of rotation (pointer). */
+const DRAG_PHI_DIVISOR = 300;
+const DRAG_THETA_DIVISOR = 500;
+/** Touch drags rotate twice as far per pixel as a mouse drag. */
+const TOUCH_DRAG_GAIN = 2;
 const MARKER_SIZE = 0.015;
 const MARKER_SIZE_ACTIVE = 0.024;
 const FOCUS_HOLD_MS = 4000;
@@ -784,8 +789,15 @@ export function GlobeExplorer({
       if (!pointer.moved && Math.hypot(dx, dy) > 3) pointer.moved = true;
       pointer.x = event.clientX;
       pointer.y = event.clientY;
-      target.phi += dx / 300;
-      target.theta = clamp(target.theta + dy / 500, -THETA_LIMIT, THETA_LIMIT);
+      // A finger drags a much shorter distance than a mouse, so touch spins the
+      // globe twice as far per pixel.
+      const gain = event.pointerType === 'touch' ? TOUCH_DRAG_GAIN : 1;
+      target.phi += (dx * gain) / DRAG_PHI_DIVISOR;
+      target.theta = clamp(
+        target.theta + (dy * gain) / DRAG_THETA_DIVISOR,
+        -THETA_LIMIT,
+        THETA_LIMIT,
+      );
       focusUntil = performance.now() + FOCUS_HOLD_MS;
     };
 
