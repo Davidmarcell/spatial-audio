@@ -82,6 +82,41 @@ export const MOBILE_FAN_CONFIG: FanConfig = {
   scaleFalloff: 0.05,
 };
 
+/**
+ * Compact / phone layout is a SCATTER, not a fan: the plates read as a loose
+ * splattering — irregular heights, mixed rotations and slightly varied sizes —
+ * rather than a symmetric hand of cards. Values are hand-authored per position
+ * (deterministic, so the layout never jitters between loads) and are the single
+ * place to drop in a new arrangement.
+ *
+ *   xPx   — horizontal nudge from the packed row position
+ *   yPx   — vertical offset (negative = higher)
+ *   rotDeg— resting tilt
+ *   scale — resting size multiplier
+ */
+export type ScatterSpot = {
+  xPx: number;
+  yPx: number;
+  rotDeg: number;
+  scale: number;
+};
+
+export const MOBILE_SCATTER_LAYOUT: ScatterSpot[] = [
+  { xPx: -4, yPx: 15, rotDeg: -15, scale: 0.92 },
+  { xPx: 3, yPx: -17, rotDeg: 7, scale: 1.04 },
+  { xPx: -3, yPx: 23, rotDeg: -4, scale: 0.98 },
+  { xPx: 6, yPx: 4, rotDeg: 14, scale: 0.95 },
+  { xPx: -2, yPx: -13, rotDeg: -9, scale: 1.02 },
+  { xPx: 4, yPx: 19, rotDeg: 5, scale: 0.96 },
+];
+
+/** Horizontal nesting for the scattered plates, in rem (negative margin). */
+export const MOBILE_SCATTER_OVERLAP_REM = 2.15;
+
+export function scatterSpotFor(index: number): ScatterSpot {
+  return MOBILE_SCATTER_LAYOUT[index % MOBILE_SCATTER_LAYOUT.length];
+}
+
 /** Landing tile edge length on desktop (matches `.locationImage` in CSS). */
 export const DESKTOP_TILE_PX = 150;
 /** Landing tile edge length on compact viewports. */

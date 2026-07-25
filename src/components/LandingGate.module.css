@@ -274,7 +274,7 @@
      fan -> copy gaps both equal the `.inner` gap. */
   gap: 0;
   margin: 0;
-  padding: 0 0 var(--fan-pad-bottom, 3.2rem);
+  padding: var(--fan-pad-top, 0px) 0 var(--fan-pad-bottom, 3.2rem);
   list-style: none;
   transition: opacity 0.32s var(--ease-premium-enter);
 }
@@ -325,13 +325,15 @@
   --magnet-y: 0px;
   --lift: 0px;
   --arc-y: 0px;
+  --scatter-x: 0px;
   --rest-scale: 1;
   --tile-scale: 1;
-  /* Resting transform = fan rotation + arc drop + per-preset edge scale; the
-     magnet nudge, hover lift and press scale all stack on top without disturbing
-     the fan angle (hover/press multiply into --tile-scale). */
+  /* Resting transform = rotation + vertical offset (fan arc, or the scatter's
+     per-plate y) + edge scale; the magnet nudge, hover lift and press scale all
+     stack on top without disturbing the angle (hover/press multiply into
+     --tile-scale). `--scatter-x` shifts a plate sideways off the packed row. */
   transform: translate3d(
-      var(--magnet-x),
+      calc(var(--magnet-x) + var(--scatter-x)),
       calc(var(--magnet-y) + var(--lift) + var(--arc-y)),
       0
     )
@@ -488,27 +490,38 @@
   transform: none;
 }
 
-/* Fan / copy rise only after the preload settle — short delay so they lift
-   with search+Enter as one beat, never under the moving wordmark. */
+/* Assets rise only after the preload settle — short delay so they lift with
+   search+Enter as one beat, never under the moving wordmark. On phones they all
+   run on `--landing-beat`, the same duration as the wordmark settle. */
 .gate[data-hero-ready='true'][data-art-ready='true'] .locationItem {
-  animation: gateRise var(--landing-fan-duration, 0.5s) var(--ease-premium-enter) both;
+  animation: gateRise var(--landing-beat, var(--landing-fan-duration, 0.5s))
+    var(--ease-premium-enter) both;
   animation-delay: calc(
     0.06s + var(--landing-index) * var(--landing-fan-stagger, 0.04s)
   );
 }
 
 .gate[data-hero-ready='true'][data-art-ready='true'] .tagline {
-  animation: gateRise var(--landing-tagline-duration, 0.5s) var(--ease-premium-enter) both;
+  animation: gateRise var(--landing-beat, var(--landing-tagline-duration, 0.5s))
+    var(--ease-premium-enter) both;
   animation-delay: 0.14s;
 }
 
 /* Search mounts only when hero-ready; pair with Enter on a shared short beat. */
 .gate[data-hero-ready='true'] .enterButton {
+  animation-duration: var(--landing-beat, var(--landing-enter-duration, 0.46s));
   animation-delay: 0.06s;
 }
 
 /* —— Compact / phone landing layout —— */
 @media (max-width: 768px) {
+  /* One tempo for the whole phone entrance: the wordmark's centre → rest settle
+     (PRELOAD_WORDMARK_SETTLE_MS in LandingGate.tsx) and every asset that rises
+     after it share this duration. */
+  .gate {
+    --landing-beat: 0.56s;
+  }
+
   .gate {
     padding-inline: 0.85rem;
     /* Rotated outer tiles can paint a few px past the content column; clip

@@ -21,7 +21,10 @@ import {
   DEFAULT_FAN_CONFIG,
   DESKTOP_TILE_PX,
   MOBILE_FAN_CONFIG,
+  MOBILE_SCATTER_LAYOUT,
+  MOBILE_SCATTER_OVERLAP_REM,
   MOBILE_TILE_PX,
+  scatterSpotFor,
   type FanConfig,
 } from './landingFan';
 import styles from './LandingGate.module.css';
@@ -56,8 +59,12 @@ const GATE_RISE_VAR = '--landing-rise-y';
 const PRELOAD_WORDMARK_LAND_MS = 1200;
 /** Cap so a slow tile never blocks the fan forever. */
 const PRELOAD_ART_TIMEOUT_MS = 4200;
-/** One continuous centre → rest motion for the hero wordmark. */
-const PRELOAD_WORDMARK_SETTLE_MS = 400;
+/**
+ * One continuous centre → rest motion for the hero wordmark. The assets that
+ * rise afterwards share this exact duration (see `--landing-beat` in the compact
+ * block of LandingGate.module.css), so the whole entrance reads as one tempo.
+ */
+const PRELOAD_WORDMARK_SETTLE_MS = 560;
 /** Eased in and out of the settle, weighted so it leaves the centre gently. */
 const PRELOAD_WORDMARK_SETTLE_EASE = 'cubic-bezier(0.5, 0.02, 0.2, 1)';
 /** Reduced-motion: still show a centred hold, then snap to rest + assets. */
@@ -476,15 +483,32 @@ export function LandingGate({
 
   const fan = compact ? MOBILE_FAN_CONFIG : (fanConfig ?? DEFAULT_FAN_CONFIG);
   const tilePx = compact ? MOBILE_TILE_PX : DESKTOP_TILE_PX;
+  // Phones get the scattered layout; desktop keeps the symmetric fan.
+  const scattered = compact;
   // Keep search+Enter mounted for layout during preload so the wordmark FLIP
   // lands on the true resting slot (the vertically-centred stack does not jump
   // ~30px when the row later appears). Visibility/entrance stay gated on
   // heroReady via CSS + the search portal.
 
-  const theta = (fan.endRotationDeg * Math.PI) / 180;
+  // Room the row must reserve so no plate's rotated corner or vertical offset
+  // clips into the wordmark above or the copy below.
+  const maxRotationDeg = scattered
+    ? Math.max(...MOBILE_SCATTER_LAYOUT.map((spot) => Math.abs(spot.rotDeg)))
+    : fan.endRotationDeg;
+  const theta = (maxRotationDeg * Math.PI) / 180;
   const rotationOverhangPx =
     (tilePx * (Math.abs(Math.sin(theta)) + Math.abs(Math.cos(theta)) - 1)) / 2;
-  const fanPadBottomPx = Math.ceil(fan.arcDepthPx + rotationOverhangPx + 4);
+  const scatterLowestPx = scattered
+    ? Math.max(0, ...MOBILE_SCATTER_LAYOUT.map((spot) => spot.yPx))
+    : 0;
+  const scatterHighestPx = scattered
+    ? Math.max(0, ...MOBILE_SCATTER_LAYOUT.map((spot) => -spot.yPx))
+    : 0;
+  const rowPadBottomPx = Math.ceil(
+    (scattered ? scatterLowestPx : fan.arcDepthPx) + rotationOverhangPx + 4,
+  );
+  const rowPadTopPx = Math.ceil(scatterHighestPx + rotationOverhangPx + 4);
+  const overlapRem = scattered ? MOBILE_SCATTER_OVERLAP_REM : fan.overlapRem;
 
   const content = (
     <div
@@ -520,8 +544,9 @@ export function LandingGate({
           className={styles.locationRow}
           style={
             {
-              '--overlap': `${fan.overlapRem}rem`,
-              '--fan-pad-bottom': `${fanPadBottomPx}px`,
+              '--overlap': `${overlapRem}rem`,
+              '--fan-pad-bottom': `${rowPadBottomPx}px`,
+              '--fan-pad-top': `${rowPadTopPx}px`,
               '--tile-size': `${tilePx}px`,
             } as React.CSSProperties
           }
@@ -529,9 +554,10 @@ export function LandingGate({
           {locations.map(({ location, src, label }, index) => {
             const centre = (locations.length - 1) / 2;
             const offset = centre === 0 ? 0 : (index - centre) / centre;
-            const restRotation = offset * fan.endRotationDeg;
-            const arcY = offset * offset * fan.arcDepthPx;
-            const restScale = 1 - Math.abs(offset) * fan.scaleFalloff;
+            const spot = scattered ? scatterSpotFor(index) : null;
+            const restRotation = spot ? spot.rotDeg : offset * fan.endRotationDeg;
+            const arcY = spot ? spot.yPx : offset * offset * fan.arcDepthPx;
+            const restScale = spot ? spot.scale : 1 - Math.abs(offset) * fan.scaleFalloff;
             return (
               <li
                 key={location.id}
@@ -548,6 +574,7 @@ export function LandingGate({
                     '--rest-rot': `${restRotation.toFixed(2)}deg`,
                     '--arc-y': `${arcY.toFixed(2)}px`,
                     '--rest-scale': restScale.toFixed(3),
+                    '--scatter-x': `${(spot?.xPx ?? 0).toFixed(2)}px`,
                   } as React.CSSProperties}
                   onClick={() => onSelect(location)}
                   onPointerMove={handleTilePointerMove}

@@ -27,6 +27,7 @@
     "nypl:search": "node scripts/nypl-search.mjs"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "@silk-hq/components": "^0.10.1",
     "cobe": "^2.0.1",
     "globe.gl": "^2.46.1",
