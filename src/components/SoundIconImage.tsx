@@ -16,6 +16,15 @@ type Props = {
    * and do not jump on open/close.
    */
   crop?: { scale: number; x?: string; y?: string };
+  /**
+   * Decode synchronously so the element never presents an empty frame.
+   *
+   * Needed wherever a NEW `<img>` takes over from one already on screen (the
+   * tile-expand face, the flight mirror): async decoding lets the browser paint
+   * the element before the bitmap is ready, which reads as the art blinking out
+   * and loading back in — even though the file is already cached.
+   */
+  decodeSync?: boolean;
 };
 
 export function SoundIconImage({
@@ -26,6 +35,7 @@ export function SoundIconImage({
   detailSrc,
   size = 'canvas',
   crop,
+  decodeSync = false,
 }: Props) {
   const usesDetailAsset = size === 'detail' || size === 'detailNatural';
   const fallbackChain = useMemo(
@@ -60,7 +70,7 @@ export function SoundIconImage({
         /* Canvas / dock / landing faces should decode with the scene — lazy
            left too many empty square frames while the network caught up. */
         loading="eager"
-        decoding={isDetail ? 'sync' : 'async'}
+        decoding={isDetail || decodeSync ? 'sync' : 'async'}
         fetchPriority={size === 'canvas' || size === 'detail' || size === 'detailNatural' ? 'high' : 'auto'}
         onError={() => {
           setChainIndex((current) => {

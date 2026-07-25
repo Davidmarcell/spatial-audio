@@ -23,6 +23,13 @@ type Props = {
   dragPhysics?: boolean;
 };
 
+/**
+ * Duration of the guided return flight, kept in sync with `.animating` in the
+ * stylesheet. Exported so the dock can time its slot opening against the tile's
+ * travel instead of growing ahead of it.
+ */
+export const RETURN_FLIGHT_MS = 340;
+
 /** Softer than canvas tiles — same velocity tilt model, less lag. */
 const FLYING_TILE_SWAY = {
   maxSway: 0.22,
@@ -185,14 +192,20 @@ export function FlyingSoundTile({
     );
   }
 
+  // The box stays fixed at the START rect and the whole flight is one transform,
+  // so nothing re-lays out mid-air. Scaling the box (rather than transitioning
+  // width/height) also keeps the art's framing identical throughout.
+  const flightScale = size > 0 ? frame.size / size : 1;
+
   return (
     <div
       className={tileClass}
       style={{
-        left: frame.x,
-        top: frame.y,
-        width: frame.size,
-        height: frame.size,
+        left: x,
+        top: y,
+        width: size,
+        height: size,
+        transform: `translate3d(${(frame.x - x).toFixed(2)}px, ${(frame.y - y).toFixed(2)}px, 0) translate(-50%, -50%) scale(${flightScale.toFixed(4)})`,
       }}
       onTransitionEnd={handleTransitionEnd}
       aria-hidden
@@ -204,6 +217,7 @@ export function FlyingSoundTile({
         alt=""
         soundId={soundId}
         size="palette"
+        decodeSync
       />
       {showLabel && <span className={styles.label}>{name}</span>}
     </div>

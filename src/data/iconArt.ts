@@ -99,6 +99,10 @@ const extendedFixedIcons: Record<string, string> = {
   // Alternates in the `lion` pool below: `lion-kuhnert-ruaha-tanzania.jpg`
   // (lion on the Ruaha river bank) and `lion-kuhnert-head.jpg` (head study).
   'global-lion': '/icons/lion-kuhnert-awakening.jpg',
+  // The generic night-insect bed is a cricket chorus, so show a cricket. The
+  // pool's Merian moth plate read as "some insect" rather than the thing you
+  // hear. Cicada-specific layers keep their own pinned plates (see kyoto-*).
+  'global-insects': '/icons/cricket-field-ensifera.jpg',
 };
 
 /** Attributions for the extended fixed plates above (kept out of the generated file). */
@@ -110,6 +114,13 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     license: 'Public domain',
     sourceUrl:
       'https://commons.wikimedia.org/wiki/File:Houghton_Typ_805L.34_-_John_Gould,_Ramphastos_toco,_1834.jpg',
+  },
+  {
+    file: '/icons/cricket-field-ensifera.jpg',
+    title: 'Cricket, from a plate of Ensifera (crickets and bush-crickets)',
+    author: 'Gotthilf Heinrich von Schubert, Naturgeschichte (1886)',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ensifera_Naturgeschichte.jpg',
   },
   {
     file: '/icons/lion-kuhnert-awakening.jpg',
@@ -550,6 +561,14 @@ const sceneArtPools: Record<string, IconPoolEntry[]> = {
  */
 const speciesArtPools: Record<string, IconPoolEntry[]> = {
   insects: [
+    {
+      src: '/icons/cricket-field-ensifera.jpg',
+      title: 'Cricket, from a plate of Ensifera (crickets and bush-crickets)',
+      author: 'Gotthilf Heinrich von Schubert, Naturgeschichte (1886)',
+      license: 'Public domain',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ensifera_Naturgeschichte.jpg',
+      tags: ['temperate', 'european', 'night'],
+    },
     {
       src: '/icons/insects.jpg',
       title: 'Metamorphosis of a Small Emperor Moth on a Damson Plum (plate 13)',

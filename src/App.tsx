@@ -17,7 +17,7 @@ import {
   type BottomBarTooltipAnchor,
 } from './components/BottomBarMagnetTooltip';
 import { MapButton } from './components/MapButton';
-import { FlyingSoundTile } from './components/FlyingSoundTile';
+import { FlyingSoundTile, RETURN_FLIGHT_MS } from './components/FlyingSoundTile';
 import { PlayingBarEdgeGradientTuner } from './components/PlayingBarEdgeGradientTuner';
 import { PlayCluster } from './components/PlayCluster';
 import { SearchSpotlightAnimationTuner } from './components/SearchSpotlightAnimationTuner';
@@ -94,6 +94,8 @@ type ReturnFlight = {
   from: { x: number; y: number };
   fromSize: number;
   to: { x: number; y: number; size: number };
+  /** Dock order to commit as the tile lands (see `dockOpenTimerRef`). */
+  dockIds: string[];
 };
 
 /** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~1300ms). */
@@ -124,6 +126,9 @@ export default function App() {
   const [returningId, setReturningId] = useState<string | null>(null);
   const [returningSoundId, setReturningSoundId] = useState<string | null>(null);
   const [dockMagnetDrag, setDockMagnetDrag] = useState<DockMagnetDrag | null>(null);
+  // Pending "open the dock slot" timer, so the tray widens as the returning tile
+  // arrives rather than before it has moved. Flushed if the flight lands first.
+  const dockOpenTimerRef = useRef<number | null>(null);
   const [showGlobe, setShowGlobe] = useState(false);
   // True while the full-screen globe was opened from the landing to *browse the
   // world* (Enter / empty-query Enter), as opposed to opening the map from
@@ -623,16 +628,26 @@ export default function App() {
         item.soundId,
       );
 
-      if (
+      const dockOrderChanged =
         nextDockDefaultIds.length !== dockDefaultIds.length
-        || nextDockDefaultIds.some((id, index) => id !== dockDefaultIds[index])
-      ) {
-        setDockDefaultIds(nextDockDefaultIds);
-      }
+        || nextDockDefaultIds.some((id, index) => id !== dockDefaultIds[index]);
 
       if (!target) {
+        if (dockOrderChanged) setDockDefaultIds(nextDockDefaultIds);
         removeSound(instanceId);
         return;
+      }
+
+      // Let the tile LEAD. `getSlotCenter` already returns the slot's future
+      // position, so the flight can aim at it before the dock opens up; holding
+      // the reorder until the tile is most of the way there means the tray widens
+      // to receive it instead of growing first and waiting.
+      if (dockOrderChanged) {
+        if (dockOpenTimerRef.current) window.clearTimeout(dockOpenTimerRef.current);
+        dockOpenTimerRef.current = window.setTimeout(() => {
+          dockOpenTimerRef.current = null;
+          setDockDefaultIds(nextDockDefaultIds);
+        }, Math.round(RETURN_FLIGHT_MS * 0.55));
       }
 
       setReturningId(instanceId);
@@ -651,6 +666,7 @@ export default function App() {
         },
         fromSize: iconRect.width,
         to: target,
+        dockIds: nextDockDefaultIds,
       });
     },
     [
@@ -1251,11 +1267,25 @@ export default function App() {
 
   const handleReturnComplete = useCallback(() => {
     if (!returnFlight) return;
+    // The slot must exist before the real dock tile takes over from the flight
+    // mirror, or the hand-off lands in the pre-insert layout and snaps.
+    if (dockOpenTimerRef.current) {
+      window.clearTimeout(dockOpenTimerRef.current);
+      dockOpenTimerRef.current = null;
+      setDockDefaultIds(returnFlight.dockIds);
+    }
     removeSound(returnFlight.instanceId);
     setReturnFlight(null);
     setReturningId(null);
     setReturningSoundId(null);
   }, [removeSound, returnFlight]);
+
+  useEffect(
+    () => () => {
+      if (dockOpenTimerRef.current) window.clearTimeout(dockOpenTimerRef.current);
+    },
+    [],
+  );
 
   const syncBottomBarTooltip = useCallback((target: EventTarget | null) => {
     setBottomBarTooltip(anchorFromTooltipTarget(target));

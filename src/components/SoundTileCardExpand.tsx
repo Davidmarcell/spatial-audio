@@ -165,7 +165,10 @@ export function SoundTileCardExpand({
     );
   }, [artwork]);
 
-  // Measure the SAME tile image the canvas shows, before/while opening.
+  // Measure the SAME tile image the canvas shows, before/while opening, and warm
+  // its DECODE as well as its cache. The face below is a brand-new <img>, and an
+  // undecoded one paints empty for a frame or two — which is what made the art
+  // blink out and "load" on the first open of each tile.
   useEffect(() => {
     if (!tileSrc) return;
     aspectReadyRef.current = false;
@@ -175,6 +178,7 @@ export function SoundTileCardExpand({
         setArtAspect(img.naturalWidth / img.naturalHeight);
         aspectReadyRef.current = true;
       }
+      if (typeof img.decode === 'function') void img.decode().catch(() => {});
     };
     img.src = tileSrc;
   }, [tileSrc]);
@@ -426,6 +430,7 @@ export function SoundTileCardExpand({
               alt={artwork.title}
               soundId={displayTarget.soundId}
               size="canvas"
+              decodeSync
             />
           </div>
         )}
