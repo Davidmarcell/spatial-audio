@@ -194,17 +194,19 @@
 
 @media (max-width: 768px) {
   .palette {
-    width: 100%;
+    width: auto;
     max-width: 100%;
-    align-items: stretch;
+    align-items: center;
   }
 
   .palette .dock {
     flex-direction: row;
     align-items: center;
-    width: 100%;
+    /* Hug the tiles instead of stretching into a full-width testing tray. */
+    width: max-content;
     max-width: 100%;
-    padding: 0.35rem 0.45rem;
+    padding: 0.28rem 0.35rem;
+    border-radius: 1.15rem;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;

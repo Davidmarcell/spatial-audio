@@ -3,6 +3,24 @@
   font-weight: 500;
 }
 
+@media (max-width: 768px) {
+  .button {
+    /* Icon-only control on phones — the long "Play/Pause audio" label forces a
+       wide pill that eats the bottom third of the screen. */
+    width: 2.55rem;
+    height: 2.55rem;
+    min-width: 2.55rem;
+    padding: 0;
+    gap: 0;
+    border-radius: 999px;
+    font-size: 0;
+  }
+
+  .labelSlot {
+    display: none;
+  }
+}
+
 .iconSlot {
   position: relative;
   display: inline-grid;
