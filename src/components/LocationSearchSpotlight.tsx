@@ -51,9 +51,9 @@ type Props = {
    */
   idleLabel?: string;
   /**
-   * Direction the panel expands when opened. The bottom-bar instance sits at
-   * the foot of the screen and must grow UPWARD (default). The landing instance
-   * sits below the images, so it grows DOWNWARD.
+   * Direction the panel expands when opened. Default (and landing) grow
+   * UPWARD so the open sheet stays in the viewport. Prefer `down` only when
+   * the collapsed pill sits high enough that downward growth remains on-screen.
    */
   expandDirection?: 'up' | 'down';
   /**
@@ -429,19 +429,32 @@ export function LocationSearchSpotlight({
   // whole pill travels up with the sheet, so a second, separate hero fade-up
   // would double the motion.
   const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !riseWithGate);
-  // Keep the white glass pill OUT of the DOM until the shared Enter/search delay
-  // elapses. CSS opacity alone still flashes one paint frame on portal mount.
+  // Keep the portal unmounted until it can rise with Enter. On the compact
+  // preload path LandingGate only mounts us after the wordmark settle, so we
+  // rise immediately; elsewhere we wait the shared Enter delay.
   const [landingPortalAllowed, setLandingPortalAllowed] = useState(
     () => !enlarged || riseWithGate,
   );
+  const [pairEntranceImmediate, setPairEntranceImmediate] = useState(false);
 
   useLayoutEffect(() => {
     if (!enlarged || riseWithGate || !landingEntranceArmed) {
       setLandingPortalAllowed(true);
+      setPairEntranceImmediate(false);
       return;
     }
+    const gate = rootRef.current?.closest('[data-landing-gate]');
+    const heroGated =
+      gate?.getAttribute('data-compact') === 'true'
+      && gate?.getAttribute('data-hero-ready') === 'true';
+    if (heroGated) {
+      // Parent already held for the centre → rest preload; rise with Enter now.
+      setPairEntranceImmediate(true);
+      setLandingPortalAllowed(true);
+      return;
+    }
+    setPairEntranceImmediate(false);
     setLandingPortalAllowed(false);
-    // Pair with Enter: use the enter delay (same value as search in defaults).
     const raw =
       getComputedStyle(document.documentElement).getPropertyValue('--landing-enter-delay').trim() ||
       getComputedStyle(document.documentElement).getPropertyValue('--landing-search-delay').trim();
@@ -1188,6 +1201,7 @@ export function LocationSearchSpotlight({
             data-size={enlarged ? 'lg' : undefined}
             data-landing-entrance={landingEntranceArmed ? 'in' : undefined}
             data-entrance-deferred={enlarged && landingEntranceArmed ? 'true' : undefined}
+            data-pair-immediate={pairEntranceImmediate ? 'true' : undefined}
             data-rising={riseWithGate ? 'true' : undefined}
             data-recessed={recessed ? 'true' : undefined}
             data-theme={theme}
@@ -1212,12 +1226,6 @@ export function LocationSearchSpotlight({
               aria-haspopup="dialog"
               aria-controls={isOpen ? `${listboxId}-results` : undefined}
               tabIndex={isClosed ? 0 : -1}
-              // Inline hide beats first-paint FOUC before CSS animation fill attaches.
-              style={
-                landingEntranceArmed
-                  ? ({ opacity: 0, visibility: 'hidden' } as CSSProperties)
-                  : undefined
-              }
               onClick={isClosed ? open : undefined}
               onKeyDown={
                 isClosed

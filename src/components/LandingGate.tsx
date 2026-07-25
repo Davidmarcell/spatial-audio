@@ -262,6 +262,12 @@ export function LandingGate({
     return 'booting';
   });
   const [artReady, setArtReady] = useState(() => prefersReducedMotion() || entering || !isCompactViewport());
+  // Assets (fan / tagline / search+Enter) stay off until the wordmark has
+  // finished its centre → rest settle. Desktop / reduced-motion / home-rise
+  // skip the preload and treat the hero as ready immediately.
+  const [heroReady, setHeroReady] = useState(
+    () => prefersReducedMotion() || entering || !isCompactViewport(),
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -274,6 +280,7 @@ export function LandingGate({
       if (!next) {
         setPhase('revealed');
         setArtReady(true);
+        setHeroReady(true);
       }
     };
     sync();
@@ -370,10 +377,12 @@ export function LandingGate({
 
   // One-shot FLIP: invert from the centred boot rect to the resting hero slot,
   // then play transform back to identity so shrink + rise read as one move.
+  // Only after this settle completes do fan / tagline / search+Enter rise in.
   useLayoutEffect(() => {
     if (phase !== 'revealed' || !compact || didFlipWordmarkRef.current) return;
     if (prefersReducedMotion()) {
       didFlipWordmarkRef.current = true;
+      setHeroReady(true);
       return;
     }
 
@@ -381,12 +390,14 @@ export function LandingGate({
     const from = bootWordmarkRectRef.current;
     if (!el || !from) {
       didFlipWordmarkRef.current = true;
+      setHeroReady(true);
       return;
     }
 
     const to = el.getBoundingClientRect();
     if (to.width < 1 || to.height < 1) {
       didFlipWordmarkRef.current = true;
+      setHeroReady(true);
       return;
     }
 
@@ -411,9 +422,12 @@ export function LandingGate({
       el.style.transformOrigin = '';
       el.style.willChange = '';
     };
-    const timer = window.setTimeout(clear, MOBILE_WORDMARK_SETTLE_MS + 40);
+    const settleDone = window.setTimeout(() => {
+      clear();
+      setHeroReady(true);
+    }, MOBILE_WORDMARK_SETTLE_MS + 40);
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(settleDone);
       clear();
     };
   }, [compact, phase]);
@@ -436,7 +450,9 @@ export function LandingGate({
 
   const fan = compact ? MOBILE_FAN_CONFIG : (fanConfig ?? DEFAULT_FAN_CONFIG);
   const tilePx = compact ? MOBILE_TILE_PX : DESKTOP_TILE_PX;
-  const showSearch = phase === 'revealed' || !compact;
+  // Mount search+Enter only after the wordmark settle so they share one rise
+  // beat with the fan/tagline — never during the centre preload.
+  const showSearch = heroReady || !compact;
 
   const theta = (fan.endRotationDeg * Math.PI) / 180;
   const rotationOverhangPx =
@@ -451,6 +467,7 @@ export function LandingGate({
       data-landing-gate=""
       data-phase={phase}
       data-art-ready={artReady ? 'true' : 'false'}
+      data-hero-ready={heroReady ? 'true' : 'false'}
       data-compact={compact ? 'true' : undefined}
       data-exiting={exiting ? 'true' : undefined}
       data-entering={entering ? 'true' : undefined}

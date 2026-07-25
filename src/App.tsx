@@ -1305,7 +1305,7 @@ export default function App() {
               onEmptyEnter={handleEnterExperience}
               resetToken={locationSearchResetToken}
               idleLabel="Search or create your own"
-              expandDirection="down"
+              expandDirection="up"
               theme="light"
               backdrop={false}
               enlarged

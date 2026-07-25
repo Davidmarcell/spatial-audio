@@ -285,7 +285,11 @@
   --search-trigger-width: min(25rem, 62vw);
   --search-bar-width: min(700px, calc(100vw - 1.5rem));
   --search-shell-collapsed-height: 3.68rem;
-  --search-shell-expanded-height: min(31rem, calc(100vh - 6.5rem - env(safe-area-inset-top, 0px)));
+  /* Stay inside the phone viewport when the landing pill opens upward. */
+  --search-shell-expanded-height: min(
+    28rem,
+    calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
 }
 
 .panelAnchor[data-size='lg'] .searchRow {
@@ -306,42 +310,44 @@
   font-size: clamp(0.85rem, 1.5vw, 1rem);
 }
 
-/* Landing entrance: keep the white glass shell fully unpainted until the rise
-   begins. Portal mount is also deferred in JS until the shared Enter delay, and
-   `data-entrance-deferred` plays the rise with delay 0 so search+Enter land
-   together. Inline opacity:0 on the panel covers the first compositor frame. */
+/* Landing entrance: the whole closed pill (glass + icon + "Search or create
+   your own") is ONE asset that rises with Enter. Never paint an empty white
+   shell first — the closed label stays opacity 1 inside the fading panel.
+   `data-entrance-deferred` plays with delay 0 when the gate already waited for
+   the wordmark settle before mounting us. */
 .panelAnchor[data-size='lg'][data-landing-entrance='in'] .panel {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  background-color: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
   animation: landingSearchRise var(--landing-search-duration, 0.46s) var(--ease-premium-enter)
     var(--landing-search-delay, 0.56s) both;
 }
 
-/* JS already waited out the shared delay — rise immediately with Enter. */
+/* JS already waited the shared Enter delay — rise with no extra hold. */
 .panelAnchor[data-size='lg'][data-landing-entrance='in'][data-entrance-deferred='true'] .panel {
   animation-delay: 0s;
+}
+
+/* Compact preload: gate mounted us after settle; match Enter's short beat. */
+.panelAnchor[data-size='lg'][data-landing-entrance='in'][data-pair-immediate='true'] .panel {
+  animation-delay: 0.06s;
+}
+
+/* Closed label is part of the glass, not a second fade after the white pill. */
+.panelAnchor[data-size='lg'][data-landing-entrance='in'] .searchPairClosed,
+.panelAnchor[data-size='lg'][data-landing-entrance='in'] .searchPairClosed.searchPairVisible,
+.panelAnchor[data-size='lg'][data-search-phase='closed'] .searchPairClosed,
+.panelAnchor[data-size='lg'][data-search-phase='closed'] .searchPairClosed.searchPairVisible {
+  opacity: 1;
+  transition: none;
 }
 
 @keyframes landingSearchRise {
   from {
     opacity: 0;
     visibility: hidden;
-    background-color: transparent;
-    border-color: transparent;
-    box-shadow: none;
     transform: translate3d(-50%, var(--landing-search-rise, 12px), 0);
   }
   to {
     opacity: 1;
     visibility: visible;
-    background-color: var(--search-panel-bg, var(--glass-panel-bg));
-    border-color: var(--glass-border);
-    box-shadow:
-      0 18px 48px rgba(0, 0, 0, 0.096),
-      0 7px 20px rgba(0, 0, 0, 0.056);
     transform: translate3d(-50%, 0, 0);
   }
 }
@@ -1138,14 +1144,9 @@
     animation: none;
   }
 
-  /* No rise under reduced motion, but KEEP the delay so the pill still arrives
-     last with Enter — never flash the white glass shell ahead of the hero. */
+  /* No rise under reduced motion, but KEEP the delay so the whole pill (glass
+     + label) arrives with Enter — never an empty white shell first. */
   .panelAnchor[data-size='lg'][data-landing-entrance='in'] .panel {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    background-color: transparent !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
     animation: landingSearchAppear var(--landing-search-delay, 0.56s) linear both;
     transform: translate3d(-50%, 0, 0);
   }
@@ -1154,22 +1155,18 @@
     animation-delay: 0s;
   }
 
+  .panelAnchor[data-size='lg'][data-landing-entrance='in'][data-pair-immediate='true'] .panel {
+    animation-delay: 0.06s;
+  }
+
   @keyframes landingSearchAppear {
     from {
       opacity: 0;
       visibility: hidden;
-      background-color: transparent;
-      border-color: transparent;
-      box-shadow: none;
     }
     to {
       opacity: 1;
       visibility: visible;
-      background-color: var(--search-panel-bg, var(--glass-panel-bg));
-      border-color: var(--glass-border);
-      box-shadow:
-        0 18px 48px rgba(0, 0, 0, 0.096),
-        0 7px 20px rgba(0, 0, 0, 0.056);
     }
   }
 
