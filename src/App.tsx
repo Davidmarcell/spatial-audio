@@ -88,7 +88,7 @@ type ReturnFlight = {
   name: string;
   from: { x: number; y: number };
   fromSize: number;
-  to: { x: number; y: number };
+  to: { x: number; y: number; size: number };
 };
 
 /** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~1300ms). */
@@ -1501,7 +1501,7 @@ export default function App() {
           animateTo={{
             x: returnFlight.to.x,
             y: returnFlight.to.y,
-            size: DOCK_BASE_SIZE,
+            size: returnFlight.to.size,
           }}
           onComplete={handleReturnComplete}
           regionArt={regionArt}
