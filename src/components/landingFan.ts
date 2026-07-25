@@ -64,6 +64,29 @@ export const FAN_PRESETS: FanPreset[] = [
 /** Landing default = the "Hand of cards" reference look. */
 export const DEFAULT_FAN_CONFIG: FanConfig = { ...FAN_PRESETS[0].config };
 
+/**
+ * Compact / phone fan: smaller faces, a taller arc so the hand reads more
+ * vertically, and a lighter overlap so more of each plate stays visible while
+ * neighbours still nest. Tuned so six ~88px tiles fit a ~360–390px-wide
+ * viewport with side padding and remain easy to tap.
+ *
+ * Other compact options considered:
+ *  - Steeper arch (±14°, arc ~72): more vertical, but outer tips crowd the copy
+ *  - Flat strip (overlap ~1.2): max face visible, loses the "hand of cards" read
+ *  - Five-tile draw: easiest fit, but a thinner roster than desktop
+ */
+export const MOBILE_FAN_CONFIG: FanConfig = {
+  endRotationDeg: 10,
+  arcDepthPx: 64,
+  overlapRem: 1.85,
+  scaleFalloff: 0.05,
+};
+
+/** Landing tile edge length on desktop (matches `.locationImage` in CSS). */
+export const DESKTOP_TILE_PX = 150;
+/** Landing tile edge length on compact viewports. */
+export const MOBILE_TILE_PX = 84;
+
 export const LANDING_FAN_STORAGE_KEY = 'saudade:landing-fan:saved-default';
 
 function parseFanConfig(raw: string): FanConfig | null {

@@ -17,7 +17,13 @@ import {
   type WorldLocation,
 } from '../data/worldLocations';
 import { publicUrl } from '../utils/publicUrl';
-import { DEFAULT_FAN_CONFIG, type FanConfig } from './landingFan';
+import {
+  DEFAULT_FAN_CONFIG,
+  DESKTOP_TILE_PX,
+  MOBILE_FAN_CONFIG,
+  MOBILE_TILE_PX,
+  type FanConfig,
+} from './landingFan';
 import styles from './LandingGate.module.css';
 
 /**
@@ -30,6 +36,17 @@ const LANDING_TILE_COUNT = 6;
  * beat. The readable word is exposed to assistive tech via the container's
  * `aria-label`; the visible per-letter spans are decorative (`aria-hidden`). */
 const WORDMARK_TEXT = 'Saudade';
+
+/** Compact breakpoint — keep in sync with App / dock mobile media queries. */
+const COMPACT_MQ = '(max-width: 768px)';
+
+/**
+ * Minimum time the centred mobile wordmark stays up before it may shrink into
+ * the settled hero (even if art is already cached).
+ */
+const MOBILE_WORDMARK_HOLD_MS = 920;
+/** Cap so a slow tile never blocks the landing forever. */
+const MOBILE_PRELOAD_TIMEOUT_MS = 4200;
 
 /** Fisher-Yates shuffle over a fresh copy (never mutates the source array). */
 function shuffle<T>(items: readonly T[]): T[] {
@@ -47,16 +64,13 @@ function shuffle<T>(items: readonly T[]): T[] {
 const MAGNET_STRENGTH = 0.16;
 const MAGNET_MAX_PX = 8;
 
-// Landing tile edge length in px (mirror of the CSS `.locationImage` size). Used
-// to reserve enough vertical room beneath the fan that no tile overlaps the body
-// copy, accounting for the arc drop plus the rotated tiles' hanging corners.
-const TILE_PX = 150;
-
 type LandingLocation = {
   location: WorldLocation;
   src: string;
   label: string;
 };
+
+type LandingPhase = 'booting' | 'revealed';
 
 type Props = {
   /** Enter the app at this location and start its soundscape. */
@@ -103,6 +117,31 @@ function prefersReducedMotion() {
   );
 }
 
+function isCompactViewport() {
+  return (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(COMPACT_MQ).matches
+  );
+}
+
+function preloadImages(srcs: string[]): Promise<void> {
+  if (srcs.length === 0) return Promise.resolve();
+  return Promise.all(
+    srcs.map(
+      (src) =>
+        new Promise<void>((resolve) => {
+          const image = new Image();
+          image.decoding = 'async';
+          const done = () => resolve();
+          image.onload = done;
+          image.onerror = done;
+          image.src = src;
+        }),
+    ),
+  ).then(() => undefined);
+}
+
 const clampMagnet = (value: number) =>
   Math.max(-MAGNET_MAX_PX, Math.min(MAGNET_MAX_PX, value));
 
@@ -110,7 +149,7 @@ const FALLBACK_TILE_SRC = publicUrl(FALLBACK_ICON_SRC);
 
 /** Fan tile image with a local fallback so a transient 404/abort after go-home
  * cannot leave a permanent broken-image icon in the hero row. */
-function LandingFanImage({ src }: { src: string }) {
+function LandingFanImage({ src, sizePx }: { src: string; sizePx: number }) {
   const [currentSrc, setCurrentSrc] = useState(src);
   const [didFallback, setDidFallback] = useState(false);
 
@@ -125,8 +164,8 @@ function LandingFanImage({ src }: { src: string }) {
       className={styles.locationImage}
       src={currentSrc}
       alt=""
-      width={TILE_PX}
-      height={TILE_PX}
+      width={sizePx}
+      height={sizePx}
       loading="eager"
       decoding="async"
       draggable={false}
@@ -154,6 +193,30 @@ export function LandingGate({
   useEffect(() => {
     onEnteredRef.current = onEntered;
   });
+
+  const [compact, setCompact] = useState(() => isCompactViewport());
+  // Mobile cold boot: centre the wordmark first, then reveal the fan once art
+  // is warm. Home-rise and reduced-motion skip straight to the settled hero so
+  // the rising page already looks complete.
+  const [phase, setPhase] = useState<LandingPhase>(() => {
+    if (prefersReducedMotion() || entering || !isCompactViewport()) return 'revealed';
+    return 'booting';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+    const mq = window.matchMedia(COMPACT_MQ);
+    const sync = () => {
+      const next = mq.matches;
+      setCompact(next);
+      if (!next) setPhase('revealed');
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   // Home-rise (approach A, in reverse): when the landing is the incoming page
   // returning home, the whole gate rises up over the lifting outgoing page with
@@ -206,18 +269,39 @@ export function LandingGate({
     return shuffle(candidates).slice(0, LANDING_TILE_COUNT);
   }, []);
 
-  // Warm the browser cache for fan art without competing decode() work. The
-  // visible <img> tags already load eagerly; a second decode() race after
-  // go-home remounts was observed to abort in-flight tile requests in some
-  // browsers and leave broken-image icons in the hero row.
+  // Mobile boot: hold the centred wordmark, preload fan art, then settle into
+  // the hero (wordmark shrinks up, tiles cascade in). Desktop keeps the older
+  // overlapping entrance and only warms the cache.
   useEffect(() => {
-    if (locations.length === 0) return;
-    locations.forEach(({ src }) => {
-      const image = new Image();
-      image.decoding = 'async';
-      image.src = src;
+    if (phase !== 'booting') {
+      if (locations.length === 0) return;
+      locations.forEach(({ src }) => {
+        const image = new Image();
+        image.decoding = 'async';
+        image.src = src;
+      });
+      return undefined;
+    }
+
+    let cancelled = false;
+    const hold = new Promise<void>((resolve) => {
+      window.setTimeout(resolve, MOBILE_WORDMARK_HOLD_MS);
     });
-  }, [locations]);
+    const preload = Promise.race([
+      preloadImages(locations.map((item) => item.src)),
+      new Promise<void>((resolve) => {
+        window.setTimeout(resolve, MOBILE_PRELOAD_TIMEOUT_MS);
+      }),
+    ]);
+
+    void Promise.all([hold, preload]).then(() => {
+      if (!cancelled) setPhase('revealed');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [locations, phase]);
 
   const handleTilePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
     if (prefersReducedMotion()) return;
@@ -235,7 +319,9 @@ export function LandingGate({
     el.style.setProperty('--magnet-y', '0px');
   };
 
-  const fan = fanConfig ?? DEFAULT_FAN_CONFIG;
+  const fan = compact ? MOBILE_FAN_CONFIG : (fanConfig ?? DEFAULT_FAN_CONFIG);
+  const tilePx = compact ? MOBILE_TILE_PX : DESKTOP_TILE_PX;
+  const showHeroRest = phase === 'revealed';
 
   // Reserve just enough room below the fan for the arc drop and the rotated
   // tiles' lowest corners, so the tagline always clears the lowest tile. The
@@ -243,7 +329,7 @@ export function LandingGate({
   // by the even gap, so they need no extra reservation.
   const theta = (fan.endRotationDeg * Math.PI) / 180;
   const rotationOverhangPx =
-    (TILE_PX * (Math.abs(Math.sin(theta)) + Math.abs(Math.cos(theta)) - 1)) / 2;
+    (tilePx * (Math.abs(Math.sin(theta)) + Math.abs(Math.cos(theta)) - 1)) / 2;
   const fanPadBottomPx = Math.ceil(fan.arcDepthPx + rotationOverhangPx + 4);
 
   const content = (
@@ -252,11 +338,14 @@ export function LandingGate({
       className={styles.gate}
       data-theme="light"
       data-landing-gate=""
+      data-phase={phase}
+      data-compact={compact ? 'true' : undefined}
       data-exiting={exiting ? 'true' : undefined}
       data-entering={entering ? 'true' : undefined}
       role="dialog"
       aria-modal="true"
       aria-label="Enter Saudade"
+      aria-busy={phase === 'booting' ? true : undefined}
     >
       <div className={styles.inner} data-search-open={searchOpen ? 'true' : undefined}>
         <h1 className={styles.wordmark} aria-label={WORDMARK_TEXT}>
@@ -271,72 +360,77 @@ export function LandingGate({
             </span>
           ))}
         </h1>
-        <ul
-          className={styles.locationRow}
-          style={
-            {
-              '--overlap': `${fan.overlapRem}rem`,
-              '--fan-pad-bottom': `${fanPadBottomPx}px`,
-            } as React.CSSProperties
-          }
-        >
-          {locations.map(({ location, src, label }, index) => {
-            // Normalised distance from the centre of the row (−1 … +1), so the
-            // fan rotation, arch and edge scale stay symmetric for any tile count.
-            const centre = (locations.length - 1) / 2;
-            const offset = centre === 0 ? 0 : (index - centre) / centre;
-            const restRotation = offset * fan.endRotationDeg;
-            const arcY = offset * offset * fan.arcDepthPx;
-            const restScale = 1 - Math.abs(offset) * fan.scaleFalloff;
-            return (
-              <li
-                key={location.id}
-                className={styles.locationItem}
-                style={{ '--landing-index': index } as React.CSSProperties}
-              >
-                <button
-                  type="button"
-                  className={styles.locationButton}
-                  data-tooltip={label}
-                  aria-label={`Enter ${label}`}
-                  style={{
-                    '--rest-rot': `${restRotation.toFixed(2)}deg`,
-                    '--arc-y': `${arcY.toFixed(2)}px`,
-                    '--rest-scale': restScale.toFixed(3),
-                  } as React.CSSProperties}
-                  onClick={() => onSelect(location)}
-                  onPointerMove={handleTilePointerMove}
-                  onPointerLeave={resetTileMagnet}
-                  onPointerCancel={resetTileMagnet}
-                  onBlur={(event) => {
-                    event.currentTarget.style.setProperty('--magnet-x', '0px');
-                    event.currentTarget.style.setProperty('--magnet-y', '0px');
-                  }}
-                >
-                  <LandingFanImage src={src} />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-        <p className={styles.tagline}>
-          An experience of sound. Invoking places, and the memories they hold through spatial audio. Best experienced with headphones.
-        </p>
-        {search && (
-          <div className={styles.searchSlot}>
-            <div className={styles.searchRow}>
-              {search}
-              {onEnter && (
-                <button
-                  type="button"
-                  className={styles.enterButton}
-                  onClick={onEnter}
-                >
-                  Enter
-                </button>
-              )}
-            </div>
-          </div>
+        {showHeroRest && (
+          <>
+            <ul
+              className={styles.locationRow}
+              style={
+                {
+                  '--overlap': `${fan.overlapRem}rem`,
+                  '--fan-pad-bottom': `${fanPadBottomPx}px`,
+                  '--tile-size': `${tilePx}px`,
+                } as React.CSSProperties
+              }
+            >
+              {locations.map(({ location, src, label }, index) => {
+                // Normalised distance from the centre of the row (−1 … +1), so the
+                // fan rotation, arch and edge scale stay symmetric for any tile count.
+                const centre = (locations.length - 1) / 2;
+                const offset = centre === 0 ? 0 : (index - centre) / centre;
+                const restRotation = offset * fan.endRotationDeg;
+                const arcY = offset * offset * fan.arcDepthPx;
+                const restScale = 1 - Math.abs(offset) * fan.scaleFalloff;
+                return (
+                  <li
+                    key={location.id}
+                    className={styles.locationItem}
+                    style={{ '--landing-index': index } as React.CSSProperties}
+                  >
+                    <button
+                      type="button"
+                      className={styles.locationButton}
+                      data-tooltip={label}
+                      aria-label={`Enter ${label}`}
+                      style={{
+                        '--rest-rot': `${restRotation.toFixed(2)}deg`,
+                        '--arc-y': `${arcY.toFixed(2)}px`,
+                        '--rest-scale': restScale.toFixed(3),
+                      } as React.CSSProperties}
+                      onClick={() => onSelect(location)}
+                      onPointerMove={handleTilePointerMove}
+                      onPointerLeave={resetTileMagnet}
+                      onPointerCancel={resetTileMagnet}
+                      onBlur={(event) => {
+                        event.currentTarget.style.setProperty('--magnet-x', '0px');
+                        event.currentTarget.style.setProperty('--magnet-y', '0px');
+                      }}
+                    >
+                      <LandingFanImage src={src} sizePx={tilePx} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className={styles.tagline}>
+              An experience of sound. Invoking places, and the memories they hold through spatial audio. Best experienced with headphones.
+            </p>
+            {search && (
+              <div className={styles.searchSlot}>
+                <div className={styles.searchRow}>
+                  {search}
+                  {onEnter && (
+                    <button
+                      type="button"
+                      className={styles.enterButton}
+                      onClick={onEnter}
+                    >
+                      Enter
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

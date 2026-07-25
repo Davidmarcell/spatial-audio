@@ -105,8 +105,11 @@
   /* The entrance now lives on the per-letter spans (each glyph cascades in on
      its own beat). The wordmark itself keeps only the search-open dim: no
      entrance animation here means opacity is never pinned, so the dim below can
-     take the whole wordmark to 0.4 via this transition. */
-  transition: opacity 0.32s var(--ease-premium-enter);
+     take the whole wordmark to 0.4 via this transition. Font-size is included so
+     the mobile boot → settle shrink is smooth. */
+  transition:
+    opacity 0.32s var(--ease-premium-enter),
+    font-size 0.72s var(--ease-premium-enter);
 }
 
 /* Per-letter cascade: each glyph fades in and rises into place, staggered one
@@ -382,9 +385,9 @@
 
 .locationImage {
   display: block;
-  /* Tiles scaled to suit the ~900px hero column. */
-  width: 150px;
-  height: 150px;
+  /* Desktop default; compact overrides via --tile-size on the row. */
+  width: var(--tile-size, 150px);
+  height: var(--tile-size, 150px);
   object-fit: cover;
   object-position: center;
   /* Shared tile radius + shared hairline stroke, matching every other image
@@ -410,6 +413,78 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* —— Compact / phone landing ——
+   Boot: Saudade alone, centred, letter-cascade fade-in while fan art preloads.
+   Settle: wordmark shrinks into the hero stack and the taller, lighter-overlap
+   fan mounts underneath (animations start on mount of the revealed block). */
+@media (max-width: 768px) {
+  .gate {
+    padding-inline: 0.85rem;
+    /* Rotated outer tiles can paint a few px past the content column; clip
+       horizontal spill without cutting the vertical arc drop. */
+    overflow-x: clip;
+  }
+
+  .inner {
+    gap: 1.35rem;
+    max-width: min(900px, 100%);
+    overflow-x: clip;
+  }
+
+  .gate[data-phase='booting'] .inner {
+    justify-content: center;
+    min-height: min(72vh, 36rem);
+    gap: 0;
+  }
+
+  .gate[data-phase='booting'] .wordmark {
+    font-size: clamp(3.4rem, 15vw, 4.6rem);
+  }
+
+  .gate[data-phase='revealed'] .wordmark {
+    font-size: clamp(2.35rem, 11vw, 3.1rem);
+  }
+
+  /* Settled letters stay put — no second cascade when the fan mounts. */
+  .gate[data-phase='revealed'] .wordmarkLetter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .locationRow {
+    /* A touch less bottom pad than desktop; arc depth is handled in JS. */
+    width: 100%;
+    justify-content: center;
+  }
+
+  .locationItem + .locationItem {
+    margin-left: calc(var(--overlap, 2.15rem) * -1);
+  }
+
+  /* Slightly softer press on touch; hover lift still works for stylus/mouse. */
+  .locationButton:active {
+    --lift: -2px;
+    --tile-scale: 0.97;
+  }
+
+  .tagline {
+    max-width: 22rem;
+    padding-inline: 0.35rem;
+  }
+
+  .searchRow {
+    width: 100%;
+    max-width: 22rem;
+    gap: 0.5rem;
+  }
+
+  .enterButton {
+    height: 3.15rem;
+    padding: 0 1.25rem;
   }
 }
 
@@ -481,5 +556,9 @@
     --tile-scale: 1;
     transform: translateY(var(--arc-y, 0px)) rotate(var(--rest-rot, 0deg))
       scale(var(--rest-scale, 1));
+  }
+
+  .wordmark {
+    transition: none;
   }
 }
