@@ -38,7 +38,7 @@
       "global-rain": "/icons/met/55433.jpg",
       "global-songbird": "/icons/pool/songbird-european.jpg",
       "global-stream": "/icons/met/12586.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/DT5026.jpg",
+      "global-surf": "/icons/met/17053.jpg",
       "global-traffic": "/icons/met/853645.jpg",
       "global-wind": "/icons/met/11306.jpg",
       "gull": "/icons/gull.jpg",
@@ -126,7 +126,7 @@
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/met/286187.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/met/853645.jpg",
+      "global-traffic": "/icons/met/266296.jpg",
       "global-tropical-bird": "/icons/met/363843.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
@@ -156,7 +156,7 @@
       "global-rain": "/icons/met/11124.jpg",
       "global-songbird": "/icons/gray-catbird.jpg",
       "global-stream": "/icons/met/12586.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/ap1977.380.jpg",
+      "global-surf": "/icons/met/11908.jpg",
       "global-traffic": "/icons/met/853645.jpg",
       "global-wind": "/icons/met/11306.jpg"
     }
@@ -199,16 +199,16 @@
       "global-rain": "/icons/hiroshige-rain.jpg",
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/pool/stream-river-town.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/ap1977.380.jpg",
-      "global-traffic": "https://images.metmuseum.org/CRDImages/dp/original/49I_136R5.jpg",
+      "global-surf": "/icons/met/11908.jpg",
+      "global-traffic": "/icons/met/266296.jpg",
       "global-wind": "/icons/met/11306.jpg",
       "gray-catbird": "/icons/gray-catbird.jpg",
       "night-owl-brooklyn": "/icons/met/751141.jpg",
       "northern-cardinal": "/icons/northern-cardinal.jpg",
-      "park-rustle": "https://images.metmuseum.org/CRDImages/dp/original/MM22125.jpg",
+      "park-rustle": "/icons/met/371952.jpg",
       "park-stream": "/icons/met/10770.jpg",
       "street-bird": "/icons/pool/songbird-european.jpg",
-      "urban-breeze": "https://images.metmuseum.org/CRDImages/ad/original/DT5423.jpg"
+      "urban-breeze": "/icons/met/13115.jpg"
     }
   },
   "cape-town": {
@@ -296,8 +296,8 @@
       "global-rain": "/icons/met/55433.jpg",
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/met/12307.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/ap1977.380.jpg",
-      "global-traffic": "https://images.metmuseum.org/CRDImages/dp/original/49I_136R5.jpg",
+      "global-surf": "/icons/met/11908.jpg",
+      "global-traffic": "/icons/met/339882.jpg",
       "global-wind": "/icons/wind-trees.jpg"
     }
   },
@@ -330,33 +330,33 @@
       "global-rain": "/icons/hiroshige-rain.jpg",
       "global-songbird": "/icons/pool/songbird-european.jpg",
       "global-stream": "/icons/waldbach.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/rl/original/sf-rlc-1975-1-573.JPG",
+      "global-surf": "/icons/met/460052.jpg",
       "global-traffic": "/icons/pool/street-paris.jpg",
       "global-wind": "/icons/wind-trees.jpg"
     }
   },
   "kyoto": {
     "audio": {
-      "global-bells": "bells-tibetan",
-      "global-corvid": "corvid-large-billed-crow",
       "global-forest": "legacy-forest-ambience",
-      "global-frogs": "frogs-2",
       "global-gull": "seabird-waves-gulls",
-      "global-insects": "insects-nocturnal",
+      "global-insects": "insects-singing-1",
       "global-jazz": "jazz-kinda-sorta",
       "global-night-owl": "owl-collared-scops-owl",
       "global-rain": "thunder-2",
       "global-songbird": "songbird-brown-eared-bulbul",
-      "global-stream": "stream-flow",
+      "global-stream": "stream-brooklet",
       "global-surf": "legacy-surf",
       "global-traffic": "city-night-murmur",
-      "global-wind": "wind-fir-forest"
+      "global-wind": "wind-fir-forest",
+      "kyoto-bells": "bells-gong-temple",
+      "kyoto-crows": "corvid-large-billed-crow",
+      "kyoto-frogs": "frogs-kajika",
+      "kyoto-higurashi": "insects-higurashi-cicada",
+      "kyoto-stream": "stream-flow",
+      "kyoto-uguisu": "songbird-japanese-bush-warbler-2"
     },
     "image": {
-      "global-bells": "/icons/pool/bells-temple.jpg",
-      "global-corvid": "/icons/pool/corvid-asian.jpg",
       "global-forest": "/icons/met/10378.jpg",
-      "global-frogs": "/icons/pool/frogs-haeckel-spots.jpg",
       "global-gull": "/icons/pool/seabird-americas.jpg",
       "global-insects": "/icons/insects.jpg",
       "global-jazz": "/icons/pool/music-ensemble.jpg",
@@ -364,9 +364,15 @@
       "global-rain": "/icons/met/55433.jpg",
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/met/12307.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/ap1977.380.jpg",
+      "global-surf": "/icons/met/11908.jpg",
       "global-traffic": "/icons/met/853645.jpg",
-      "global-wind": "/icons/met/11306.jpg"
+      "global-wind": "/icons/met/11306.jpg",
+      "kyoto-bells": "/icons/pool/bells-temple.jpg",
+      "kyoto-crows": "/icons/kyoto-jungle-crow-kyosai.jpg",
+      "kyoto-frogs": "/icons/kyoto-kajika-frog.jpg",
+      "kyoto-higurashi": "/icons/kyoto-higurashi-utamaro.jpg",
+      "kyoto-stream": "/icons/kyoto-garden-stream-hiroshige.jpg",
+      "kyoto-uguisu": "/icons/kyoto-uguisu-ishizaki.jpg"
     }
   },
   "lapland": {
@@ -392,7 +398,7 @@
       "global-rain": "/icons/met/489985.jpg",
       "global-songbird": "/icons/pool/songbird-european.jpg",
       "global-stream": "/icons/met/12392.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/dp/original/DP800942.jpg",
+      "global-surf": "/icons/met/339153.jpg",
       "global-traffic": "/icons/pool/street-berlin.jpg",
       "global-wind": "/icons/wind-trees.jpg"
     }
@@ -425,7 +431,7 @@
       "global-rain": "/icons/met/489985.jpg",
       "global-songbird": "/icons/pool/songbird-european.jpg",
       "global-stream": "/icons/met/12392.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/rl/original/sf-rlc-1975-1-573.JPG",
+      "global-surf": "/icons/met/460052.jpg",
       "global-traffic": "/icons/pool/street-paris.jpg",
       "global-tram": "/icons/pool/tram-copley.jpg",
       "global-wind": "/icons/wind-trees.jpg"
@@ -460,7 +466,7 @@
       "global-songbird": "/icons/gray-catbird.jpg",
       "global-stream": "/icons/met/286187.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/met/853645.jpg",
+      "global-traffic": "/icons/met/266296.jpg",
       "global-tropical-bird": "/icons/quetzal.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
@@ -498,7 +504,7 @@
       "global-songbird": "/icons/northern-cardinal.jpg",
       "global-stream": "/icons/met/286187.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/met/853645.jpg",
+      "global-traffic": "/icons/met/266296.jpg",
       "global-tropical-bird": "/icons/toucan.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
@@ -532,7 +538,7 @@
       "global-rain": "/icons/met/489985.jpg",
       "global-songbird": "/icons/pool/songbird-european.jpg",
       "global-stream": "/icons/waldbach.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/rl/original/sf-rlc-1975-1-573.JPG",
+      "global-surf": "/icons/met/460052.jpg",
       "global-traffic": "/icons/pool/street-paris.jpg",
       "global-wind": "/icons/wind-trees.jpg",
       "paris-bells": "/icons/paris-notre-dame-delauney.jpg",
@@ -564,7 +570,7 @@
       "global-rain": "/icons/met/489985.jpg",
       "global-songbird": "/icons/pool/songbird-european.jpg",
       "global-stream": "/icons/met/12307.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/DT5026.jpg",
+      "global-surf": "/icons/met/17053.jpg",
       "global-traffic": "/icons/pool/street-paris.jpg",
       "global-wind": "/icons/wind-trees.jpg"
     }
@@ -596,7 +602,7 @@
       "global-rain": "/icons/met/11124.jpg",
       "global-songbird": "/icons/gray-catbird.jpg",
       "global-stream": "/icons/met/12586.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/DT5026.jpg",
+      "global-surf": "/icons/met/17053.jpg",
       "global-traffic": "/icons/met/853645.jpg",
       "global-wind": "/icons/met/11306.jpg",
       "redwoods-canopy": "/icons/redwoods-bierstadt.jpg",
@@ -646,8 +652,8 @@
       "global-rain": "/icons/met/489985.jpg",
       "global-songbird": "/icons/gray-catbird.jpg",
       "global-stream": "/icons/met/10770.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/ad/original/DT5026.jpg",
-      "global-traffic": "https://images.metmuseum.org/CRDImages/dp/original/49I_136R5.jpg",
+      "global-surf": "/icons/met/17053.jpg",
+      "global-traffic": "/icons/met/339882.jpg",
       "global-tropical-bird": "/icons/quetzal.jpg",
       "global-wind": "/icons/met/11306.jpg",
       "jungle-primates": "/icons/howler.jpg",
@@ -750,7 +756,7 @@
       "global-rain": "/icons/hiroshige-rain.jpg",
       "global-songbird": "/icons/northern-cardinal.jpg",
       "global-stream": "/icons/met/12307.jpg",
-      "global-surf": "https://images.metmuseum.org/CRDImages/rl/original/sf-rlc-1975-1-573.JPG",
+      "global-surf": "/icons/met/460052.jpg",
       "global-traffic": "/icons/met/853645.jpg",
       "global-wind": "/icons/met/11306.jpg"
     }

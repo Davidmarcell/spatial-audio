@@ -295,10 +295,16 @@ const CURATED_PLACES: Record<string, Recipe> = {
     bed('insects', { name: 'Fynbos Insects' }),
   ] },
   // ---- Asia / Pacific ----
+  // Kyoto: every layer is pinned to a Japanese-native clip + a bespoke plate
+  // (see extendedFixedIcons) so the mix stops resolving to Tibetan bowls,
+  // generic nocturnal insects, SE-Asian bulbuls, and Haeckel frog plates.
   kyoto: { extraTags: ['forest', 'garden'], layers: [
-    bed('bells', { name: 'Temple Bells' }), bed('songbird', { name: 'Bush Warbler' }),
-    bed('insects', { name: 'Higurashi Cicadas' }), bed('stream', { name: 'Garden Stream' }),
-    bed('corvid', { name: 'Jungle Crows' }), option('frogs', { name: 'Kajika Frogs' }),
+    bed('bells', { id: 'kyoto-bells', name: 'Temple Bells', vol: 0.34, clip: 'bells-gong-temple' }),
+    bed('songbird', { id: 'kyoto-uguisu', name: 'Bush Warbler', vol: 0.5, clip: 'songbird-japanese-bush-warbler-2' }),
+    bed('insects', { id: 'kyoto-higurashi', name: 'Higurashi Cicadas', vol: 0.22, clip: 'insects-higurashi-cicada' }),
+    bed('stream', { id: 'kyoto-stream', name: 'Garden Stream', vol: 0.44, clip: 'stream-flow' }),
+    bed('corvid', { id: 'kyoto-crows', name: 'Jungle Crows', vol: 0.46, clip: 'corvid-large-billed-crow' }),
+    option('frogs', { id: 'kyoto-frogs', name: 'Kajika Frogs', vol: 0.3, clip: 'frogs-kajika' }),
   ] },
   queenstown: { extraTags: ['nz', 'pacific', 'alpine', 'mountain', 'cold'], layers: [
     // Pin the NZ Bellbird so the new Pacific-tagged Australian Magpie (added to

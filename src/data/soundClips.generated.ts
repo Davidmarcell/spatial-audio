@@ -600,6 +600,23 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Higurashi 20180728 1902.ogg"
   },
   {
+    "id": "insects-higurashi-cicada",
+    "type": "insects",
+    "tags": [
+      "asian",
+      "temperate",
+      "forest",
+      "summer",
+      "night"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/insects/insects-higurashi-cicada.ogg",
+    "title": "Tanna japonensis",
+    "author": "Σ64",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tanna_japonensis_v01.ogg"
+  },
+  {
     "id": "insects-nocturnal",
     "type": "insects",
     "tags": [

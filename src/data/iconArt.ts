@@ -85,6 +85,15 @@ const extendedFixedIcons: Record<string, string> = {
   'redwoods-jay': '/icons/redwoods-stellers-jay-audubon.jpg',
   'redwoods-canopy': '/icons/redwoods-bierstadt.jpg',
   'redwoods-drip': '/icons/forest-stream.jpg',
+  // Kyoto: species-accurate Japanese plates (uguisu, higurashi, kajika, jungle
+  // crow) plus Hiroshige for temple bells / garden waterside — keyed by the
+  // bespoke kyoto-* sound ids so nothing leaks onto other Asian pins.
+  'kyoto-bells': '/icons/pool/bells-temple.jpg',
+  'kyoto-uguisu': '/icons/kyoto-uguisu-ishizaki.jpg',
+  'kyoto-higurashi': '/icons/kyoto-higurashi-utamaro.jpg',
+  'kyoto-stream': '/icons/kyoto-garden-stream-hiroshige.jpg',
+  'kyoto-crows': '/icons/kyoto-jungle-crow-kyosai.jpg',
+  'kyoto-frogs': '/icons/kyoto-kajika-frog.jpg',
 };
 
 /** Attributions for the extended fixed plates above (kept out of the generated file). */
@@ -195,6 +204,46 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     license: 'Public domain',
     sourceUrl:
       'https://commons.wikimedia.org/wiki/File:A_Forest_Stream_by_Peder_Mork_Monsted.jpg',
+  },
+  {
+    file: '/icons/kyoto-uguisu-ishizaki.jpg',
+    title: 'Japanese bush warbler (uguisu, Cettia diphone) — Cock Blomhoff Collection',
+    author: 'Ishizaki Yūshi — pencil drawing and watercolour (Naturalis Biodiversity Center, RMNH.ART.383)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Naturalis_Biodiversity_Center_-_RMNH.ART.383_-_Cettia_diphone_-_Y%C5%ABshi_Ishizaki_-_Cock_Blomhoff_Collection_-_pencil_drawing_-_water_colour.jpg',
+  },
+  {
+    file: '/icons/kyoto-higurashi-utamaro.jpg',
+    title: 'Evening Cicada, Higurashi; Spider, Kumo, from the Picture Book of Crawling Creatures (Ehon mushi erami)',
+    author: 'Kitagawa Utamaro (MET DP135555)',
+    license: 'CC0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:%E3%80%8E%E7%94%BB%E6%9C%AC%E8%99%AB%E6%92%B0%E3%80%8F_%E3%80%8C%E3%81%B2%E3%81%8F%E3%82%89%E3%81%97%E3%80%8D%E3%80%8C%E3%81%8F%E3%82%82%E3%80%8D-Evening_Cicada,_Higurashi;_Spider,_Kumo,_from_the_Picture_Book_of_Crawling_Creatures_(Ehon_mushi_erami)_MET_DP135555.jpg',
+  },
+  {
+    file: '/icons/kyoto-garden-stream-hiroshige.jpg',
+    title: 'Tea-houses on the Bank of the Tadasu River in a Shower, from Famous Places of Kyōto',
+    author: 'Utagawa Hiroshige (MET DP120471)',
+    license: 'CC0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:%E4%BA%AC%E9%83%BD%E5%90%8D%E6%89%80%E4%B9%8B%E5%86%85_%E7%B3%BA%E5%B7%9D%E5%8E%9F%E4%B9%8B%E5%A4%95%E7%AB%8B-Tea-houses_on_the_Bank_of_the_Tadasu_River_in_a_Shower_MET_DP120471.jpg',
+  },
+  {
+    file: '/icons/kyoto-jungle-crow-kyosai.jpg',
+    title: 'Full Moon with Crow on Plum Branch',
+    author: 'Kawanabe Kyōsai (Cleveland Museum of Art 1930.203)',
+    license: 'CC0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Kawanabe_Kyosai_-_Full_Moon_with_Crow_on_Plum_Branch_-_1930.203_-_Cleveland_Museum_of_Art.tif',
+  },
+  {
+    file: '/icons/kyoto-kajika-frog.jpg',
+    title: 'Hyla bürgeri (Kajika frog, Buergeria buergeri) — Fauna Japonica, Batrachii Tab. III',
+    author: 'Iconographia Zoologica / Fauna Japonica (Temminck & Schlegel); Special Collections, University of Amsterdam',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Hyla_b%C3%BCrgeri_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ11500119.tif',
   },
 ];
 
