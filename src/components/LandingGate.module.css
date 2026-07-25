@@ -111,14 +111,11 @@
   line-height: 1.3;
   padding-block: 0.08em;
   color: var(--text);
-  /* The entrance now lives on the per-letter spans (each glyph cascades in on
-     its own beat). The wordmark itself keeps only the search-open dim: no
-     entrance animation here means opacity is never pinned, so the dim below can
-     take the whole wordmark to 0.4 via this transition. Font-size is included so
-     the mobile boot → settle shrink is smooth. */
-  transition:
-    opacity 0.32s var(--ease-premium-enter),
-    font-size 0.72s var(--ease-premium-enter);
+  /* The entrance lives on the per-letter spans. The wordmark itself only dims
+     for search-open. Font-size must NOT transition — the preload settle is a
+     single FLIP transform on this same h1; a CSS font-size ease would read as
+     a second hop after the settle lands. */
+  transition: opacity 0.32s var(--ease-premium-enter);
 }
 
 /* Per-letter cascade: each glyph fades in and rises into place, staggered one
@@ -454,10 +451,12 @@
   white-space: nowrap;
 }
 
-/* Keep fan/tagline mounted for decode, but invisible until the wordmark has
-   settled AND art is warm. Search+Enter are not mounted until hero-ready. */
+/* Keep fan/tagline/search mounted for decode + resting layout, but invisible
+   until the wordmark has settled (and art is warm for the fan). Search stays
+   in flow so the FLIP end rect == the static hero slot. */
 .gate[data-hero-ready='false'] .locationRow,
 .gate[data-hero-ready='false'] .tagline,
+.gate[data-hero-ready='false'] .searchSlot,
 .gate[data-art-ready='false'] .locationRow,
 .gate[data-art-ready='false'] .tagline {
   opacity: 0;
@@ -466,8 +465,13 @@
 
 .gate[data-hero-ready='false'] .locationItem,
 .gate[data-hero-ready='false'] .tagline,
+.gate[data-hero-ready='false'] .enterButton,
 .gate[data-art-ready='false'] .locationItem {
   animation: none;
+}
+
+.gate[data-hero-ready='false'] .enterButton {
+  opacity: 0;
 }
 
 .gate[data-phase='revealed'] .wordmark {

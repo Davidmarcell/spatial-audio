@@ -429,9 +429,9 @@ export function LocationSearchSpotlight({
   // whole pill travels up with the sheet, so a second, separate hero fade-up
   // would double the motion.
   const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !riseWithGate);
-  // Keep the portal unmounted until it can rise with Enter. On the compact
-  // preload path LandingGate only mounts us after the wordmark settle, so we
-  // rise immediately; elsewhere we wait the shared Enter delay.
+  // Keep the portal unmounted until it can rise with Enter. Inside LandingGate
+  // the in-flow spacer is mounted during preload for layout, but the visible
+  // pill must wait for data-hero-ready so it pairs with Enter after settle.
   const [landingPortalAllowed, setLandingPortalAllowed] = useState(
     () => !enlarged || riseWithGate,
   );
@@ -444,14 +444,25 @@ export function LocationSearchSpotlight({
       return;
     }
     const gate = rootRef.current?.closest('[data-landing-gate]');
-    // Parent only mounts us after the centre → rest preload (any viewport).
-    const heroGated = gate?.getAttribute('data-hero-ready') === 'true';
-    if (heroGated) {
-      // Parent already held for the centre → rest preload; rise with Enter now.
-      setPairEntranceImmediate(true);
-      setLandingPortalAllowed(true);
-      return;
+    if (gate) {
+      const syncFromGate = () => {
+        if (gate.getAttribute('data-hero-ready') === 'true') {
+          setPairEntranceImmediate(true);
+          setLandingPortalAllowed(true);
+          return true;
+        }
+        setPairEntranceImmediate(false);
+        setLandingPortalAllowed(false);
+        return false;
+      };
+      if (syncFromGate()) return undefined;
+      const observer = new MutationObserver(() => {
+        if (syncFromGate()) observer.disconnect();
+      });
+      observer.observe(gate, { attributes: true, attributeFilter: ['data-hero-ready'] });
+      return () => observer.disconnect();
     }
+    // Non-gate landing mount: wait the shared Enter delay.
     setPairEntranceImmediate(false);
     setLandingPortalAllowed(false);
     const raw =

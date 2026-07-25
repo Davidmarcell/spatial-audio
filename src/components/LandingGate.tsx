@@ -49,7 +49,7 @@ const PRELOAD_WORDMARK_LAND_MS = 1200;
 /** Cap so a slow tile never blocks the fan forever. */
 const PRELOAD_ART_TIMEOUT_MS = 4200;
 /** One continuous centre → rest motion for the hero wordmark. */
-const PRELOAD_WORDMARK_SETTLE_MS = 1200;
+const PRELOAD_WORDMARK_SETTLE_MS = 200;
 /** Reduced-motion: still show a centred hold, then snap to rest + assets. */
 const PRELOAD_REDUCED_HOLD_MS = 700;
 
@@ -365,9 +365,9 @@ export function LandingGate({
     };
   }, [phase]);
 
-  // One-shot FLIP: invert from the centred boot rect to the resting hero slot,
-  // then play transform back to identity so shrink + rise read as one move.
-  // Only after this settle completes do fan / tagline / search+Enter rise in.
+  // One-shot FLIP on the SAME h1: invert from the centred boot rect to the
+  // resting hero slot (search row already in layout), then play transform back
+  // to identity. Clearing leaves it on that exact static slot — no second hop.
   useLayoutEffect(() => {
     if (phase !== 'revealed' || didFlipWordmarkRef.current) return;
     if (prefersReducedMotion()) {
@@ -384,6 +384,8 @@ export function LandingGate({
       return;
     }
 
+    // Ensure resting layout (relative wordmark + reserved search row) is measured.
+    void el.offsetWidth;
     const to = el.getBoundingClientRect();
     if (to.width < 1 || to.height < 1) {
       didFlipWordmarkRef.current = true;
@@ -408,22 +410,25 @@ export function LandingGate({
     el.style.transition = 'none';
     el.style.transformOrigin = 'center center';
     el.style.willChange = 'transform';
+    // Kill inherited font-size transition so the FLIP scale is the only motion.
+    el.style.transitionProperty = 'transform';
     el.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
     void el.offsetWidth;
-    // Single ease-out curve: no staged keyframes, so centre → rest is one arc.
     el.style.transition = `transform ${PRELOAD_WORDMARK_SETTLE_MS}ms cubic-bezier(0.33, 0.0, 0.2, 1)`;
     el.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
 
     const clear = () => {
       el.style.transition = '';
+      el.style.transitionProperty = '';
       el.style.transform = '';
       el.style.transformOrigin = '';
       el.style.willChange = '';
     };
     const settleDone = window.setTimeout(() => {
+      // Identity transform == measured resting rect; clear without a second move.
       clear();
       setHeroReady(true);
-    }, PRELOAD_WORDMARK_SETTLE_MS + 40);
+    }, PRELOAD_WORDMARK_SETTLE_MS + 16);
     return () => {
       window.clearTimeout(settleDone);
       clear();
@@ -448,9 +453,10 @@ export function LandingGate({
 
   const fan = compact ? MOBILE_FAN_CONFIG : (fanConfig ?? DEFAULT_FAN_CONFIG);
   const tilePx = compact ? MOBILE_TILE_PX : DESKTOP_TILE_PX;
-  // Mount search+Enter only after the wordmark settle so they share one rise
-  // beat with the fan/tagline — never during the centre preload.
-  const showSearch = heroReady;
+  // Keep search+Enter mounted for layout during preload so the wordmark FLIP
+  // lands on the true resting slot (the vertically-centred stack does not jump
+  // ~30px when the row later appears). Visibility/entrance stay gated on
+  // heroReady via CSS + the search portal.
 
   const theta = (fan.endRotationDeg * Math.PI) / 180;
   const rotationOverhangPx =
@@ -544,8 +550,8 @@ export function LandingGate({
         <p className={styles.tagline}>
           An experience of sound. Invoking places, and the memories they hold through spatial audio. Best experienced with headphones.
         </p>
-        {showSearch && search && (
-          <div className={styles.searchSlot}>
+        {search && (
+          <div className={styles.searchSlot} aria-hidden={heroReady ? undefined : true}>
             <div className={styles.searchRow}>
               {search}
               {onEnter && (
@@ -553,6 +559,7 @@ export function LandingGate({
                   type="button"
                   className={styles.enterButton}
                   onClick={onEnter}
+                  tabIndex={heroReady ? undefined : -1}
                 >
                   Enter
                 </button>
