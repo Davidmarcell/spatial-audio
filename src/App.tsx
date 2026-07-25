@@ -1326,20 +1326,7 @@ export default function App() {
 
       <div className={styles.mobileTopLeft}>
         <MobileControlsMenu
-          actions={
-            hasEntered ? (
-              <>
-                <UseMyLocationButton onMatch={handleGeoMatch} />
-                <RandomizeLocationButton
-                  appLocations={appLocations}
-                  worldLocations={worldLocations}
-                  onPick={handleRandomRegion}
-                />
-                <MapButton onClick={() => handleGlobeOpenChange(true)} />
-                <ShareButton onShare={handleShare} />
-              </>
-            ) : null
-          }
+          // Places actions live in the bottom bar on phones; burger keeps App chrome.
           extras={
             <>
               <ThemeToggle />

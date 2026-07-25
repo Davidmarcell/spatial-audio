@@ -195,18 +195,19 @@
 }
 
 .radarRing:nth-child(1) {
-  width: 28cqmin;
-  height: 28cqmin;
+  width: 40cqmin;
+  height: 40cqmin;
 }
 
 .radarRing:nth-child(2) {
-  width: 48cqmin;
-  height: 48cqmin;
+  width: 72cqmin;
+  height: 72cqmin;
 }
 
 .radarRing:nth-child(3) {
-  width: 76cqmin;
-  height: 76cqmin;
+  /* Outer ring kisses the shorter viewport edge. */
+  width: 100cqmin;
+  height: 100cqmin;
 }
 
 .radarRingsPlaying .radarRing {

@@ -57,8 +57,11 @@ export function SoundIconImage({
         src={resolvedSrc}
         alt={alt}
         draggable={false}
-        loading={isDetail ? 'eager' : 'lazy'}
+        /* Canvas / dock / landing faces should decode with the scene — lazy
+           left too many empty square frames while the network caught up. */
+        loading="eager"
         decoding={isDetail ? 'sync' : 'async'}
+        fetchPriority={size === 'canvas' || size === 'detail' || size === 'detailNatural' ? 'high' : 'auto'}
         onError={() => {
           setChainIndex((current) => {
             if (current >= fallbackChain.length - 1) return current;

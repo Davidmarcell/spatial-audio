@@ -80,7 +80,7 @@ export function SoundIcon({
   // Phones use a smaller base tile; damp proximity scaling so near sounds do not
   // inflate back into a crowded overlap.
   const proximityScale =
-    scaleFromDistance(distance) * (isCompactViewport() ? 0.78 : 1);
+    scaleFromDistance(distance) * (isCompactViewport() ? 0.88 : 1);
   const dragBoost = isDragging ? 1.04 : 1;
   const scale = proximityScale * dragBoost;
 

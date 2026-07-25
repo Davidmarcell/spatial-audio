@@ -1,6 +1,9 @@
 .root {
   color: var(--text);
+  fill: currentColor;
   flex-shrink: 0;
+  display: block;
+  overflow: visible;
 }
 
 .xs {

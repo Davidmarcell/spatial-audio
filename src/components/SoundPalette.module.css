@@ -194,18 +194,19 @@
 
 @media (max-width: 768px) {
   .palette {
-    width: auto;
+    width: 100%;
     max-width: 100%;
-    align-items: center;
+    align-items: stretch;
   }
 
   .palette .dock {
     flex-direction: row;
     align-items: center;
-    /* Hug the tiles instead of stretching into a full-width testing tray. */
-    width: max-content;
+    /* Full-width tray; page gutter is the 16px padding on dockOverlay. */
+    width: 100%;
     max-width: 100%;
-    padding: 0.15rem 0.18rem;
+    box-sizing: border-box;
+    padding: 0.12rem 0.1rem;
     border-radius: 0.95rem;
     overflow-x: auto;
     overflow-y: hidden;

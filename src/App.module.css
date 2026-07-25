@@ -421,25 +421,51 @@
     left: 0;
     right: 0;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
+    padding-inline: 16px;
+    box-sizing: border-box;
+    gap: 0.55rem;
   }
 
-  /* Side chrome lives in the burger menu on mobile — keep search + play. */
+  /* Product chrome: map / share / location / shuffle sit in the bottom row. */
   .leftActionGroup,
   .rightActionGroup {
-    display: none;
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.3rem;
+  }
+
+  .bottomBarRow {
+    width: 100%;
+    max-width: 100%;
+    gap: 0.3rem;
+    justify-content: space-between;
+  }
+
+  .bottomBarPlay {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Compact circular actions so map / share / geo / shuffle fit beside search. */
+  .leftActionGroup :global(button),
+  .rightActionGroup :global(button) {
+    width: 2.4rem;
+    height: 2.4rem;
+    min-width: 2.4rem;
   }
 
   .dockOverlay {
     left: 0;
     right: 0;
     top: auto;
-    bottom: calc(6.15rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(7.6rem + env(safe-area-inset-bottom, 0px));
     width: 100%;
     max-width: 100%;
     transform: none;
     display: flex;
     justify-content: center;
-    padding-inline: 0.45rem;
+    padding-inline: 16px;
     box-sizing: border-box;
   }
 

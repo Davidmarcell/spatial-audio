@@ -250,7 +250,7 @@
 
 @media (max-width: 768px) {
   .icon {
-    --canvas-tile-size: 3.15rem; /* ~50px — fits a phone soundscape without heavy pile-up */
+    --canvas-tile-size: 3.75rem; /* ~60px — ~20% larger than the prior compact size */
   }
 
   .label {
