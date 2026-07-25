@@ -66,7 +66,55 @@ const PRELOAD_ART_TIMEOUT_MS = 4200;
  */
 const PRELOAD_WORDMARK_SETTLE_MS = 560;
 /** Eased in and out of the settle, weighted so it leaves the centre gently. */
-const PRELOAD_WORDMARK_SETTLE_EASE = 'cubic-bezier(0.5, 0.02, 0.2, 1)';
+const SETTLE_EASE_POINTS = [0.5, 0.02, 0.2, 1] as const;
+const PRELOAD_WORDMARK_SETTLE_EASE = `cubic-bezier(${SETTLE_EASE_POINTS.join(', ')})`;
+
+/**
+ * The fan, the copy and the search+Enter pair start rising while the wordmark is
+ * still travelling — once it is this close to its resting place. Overlapping the
+ * two beats stops the entrance reading as two separate events.
+ */
+const PRELOAD_ASSET_LEAD_PX = 52;
+
+/**
+ * Release `onReached` on the first frame the element's top edge is within
+ * `withinPx` of `restTop`, then stop.
+ *
+ * This watches the real geometry rather than predicting a time from the easing
+ * curve. A predicted `setTimeout` is measurably wrong here: its clock starts when
+ * the effect runs, but the transition's clock does not start until the next
+ * paint, so it fired ~20ms early — around 14px at the speed the wordmark is
+ * travelling by then. Reading the rect is also immune to later changes in the
+ * duration, the easing, or the scale component.
+ */
+function releaseWhenWithin(
+  el: HTMLElement,
+  restTop: number,
+  withinPx: number,
+  onReached: () => void,
+): () => void {
+  let frame = 0;
+  // Seeded from the live gap, not Infinity: the per-frame step below has to be a
+  // real number on the very first check or it fires instantly.
+  let previousGap = el.getBoundingClientRect().top - restTop;
+  const check = () => {
+    const gap = el.getBoundingClientRect().top - restTop;
+    // The mark almost never lands on a frame boundary, and by this point the
+    // wordmark covers ~10px per frame. Fire on whichever side of the mark is
+    // nearer, so the quantisation error is centred rather than always one frame
+    // late. Before the transform starts moving the step is 0 and this reduces to
+    // a plain `gap <= withinPx` test.
+    const perFrame = Math.max(0, previousGap - gap);
+    previousGap = gap;
+    if (gap - withinPx <= perFrame / 2) {
+      onReached();
+      return;
+    }
+    frame = requestAnimationFrame(check);
+  };
+  frame = requestAnimationFrame(check);
+  return () => cancelAnimationFrame(frame);
+}
 /** Reduced-motion: still show a centred hold, then snap to rest + assets. */
 const PRELOAD_REDUCED_HOLD_MS = 700;
 
@@ -454,12 +502,16 @@ export function LandingGate({
       el.style.transformOrigin = '';
       el.style.willChange = '';
     };
-    const settleDone = window.setTimeout(() => {
-      // Identity transform == measured resting rect; clear without a second move.
-      clear();
-      setHeroReady(true);
-    }, PRELOAD_WORDMARK_SETTLE_MS + 16);
+    // Release the assets while the wordmark is still on its way in, so the two
+    // beats overlap rather than reading as separate events. Only the h1 carries a
+    // transform, so nothing reflows as they appear and its arc is unaffected.
+    const cancelRelease = releaseWhenWithin(el, to.top, PRELOAD_ASSET_LEAD_PX, () =>
+      setHeroReady(true),
+    );
+    // Identity transform == measured resting rect; clear without a second move.
+    const settleDone = window.setTimeout(clear, PRELOAD_WORDMARK_SETTLE_MS + 16);
     return () => {
+      cancelRelease();
       window.clearTimeout(settleDone);
       clear();
     };
