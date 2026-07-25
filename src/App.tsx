@@ -1310,10 +1310,12 @@ export default function App() {
               backdrop={false}
               enlarged
               recenterOnExpand
-              // Hide while browsing the globe, but keep the landing pill paired
-              // with the outgoing sheet while the landing exits to a place.
-              blocked={showGlobe && !landingEntering}
-              riseWithGate={landingEntering || landingExiting}
+              // Hide while browsing the globe, and the instant the landing
+              // leaves for a place / the map — otherwise the body-portalled
+              // "Search or create your own" pill lingers as an empty white bar
+              // over the rising soundscape. Home-return still tracks the gate.
+              blocked={(showGlobe && !landingEntering) || landingExiting}
+              riseWithGate={landingEntering}
             />
           }
         />

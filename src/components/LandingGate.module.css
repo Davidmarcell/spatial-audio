@@ -38,6 +38,15 @@
   animation: landingExitLift 1.3s var(--ease-in-out-strong) both;
 }
 
+/* The search pill is portalled to document.body; kill the in-flow slot the
+   moment we leave so an orphaned Enter / empty reservation cannot read as a
+   blank white "Search or create your own" bar over the outgoing sheet. */
+.gate[data-exiting='true'] .searchSlot {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @keyframes landingExitLift {
   from {
     transform: translate3d(0, 0, 0) scale(1);
