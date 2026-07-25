@@ -407,6 +407,8 @@ export function LocationSearchSpotlight({
   const [panelAnchor, setPanelAnchor] = useState<PanelAnchor | null>(null);
   const panelAnchorRef = useRef<PanelAnchor | null>(panelAnchor);
   panelAnchorRef.current = panelAnchor;
+  // Read inside the measure callbacks, which are memoised and must not go stale.
+  const hostSettledRef = useRef(true);
   const [query, setQuery] = useState('');
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [geocodeResults, setGeocodeResults] = useState<GeocodeResult[]>([]);
@@ -435,51 +437,50 @@ export function LocationSearchSpotlight({
   // whole pill travels up with the sheet, so a second, separate hero fade-up
   // would double the motion.
   const [landingEntranceArmed, setLandingEntranceArmed] = useState(enlarged && !risingHome);
-  // Keep the portal unmounted until it can rise with Enter. Inside LandingGate
-  // the in-flow spacer is mounted during preload for layout, but the visible
-  // pill must wait for data-hero-ready so it pairs with Enter after settle.
-  const [landingPortalAllowed, setLandingPortalAllowed] = useState(
-    () => !enlarged || risingHome,
-  );
-  const [pairEntranceImmediate, setPairEntranceImmediate] = useState(false);
+
+  /**
+   * Is the HOST layout settled?
+   *
+   * The visible pill is portalled to `document.body` and positioned from a
+   * measurement of the in-flow spacer, so a measurement taken while the host is
+   * mid-layout paints the pill in the wrong place. The landing gate is the one
+   * host that reshapes itself after mount: during its preload the wordmark is
+   * absolutely centred and the column is top-aligned, which puts the in-flow
+   * search row hundreds of pixels above where it finally rests.
+   *
+   * This is the ONLY gate on painting the portal. It replaced a set of
+   * independent timers that each had their own opinion about when the pill could
+   * appear — whichever fired first won, and if that happened before the gate had
+   * settled the pill painted at the boot position and then jumped to its real
+   * one. Anything that is not the landing gate has no such phase, so it is
+   * settled from the first frame and behaves exactly as before.
+   */
+  const [hostSettled, setHostSettled] = useState(true);
+  const [insideLandingGate, setInsideLandingGate] = useState(false);
 
   useLayoutEffect(() => {
-    if (!enlarged || risingHome || !landingEntranceArmed) {
-      setLandingPortalAllowed(true);
-      setPairEntranceImmediate(false);
-      return;
-    }
+    hostSettledRef.current = hostSettled;
+  }, [hostSettled]);
+
+  useLayoutEffect(() => {
     const gate = rootRef.current?.closest('[data-landing-gate]');
-    if (gate) {
-      const syncFromGate = () => {
-        if (gate.getAttribute('data-hero-ready') === 'true') {
-          setPairEntranceImmediate(true);
-          setLandingPortalAllowed(true);
-          return true;
-        }
-        setPairEntranceImmediate(false);
-        setLandingPortalAllowed(false);
-        return false;
-      };
-      if (syncFromGate()) return undefined;
-      const observer = new MutationObserver(() => {
-        if (syncFromGate()) observer.disconnect();
-      });
-      observer.observe(gate, { attributes: true, attributeFilter: ['data-hero-ready'] });
-      return () => observer.disconnect();
+    setInsideLandingGate(Boolean(gate));
+    if (!gate) {
+      setHostSettled(true);
+      return undefined;
     }
-    // Non-gate landing mount: wait the shared Enter delay.
-    setPairEntranceImmediate(false);
-    setLandingPortalAllowed(false);
-    const raw =
-      getComputedStyle(document.documentElement).getPropertyValue('--landing-enter-delay').trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue('--landing-search-delay').trim();
-    let delayMs = 560;
-    if (raw.endsWith('ms')) delayMs = Number.parseFloat(raw) || delayMs;
-    else if (raw.endsWith('s')) delayMs = (Number.parseFloat(raw) || 0.56) * 1000;
-    const timer = window.setTimeout(() => setLandingPortalAllowed(true), Math.max(0, delayMs));
-    return () => window.clearTimeout(timer);
-  }, [enlarged, landingEntranceArmed, risingHome]);
+    const read = () => gate.getAttribute('data-hero-ready') !== 'false';
+    setHostSettled(read());
+    if (read()) return undefined;
+    const observer = new MutationObserver(() => setHostSettled(read()));
+    observer.observe(gate, { attributes: true, attributeFilter: ['data-hero-ready'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // The landing pill and the Enter button rise together on one beat. Inside the
+  // gate that beat starts the moment the host settles (the gate already held for
+  // the preload), so the entrance plays with no further delay of its own.
+  const pairEntranceImmediate = enlarged && hostSettled && insideLandingGate;
 
   useEffect(() => {
     if (phase === 'opening-width') setTrendingToken((token) => token + 1);
@@ -492,10 +493,14 @@ export function LocationSearchSpotlight({
       setLandingEntranceArmed(false);
       return;
     }
-    // Otherwise retire it once the delayed fade-up has comfortably finished.
+    // The clock only starts once the host has settled and the pill can actually
+    // paint — starting it at mount used to retire the entrance DURING the
+    // landing preload, so the pill appeared with no fade instead of rising in
+    // with the Enter button.
+    if (!hostSettled) return;
     const timer = window.setTimeout(() => setLandingEntranceArmed(false), 1600);
     return () => window.clearTimeout(timer);
-  }, [landingEntranceArmed, phase]);
+  }, [hostSettled, landingEntranceArmed, phase]);
 
   const catalog = useMemo(
     () => buildSearchCatalog(appLocations, worldLocations),
@@ -748,6 +753,9 @@ export function LocationSearchSpotlight({
   );
 
   const syncPanelAnchor = useCallback(() => {
+    // Never measure a host that is still laying itself out — that is what used to
+    // commit a boot-time position and make the pill jump once the host settled.
+    if (!hostSettledRef.current) return;
     // Only ever commit the anchor while the search is at its resting (closed)
     // state. Combined with the bar-rise compensation in `measureRestingAnchor`,
     // the committed anchor is always the resting baseline, so neither the open
@@ -762,6 +770,14 @@ export function LocationSearchSpotlight({
     const anchor = measureRestingAnchor();
     if (anchor) setPanelAnchor(anchor);
   }, [measureRestingAnchor]);
+
+  // The host just settled: take a fresh resting measurement in the SAME commit,
+  // so the portal's very first painted frame is already in the right place.
+  useLayoutEffect(() => {
+    if (!hostSettled) return;
+    const anchor = measureRestingAnchor();
+    if (anchor) setPanelAnchor(anchor);
+  }, [hostSettled, measureRestingAnchor]);
 
   useLayoutEffect(() => {
     syncPanelAnchor();
@@ -1196,7 +1212,7 @@ export function LocationSearchSpotlight({
     <div className={styles.root} ref={rootRef} data-size={enlarged ? 'lg' : undefined}>
       {panelAnchor &&
         !blocked &&
-        landingPortalAllowed &&
+        hostSettled &&
         typeof document !== 'undefined' &&
         createPortal(
           <div
