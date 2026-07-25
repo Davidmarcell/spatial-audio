@@ -427,11 +427,84 @@
   }
 }
 
-/* —— Compact / phone landing ——
-   Preloader: Saudade alone at viewport centre (letter cascade + larger scale)
-   while fan <img>s decode in the still-mounted (but hidden) row. Then one
-   continuous FLIP centre → rest (scale down + push up). Only after that settle
-   do fan / tagline / search+Enter rise together. */
+/* —— Preloader (all viewports) ——
+   Saudade alone at viewport centre (letter cascade + larger scale) while fan
+   <img>s decode in the still-mounted (but hidden) row. Then one continuous
+   FLIP centre → rest (scale down + push up). Only after that settle do fan /
+   tagline / search+Enter rise together. */
+.gate[data-phase='booting'] .inner {
+  /* Fill the gate so the absolute wordmark's 50% is true viewport centre. */
+  align-self: stretch;
+  justify-self: stretch;
+  max-width: none;
+  min-height: 100%;
+  justify-content: flex-start;
+}
+
+.gate[data-phase='booting'] .wordmark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  margin: 0;
+  /* Larger than rest so the settle reads as a clear scale-down + push-up. */
+  font-size: clamp(3.6rem, 12vw, 7rem);
+  transform: translate(-50%, -50%);
+  /* Avoid wrapping "Saudade" during the centred hold. */
+  white-space: nowrap;
+}
+
+/* Keep fan/tagline mounted for decode, but invisible until the wordmark has
+   settled AND art is warm. Search+Enter are not mounted until hero-ready. */
+.gate[data-hero-ready='false'] .locationRow,
+.gate[data-hero-ready='false'] .tagline,
+.gate[data-art-ready='false'] .locationRow,
+.gate[data-art-ready='false'] .tagline {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gate[data-hero-ready='false'] .locationItem,
+.gate[data-hero-ready='false'] .tagline,
+.gate[data-art-ready='false'] .locationItem {
+  animation: none;
+}
+
+.gate[data-phase='revealed'] .wordmark {
+  position: relative;
+  left: auto;
+  top: auto;
+  /* Transform is owned by the JS FLIP settle; don't fight it with CSS. */
+  transition: opacity 0.32s var(--ease-premium-enter);
+}
+
+/* Freeze letters as the settle starts — no second cascade on the way up. */
+.gate[data-phase='revealed'] .wordmarkLetter {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+/* Fan / copy rise only after the preload settle — short delay so they lift
+   with search+Enter as one beat, never under the moving wordmark. */
+.gate[data-hero-ready='true'][data-art-ready='true'] .locationItem {
+  animation: gateRise var(--landing-fan-duration, 0.5s) var(--ease-premium-enter) both;
+  animation-delay: calc(
+    0.06s + var(--landing-index) * var(--landing-fan-stagger, 0.04s)
+  );
+}
+
+.gate[data-hero-ready='true'][data-art-ready='true'] .tagline {
+  animation: gateRise var(--landing-tagline-duration, 0.5s) var(--ease-premium-enter) both;
+  animation-delay: 0.14s;
+}
+
+/* Search mounts only when hero-ready; pair with Enter on a shared short beat. */
+.gate[data-hero-ready='true'] .enterButton {
+  animation-delay: 0.06s;
+}
+
+/* —— Compact / phone landing layout —— */
 @media (max-width: 768px) {
   .gate {
     padding-inline: 0.85rem;
@@ -446,74 +519,12 @@
     overflow-x: clip;
   }
 
-  .gate[data-phase='booting'] .inner {
-    /* Fill the gate so the absolute wordmark's 50% is true viewport centre. */
-    align-self: stretch;
-    justify-self: stretch;
-    max-width: none;
-    min-height: 100%;
-    justify-content: flex-start;
-  }
-
   .gate[data-phase='booting'] .wordmark {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 2;
-    margin: 0;
-    font-size: clamp(3.4rem, 15vw, 4.6rem);
-    transform: translate(-50%, -50%);
-  }
-
-  /* Keep fan/tagline mounted for decode, but invisible until the wordmark has
-     settled AND art is warm. Search+Enter are not mounted until hero-ready. */
-  .gate[data-hero-ready='false'] .locationRow,
-  .gate[data-hero-ready='false'] .tagline,
-  .gate[data-art-ready='false'] .locationRow,
-  .gate[data-art-ready='false'] .tagline {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .gate[data-hero-ready='false'] .locationItem,
-  .gate[data-hero-ready='false'] .tagline,
-  .gate[data-art-ready='false'] .locationItem {
-    animation: none;
+    font-size: clamp(3.4rem, 14vw, 4.8rem);
   }
 
   .gate[data-phase='revealed'] .wordmark {
-    position: relative;
-    left: auto;
-    top: auto;
     font-size: clamp(2.35rem, 11vw, 3.1rem);
-    /* Transform is owned by the JS FLIP settle; don't fight it with CSS. */
-    transition: opacity 0.32s var(--ease-premium-enter);
-  }
-
-  /* Freeze letters as the settle starts — no second cascade on the way up. */
-  .gate[data-phase='revealed'] .wordmarkLetter {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  /* Fan / copy rise only after the preload settle — short delay so they lift
-     with search+Enter as one beat, never under the moving wordmark. */
-  .gate[data-hero-ready='true'][data-art-ready='true'] .locationItem {
-    animation: gateRise var(--landing-fan-duration, 0.5s) var(--ease-premium-enter) both;
-    animation-delay: calc(
-      0.06s + var(--landing-index) * var(--landing-fan-stagger, 0.04s)
-    );
-  }
-
-  .gate[data-hero-ready='true'][data-art-ready='true'] .tagline {
-    animation: gateRise var(--landing-tagline-duration, 0.5s) var(--ease-premium-enter) both;
-    animation-delay: 0.14s;
-  }
-
-  /* Search mounts only when hero-ready; pair with Enter on a shared short beat. */
-  .gate[data-hero-ready='true'] .enterButton {
-    animation-delay: 0.06s;
   }
 
   .locationRow {
@@ -592,9 +603,16 @@
     transform: none;
   }
 
-  /* No staggered rise — show the fan immediately. */
-  .locationItem {
+  /* No staggered rise — show the fan once the preload hold ends. */
+  .gate[data-hero-ready='true'][data-art-ready='true'] .locationItem {
     opacity: 1;
+  }
+
+  .gate[data-hero-ready='false'] .locationItem,
+  .gate[data-art-ready='false'] .locationItem,
+  .gate[data-hero-ready='false'] .tagline,
+  .gate[data-art-ready='false'] .tagline {
+    opacity: 0;
   }
 
   .locationButton,

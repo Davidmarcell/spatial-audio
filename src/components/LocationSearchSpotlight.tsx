@@ -444,9 +444,8 @@ export function LocationSearchSpotlight({
       return;
     }
     const gate = rootRef.current?.closest('[data-landing-gate]');
-    const heroGated =
-      gate?.getAttribute('data-compact') === 'true'
-      && gate?.getAttribute('data-hero-ready') === 'true';
+    // Parent only mounts us after the centre → rest preload (any viewport).
+    const heroGated = gate?.getAttribute('data-hero-ready') === 'true';
     if (heroGated) {
       // Parent already held for the centre → rest preload; rise with Enter now.
       setPairEntranceImmediate(true);

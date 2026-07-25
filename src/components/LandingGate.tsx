@@ -41,15 +41,17 @@ const WORDMARK_TEXT = 'Saudade';
 const COMPACT_MQ = '(max-width: 768px)';
 
 /**
- * Hold only until the letter cascade has landed, then immediately begin the
- * center → rest settle (no second static beat, and do not wait on fan art).
+ * Hold at centre until the letter cascade has landed, then begin the
+ * centre → rest settle (no second static beat, and do not wait on fan art).
  * Letter timing: delay 0.05s + 7×0.06s stagger + 0.62s rise ≈ 1.09s.
  */
-const MOBILE_WORDMARK_LAND_MS = 1000;
+const PRELOAD_WORDMARK_LAND_MS = 1200;
 /** Cap so a slow tile never blocks the fan forever. */
-const MOBILE_PRELOAD_TIMEOUT_MS = 4200;
-/** One continuous center → rest motion for the compact wordmark. */
-const MOBILE_WORDMARK_SETTLE_MS = 1100;
+const PRELOAD_ART_TIMEOUT_MS = 4200;
+/** One continuous centre → rest motion for the hero wordmark. */
+const PRELOAD_WORDMARK_SETTLE_MS = 1200;
+/** Reduced-motion: still show a centred hold, then snap to rest + assets. */
+const PRELOAD_REDUCED_HOLD_MS = 700;
 
 /** Fisher-Yates shuffle over a fresh copy (never mutates the source array). */
 function shuffle<T>(items: readonly T[]): T[] {
@@ -254,35 +256,22 @@ export function LandingGate({
   });
 
   const [compact, setCompact] = useState(() => isCompactViewport());
-  // Mobile cold boot: centre the wordmark, then one continuous settle into the
-  // hero. Fan art readiness is tracked separately so a slow decode never
-  // freezes the wordmark mid-hold. Home-rise / reduced-motion skip the boot.
-  const [phase, setPhase] = useState<LandingPhase>(() => {
-    if (prefersReducedMotion() || entering || !isCompactViewport()) return 'revealed';
-    return 'booting';
-  });
-  const [artReady, setArtReady] = useState(() => prefersReducedMotion() || entering || !isCompactViewport());
+  // Cold boot preload (phone + desktop): Saudade alone at viewport centre,
+  // then one continuous settle into the hero slot. Fan art readiness is
+  // tracked separately so a slow decode never freezes the wordmark mid-hold.
+  // Only the home-rise return path skips the preload.
+  const [phase, setPhase] = useState<LandingPhase>(() => (entering ? 'revealed' : 'booting'));
+  const [artReady, setArtReady] = useState(() => entering);
   // Assets (fan / tagline / search+Enter) stay off until the wordmark has
-  // finished its centre → rest settle. Desktop / reduced-motion / home-rise
-  // skip the preload and treat the hero as ready immediately.
-  const [heroReady, setHeroReady] = useState(
-    () => prefersReducedMotion() || entering || !isCompactViewport(),
-  );
+  // finished its centre → rest settle.
+  const [heroReady, setHeroReady] = useState(() => entering);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return undefined;
     }
     const mq = window.matchMedia(COMPACT_MQ);
-    const sync = () => {
-      const next = mq.matches;
-      setCompact(next);
-      if (!next) {
-        setPhase('revealed');
-        setArtReady(true);
-        setHeroReady(true);
-      }
-    };
+    const sync = () => setCompact(mq.matches);
     sync();
     mq.addEventListener('change', sync);
     return () => mq.removeEventListener('change', sync);
@@ -337,14 +326,14 @@ export function LandingGate({
   // Kick network + decode for fan art immediately (in parallel with the
   // centred wordmark), and also wait on the real <img> nodes once mounted.
   useEffect(() => {
-    if (!compact || artReady) return undefined;
+    if (artReady) return undefined;
 
     let cancelled = false;
     const srcs = locations.map((entry) => entry.src);
 
     void Promise.all([
-      waitForSources(srcs, MOBILE_PRELOAD_TIMEOUT_MS),
-      waitForDomImages(fanImageRefs.current, MOBILE_PRELOAD_TIMEOUT_MS),
+      waitForSources(srcs, PRELOAD_ART_TIMEOUT_MS),
+      waitForDomImages(fanImageRefs.current, PRELOAD_ART_TIMEOUT_MS),
     ]).then(() => {
       if (!cancelled) setArtReady(true);
     });
@@ -352,7 +341,7 @@ export function LandingGate({
     return () => {
       cancelled = true;
     };
-  }, [artReady, compact, locations]);
+  }, [artReady, locations]);
 
   // As soon as the letter cascade has landed, leave the centre and settle into
   // the hero slot — do not wait on art (that would freeze a second beat).
@@ -360,6 +349,7 @@ export function LandingGate({
     if (phase !== 'booting') return undefined;
 
     let cancelled = false;
+    const holdMs = prefersReducedMotion() ? PRELOAD_REDUCED_HOLD_MS : PRELOAD_WORDMARK_LAND_MS;
     const timer = window.setTimeout(() => {
       if (cancelled) return;
       const wordmark = wordmarkRef.current;
@@ -367,7 +357,7 @@ export function LandingGate({
         bootWordmarkRectRef.current = wordmark.getBoundingClientRect();
       }
       setPhase('revealed');
-    }, MOBILE_WORDMARK_LAND_MS);
+    }, holdMs);
 
     return () => {
       cancelled = true;
@@ -379,7 +369,7 @@ export function LandingGate({
   // then play transform back to identity so shrink + rise read as one move.
   // Only after this settle completes do fan / tagline / search+Enter rise in.
   useLayoutEffect(() => {
-    if (phase !== 'revealed' || !compact || didFlipWordmarkRef.current) return;
+    if (phase !== 'revealed' || didFlipWordmarkRef.current) return;
     if (prefersReducedMotion()) {
       didFlipWordmarkRef.current = true;
       setHeroReady(true);
@@ -406,6 +396,14 @@ export function LandingGate({
     const sx = from.width / to.width;
     const sy = from.height / to.height;
 
+    // No visible travel (already at rest) — still gate assets on the settle clock
+    // so a zero-distance FLIP never skips the preload beat.
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sx - 1) < 0.02 && Math.abs(sy - 1) < 0.02) {
+      didFlipWordmarkRef.current = true;
+      const timer = window.setTimeout(() => setHeroReady(true), PRELOAD_WORDMARK_SETTLE_MS);
+      return () => window.clearTimeout(timer);
+    }
+
     didFlipWordmarkRef.current = true;
     el.style.transition = 'none';
     el.style.transformOrigin = 'center center';
@@ -413,7 +411,7 @@ export function LandingGate({
     el.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
     void el.offsetWidth;
     // Single ease-out curve: no staged keyframes, so centre → rest is one arc.
-    el.style.transition = `transform ${MOBILE_WORDMARK_SETTLE_MS}ms cubic-bezier(0.33, 0.0, 0.2, 1)`;
+    el.style.transition = `transform ${PRELOAD_WORDMARK_SETTLE_MS}ms cubic-bezier(0.33, 0.0, 0.2, 1)`;
     el.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
 
     const clear = () => {
@@ -425,12 +423,12 @@ export function LandingGate({
     const settleDone = window.setTimeout(() => {
       clear();
       setHeroReady(true);
-    }, MOBILE_WORDMARK_SETTLE_MS + 40);
+    }, PRELOAD_WORDMARK_SETTLE_MS + 40);
     return () => {
       window.clearTimeout(settleDone);
       clear();
     };
-  }, [compact, phase]);
+  }, [phase]);
 
   const handleTilePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
     if (prefersReducedMotion()) return;
@@ -452,7 +450,7 @@ export function LandingGate({
   const tilePx = compact ? MOBILE_TILE_PX : DESKTOP_TILE_PX;
   // Mount search+Enter only after the wordmark settle so they share one rise
   // beat with the fan/tagline — never during the centre preload.
-  const showSearch = heroReady || !compact;
+  const showSearch = heroReady;
 
   const theta = (fan.endRotationDeg * Math.PI) / 180;
   const rotationOverhangPx =
