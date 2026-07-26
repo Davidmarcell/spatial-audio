@@ -20,6 +20,19 @@
     max-width var(--search-shell-duration) var(--search-shell-ease);
 }
 
+/* Fluid: let the spacer stretch to its container so the portal can take its
+   collapsed width from the measurement (see the `fluid` prop). Phones only —
+   desktop keeps the fixed, centred pill so the expanded panel stays on the
+   viewport centre. */
+@media (max-width: 768px) {
+  .root[data-fluid='true'] {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
 .rootOpen {
   position: absolute;
   left: 50%;

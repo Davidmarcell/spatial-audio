@@ -101,6 +101,16 @@ type Props = {
    * the only motion and it lands exactly where it started/belongs.
    */
   pageMotion?: PageMotion;
+  /**
+   * Let the collapsed pill fill its container instead of a fixed width.
+   *
+   * The portal is `position: fixed`, so it cannot inherit a flexible width from
+   * the layout — its collapsed width comes from `--search-trigger-width`. With
+   * this set, the in-flow spacer is allowed to stretch and the portal takes its
+   * collapsed width from the spacer's MEASURED width, so "full width" works
+   * without hardcoding a calc against the buttons beside it.
+   */
+  fluid?: boolean;
 };
 
 export type PageMotion = 'none' | 'exit-lift' | 'rise-home' | 'scene-rise';
@@ -116,6 +126,8 @@ type PanelAnchor = {
   top: number;
   height: number;
   centerX: number;
+  /** Measured width of the in-flow spacer, used by `fluid` (see Props). */
+  width: number;
 };
 type SpotlightPhase =
   | 'closed'
@@ -383,6 +395,7 @@ export function LocationSearchSpotlight({
   enlarged = false,
   recenterOnExpand = false,
   pageMotion = 'none',
+  fluid = false,
 }: Props) {
   // While the page carries the pill, freeze the resting anchor: the CSS page
   // animation supplies all the motion, so any re-measure would fight it.
@@ -742,6 +755,7 @@ export function LocationSearchSpotlight({
       // first open, so there is no horizontal jump on that first expansion. The
       // bar rise is purely vertical, so the centre is unaffected by it.
       centerX: rect.left + rect.width / 2,
+      width: rect.width,
     };
   }, []);
 
@@ -1209,7 +1223,12 @@ export function LocationSearchSpotlight({
   let resultIndex = 0;
 
   return (
-    <div className={styles.root} ref={rootRef} data-size={enlarged ? 'lg' : undefined}>
+    <div
+      className={styles.root}
+      ref={rootRef}
+      data-size={enlarged ? 'lg' : undefined}
+      data-fluid={fluid ? 'true' : undefined}
+    >
       {panelAnchor &&
         !blocked &&
         hostSettled &&
@@ -1233,6 +1252,11 @@ export function LocationSearchSpotlight({
                 left: `${panelAnchor.centerX}px`,
                 height: `${panelAnchor.height}px`,
                 '--recenter-x': `${recenterX}px`,
+                // Fluid: the collapsed pill is as wide as the space the layout
+                // gave the in-flow spacer.
+                ...(fluid && panelAnchor.width > 0
+                  ? { '--search-trigger-width': `${panelAnchor.width}px` }
+                  : null),
                 ...pageMotionVars,
               } as CSSProperties
             }

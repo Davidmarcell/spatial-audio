@@ -1,5 +1,8 @@
 .cluster {
   --control-size: 3rem;
+  /* Direction the volume pairs out from the play pill: 1 = right (desktop),
+     -1 = left (phones, where the cluster is right-aligned). */
+  --pair-dir: 1;
   --volume-gap: 0.6rem;
   --pair-duration: 200ms;
   /* Logosystem-style ease-out — same curve on open and close (no reverse easing). */
@@ -10,8 +13,12 @@
 
 @media (max-width: 768px) {
   .cluster {
-    --control-size: 2.55rem;
+    /* Same 3rem circle as every other button (was 2.55rem). */
+    --control-size: 3rem;
     --volume-gap: 0.45rem;
+    /* The cluster sits at the right edge of the phone bar's top row, so the
+       volume has to pair out to the LEFT or it would run off the screen. */
+    --pair-dir: -1;
   }
 }
 
@@ -27,7 +34,7 @@
 
 .playSlot[data-phase='opening'],
 .playSlot[data-phase='expanded'] {
-  transform: translateX(var(--pair-recenter, 0px));
+  transform: translateX(calc(var(--pair-recenter, 0px) * var(--pair-dir, 1)));
 }
 
 .playSlot[data-phase='closing'] {
@@ -45,7 +52,7 @@
 
 .playSlot[data-phase='opening'] .playPill,
 .playSlot[data-phase='expanded'] .playPill {
-  transform: translateX(calc(-1 * var(--pair-offset, 0px)));
+  transform: translateX(calc(-1 * var(--pair-offset, 0px) * var(--pair-dir, 1)));
 }
 
 .playSlot[data-phase='closing'] .playPill {
@@ -71,7 +78,7 @@
 .volumeRail[data-phase='expanded'] {
   opacity: 1;
   pointer-events: auto;
-  transform: translate(calc(-50% + var(--pair-offset, 0px)), -50%);
+  transform: translate(calc(-50% + var(--pair-offset, 0px) * var(--pair-dir, 1)), -50%);
 }
 
 .volumeRail[data-phase='closing'] {
@@ -88,7 +95,7 @@
 
   .playSlot[data-phase='expanded'] .playPill,
   .playSlot[data-phase='opening'] .playPill {
-    transform: translateX(calc(-1 * var(--pair-offset, 0px)));
+    transform: translateX(calc(-1 * var(--pair-offset, 0px) * var(--pair-dir, 1)));
   }
 
   .playSlot[data-phase='closing'] .playPill {
@@ -122,7 +129,7 @@
 
 .cluster[data-reduced-motion] .playSlot[data-phase='expanded'] .playPill,
 .cluster[data-reduced-motion] .playSlot[data-phase='opening'] .playPill {
-  transform: translateX(calc(-1 * var(--pair-offset, 0px)));
+  transform: translateX(calc(-1 * var(--pair-offset, 0px) * var(--pair-dir, 1)));
 }
 
 .cluster[data-reduced-motion] .playSlot[data-phase='closing'] .playPill {
@@ -147,4 +154,14 @@
 
 .cluster[data-reduced-motion] .volumeRail[data-phase='closing'] {
   opacity: 0;
+}
+
+/* Reduced motion places the volume rail statically beside the pill. On phones the
+   cluster is right-aligned, so mirror it to the pill's LEFT or it sits off-screen. */
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .volumeRail,
+  .cluster[data-reduced-motion] .volumeRail {
+    left: auto;
+    right: calc(100% + var(--volume-gap));
+  }
 }

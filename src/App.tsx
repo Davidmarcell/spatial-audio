@@ -1489,6 +1489,7 @@ export default function App() {
             </div>
           )}
           {showWorkspaceChrome && (
+            <div className={styles.bottomBarSearch}>
             <LocationSearchSpotlight
               appLocations={appLocations}
               worldLocations={worldLocations}
@@ -1497,6 +1498,14 @@ export default function App() {
               onChange={handleLocationSearchChange}
               onOpenChange={setLocationSearchOpen}
               resetToken={locationSearchResetToken}
+              // Phones give the search the whole top row; desktop keeps the
+              // fixed centred pill (see the media query on `data-fluid`).
+              fluid
+              // The collapsed pill no longer sits on the viewport centre (the
+              // play controls share its row), so the expanded panel has to
+              // recentre or it hangs off the left edge. No-op on desktop, where
+              // the pill is already centred.
+              recenterOnExpand
               // Keep the pill mounted while the globe rises over an open
               // soundscape (globeOverWorkspace) — blocking on showGlobe alone
               // made "Kyoto, Japan" vanish mid-transition. Only hard-block when
@@ -1509,6 +1518,7 @@ export default function App() {
                 workspacePageLifting ? 'exit-lift' : sceneRising ? 'scene-rise' : 'none'
               }
             />
+            </div>
           )}
           {showWorkspaceChrome && (
             <div className={styles.rightActionGroup}>

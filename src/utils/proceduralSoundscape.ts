@@ -159,7 +159,10 @@ const P = {
   stream: { id: 'global-stream', name: 'Stream', category: 'water', type: 'stream', keywords: ['stream', 'water', 'brook'], vol: 0.44 },
   surf: { id: 'global-surf', name: 'Surf', category: 'water', type: 'waves', keywords: ['surf', 'waves', 'ocean', 'coast'], vol: 0.4 },
   rain: { id: 'global-rain', name: 'Rain', category: 'ambient', type: 'rain', keywords: ['rain', 'shower', 'weather'], vol: 0.4 },
-  insects: { id: 'global-insects', name: 'Insects', category: 'insect', type: 'insects', keywords: ['insects', 'crickets', 'cicadas'], vol: 0.2 },
+  // Named for what it actually is — a cricket chorus — to match the pinned
+  // cricket plate. Scenes that want a different insect override the name (and
+  // usually the clip too): 'Cicadas', 'Higurashi Cicadas', 'Jungle Insects'…
+  insects: { id: 'global-insects', name: 'Crickets', category: 'insect', type: 'insects', keywords: ['insects', 'crickets', 'cicadas'], vol: 0.2 },
   songbird: { id: 'global-songbird', name: 'Songbirds', category: 'bird', type: 'songbird', keywords: ['bird', 'songbird'], vol: 0.5 },
   seabird: { id: 'global-gull', name: 'Seabirds', category: 'bird', type: 'seabird', keywords: ['gull', 'seabird', 'coast'], vol: 0.42 },
   tropicalBird: { id: 'global-tropical-bird', name: 'Tropical Birds', category: 'bird', type: 'tropical-bird', keywords: ['bird', 'tropical'], vol: 0.5 },
