@@ -25,7 +25,11 @@
    desktop keeps the fixed, centred pill so the expanded panel stays on the
    viewport centre. */
 @media (max-width: 768px) {
-  .root[data-fluid='true'] {
+  /* The `[data-size='lg']` block later in this file sets an explicit width at
+     the same specificity, so the landing pill needs the combined selector to
+     win. */
+  .root[data-fluid='true'],
+  .root[data-size='lg'][data-fluid='true'] {
     flex: 1 1 auto;
     width: auto;
     min-width: 0;

@@ -1411,6 +1411,9 @@ export default function App() {
               onEmptyEnter={handleEnterExperience}
               resetToken={locationSearchResetToken}
               idleLabel="Search or create your own"
+              // Phones stack Enter beneath the search, so the pill matches its
+              // full width (desktop keeps the fixed centred pill).
+              fluid
               expandDirection="up"
               theme="light"
               backdrop={false}
