@@ -38,9 +38,14 @@ export const PLAYING_BAR_EDGE_GRADIENT_SAVED_DEFAULT_KEY =
 export const PLAYING_BAR_EDGE_GRADIENT_TUNER_VISIBLE_KEY =
   'saudade:playing-bar-edge-gradient-tuner-visible';
 
-/** Defaults aligned with kirschberg.co.nz/bar-shaders (`va` config). */
+/**
+ * Defaults aligned with kirschberg.co.nz/bar-shaders (`va` config), then pushed
+ * warmer: the radiance was reading as a faint tint at the foot of the canvas.
+ * Strength and corner lift carry most of that — opacity is the overall presence,
+ * corner lift is how far the two coloured pools bloom in from the bottom corners.
+ */
 export const DEFAULT_PLAYING_BAR_EDGE_GRADIENT: PlayingBarEdgeGradientConfig = {
-  waveOpacity: 0.4,
+  waveOpacity: 0.66,
   useSceneColours: true,
   colour1: '#47b9ff',
   colour2: '#ffd9e8',
@@ -49,9 +54,9 @@ export const DEFAULT_PLAYING_BAR_EDGE_GRADIENT: PlayingBarEdgeGradientConfig = {
   gradientScale: 0.64,
   gradientMidpoint: 0.73,
   gradientSoftness: 1,
-  glowStopHigh: 1.35,
-  glowStopLow: 0.72,
-  edgeRise: 0.39,
+  glowStopHigh: 1.52,
+  glowStopLow: 0.68,
+  edgeRise: 0.56,
   verticalOffset: 0,
   breatheEnabled: true,
   breathDurationSec: 9.5,

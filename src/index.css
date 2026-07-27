@@ -167,9 +167,9 @@
   --radar-ring: rgba(0, 0, 0, 0.07);
   --drop-highlight: rgba(17, 17, 17, 0.16);
   --listener-glow: rgba(76, 175, 120, 0.55);
-  --playing-bar-accent: rgba(76, 175, 120, 0.38);
+  --playing-bar-accent: rgba(76, 175, 120, 0.56);
   --playing-bar-mid: rgba(76, 175, 120, 0.16);
-  --playing-bar-warm: rgba(225, 200, 160, 0.28);
+  --playing-bar-warm: rgba(225, 200, 160, 0.5);
   --playing-bar-line: rgba(76, 175, 120, 0.40);
   --overlay-backdrop: rgba(245, 242, 236, 0.18);
   --overlay-backdrop-open: rgba(245, 242, 236, 0.32);
@@ -254,9 +254,9 @@
   --radar-ring: rgba(255, 255, 255, 0.08);
   --drop-highlight: rgba(255, 255, 255, 0.18);
   --listener-glow: rgba(76, 175, 120, 0.45);
-  --playing-bar-accent: rgba(76, 175, 120, 0.44);
+  --playing-bar-accent: rgba(76, 175, 120, 0.58);
   --playing-bar-mid: rgba(76, 175, 120, 0.18);
-  --playing-bar-warm: rgba(40, 72, 58, 0.36);
+  --playing-bar-warm: rgba(40, 72, 58, 0.56);
   --playing-bar-line: rgba(76, 175, 120, 0.40);
   --overlay-backdrop: rgba(0, 0, 0, 0.38);
   --overlay-backdrop-open: rgba(0, 0, 0, 0.48);

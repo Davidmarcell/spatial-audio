@@ -1683,7 +1683,11 @@ export default function App() {
       <ProjectInfoSheet open={showProjectInfo} onOpenChange={setShowProjectInfo} />
 
       <SearchSpotlightAnimationTuner />
-      <PlayingBarEdgeGradientTuner isPlaying={isPlaying} />
+      <PlayingBarEdgeGradientTuner
+        isPlaying={isPlaying}
+        landingEnabled={landingEnabled}
+        onLandingEnabledChange={handleLandingEnabledChange}
+      />
       <LandingFanTuner
         config={fanConfig}
         onChange={setFanConfig}
