@@ -751,6 +751,22 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:LaughingKookaburra.ogg"
   },
   {
+    "id": "elephant-trumpet-1",
+    "type": "elephant",
+    "tags": [
+      "african",
+      "savanna",
+      "arid"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/elephant/elephant-trumpet-1.mp3",
+    "title": "Elephant voice — trumpeting (padded loop for distant savanna call)",
+    "author": "தகவலுழவன் (Wikimedia Commons)",
+    "license": "CC0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Elephant_voice_-_trumpeting.ogg",
+    "pinnedOnly": true
+  },
+  {
     "id": "lion-roar-1",
     "type": "lion",
     "tags": [

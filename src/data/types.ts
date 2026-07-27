@@ -35,6 +35,7 @@ export type SoundType =
   | 'adhan'
   | 'ney'
   | 'lion'
+  | 'elephant'
   | 'musette';
 
 /**

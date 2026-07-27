@@ -253,8 +253,10 @@ const COMMONS = [
   // Ring-necked / Cape turtle dove — the quintessential background coo of the
   // East-African savanna (pinned by the Serengeti recipe).
   ['songbird-cape-turtle-dove', 'songbird', ['african', 'savanna', 'arid'], true, 'Streptopelia capicola abunda, roep, 17 s, Bronberg, a.mp3', 'CC BY-SA 4.0', 'JMK'],
-  // ---- Serengeti signature: distant lion roar (NEW `lion` type) ----
+  // ---- Serengeti signatures: lion (dock) + elephant trumpet (default bed) ----
   ['lion-roar-1', 'lion', ['african', 'savanna', 'arid'], false, 'Lion raring-sound1TamilNadu178.ogg', 'Public domain', 'தகவலுழவன் (Wikimedia Commons)'],
+  // Elephant trumpet is prepared locally (short Commons original padded into a
+  // ~11s distant-call loop) — see LOCAL list `elephant-trumpet-1`.
   // ---- Morepork / ruru (Queenstown, Auckland). No CC recording of Ninox
   // novaeseelandiae exists on Commons, so the near-identical call of its
   // congener, the Southern Boobook (Ninox boobook), stands in. STAND-IN FLAG. ----
@@ -343,6 +345,9 @@ const LOCAL = [
   // A calm, natural fir-forest wind (the new default breeze). The Commons
   // original is a 11 MB Ogg; we ship the site's 64 kbps MP3 transcode (~6 MB).
   ['wind-fir-forest', 'wind', ['forest', 'temperate', 'calm'], true, '/audio/pool/wind/wind-fir-forest.mp3', 'Wind in the spruces, Vijlenerbos (transcoded 64 kbps MP3 of the CC BY 3.0 original)', 'luc de bruijn (Wikimedia Commons)', 'CC BY 3.0', 'https://commons.wikimedia.org/wiki/File:Wind_in_sparren_in_het_Vijlenerbos_-_SoundCloud_-_luc_de_bruijn.ogg'],
+  // Distant Serengeti elephant — Commons trumpet (~1.4s, CC0) padded/loudnormed
+  // into an ~11s intermittent call so it sits as a bed without looping frantically.
+  ['elephant-trumpet-1', 'elephant', ['african', 'savanna', 'arid'], false, '/audio/pool/elephant/elephant-trumpet-1.mp3', 'Elephant voice — trumpeting (padded loop for distant savanna call)', 'தகவலுழவன் (Wikimedia Commons)', 'CC0', 'https://commons.wikimedia.org/wiki/File:Elephant_voice_-_trumpeting.ogg'],
 ];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -472,7 +477,12 @@ for (const clip of manifest) {
 // Signature species that must stay unique to the single pin that pins them via
 // `fixedClipId`: excluded from the dispersion/weighted pools so they never leak
 // onto unrelated same-continent pins (see soundscapeSelection `pinnedOnly`).
-const PINNED_ONLY = new Set(['corvid-common-raven', 'corvid-stellers-jay']);
+const PINNED_ONLY = new Set([
+  'corvid-common-raven',
+  'corvid-stellers-jay',
+  // Serengeti signature — keep the padded elephant call off other African pins.
+  'elephant-trumpet-1',
+]);
 for (const clip of manifest) {
   if (PINNED_ONLY.has(clip.id)) clip.pinnedOnly = true;
 }

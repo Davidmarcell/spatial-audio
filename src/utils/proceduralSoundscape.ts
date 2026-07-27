@@ -180,6 +180,7 @@ const P = {
   adhan: { id: 'global-adhan', name: 'Adhan', category: 'ambient', type: 'adhan', keywords: ['adhan', 'call to prayer', 'ezan', 'muezzin', 'mosque'], vol: 0.28 },
   ney: { id: 'global-ney', name: 'Turkish Taksim', category: 'ambient', type: 'ney', keywords: ['ney', 'taksim', 'reed', 'flute', 'ottoman', 'music'], vol: 0.4 },
   lion: { id: 'global-lion', name: 'Distant Lion Roar', category: 'ambient', type: 'lion', keywords: ['lion', 'roar', 'savanna', 'predator'], vol: 0.22 },
+  elephant: { id: 'global-elephant', name: 'Distant Elephant', category: 'ambient', type: 'elephant', keywords: ['elephant', 'trumpet', 'savanna', 'herd'], vol: 0.2 },
   musette: { id: 'global-musette', name: 'Musette Accordion', category: 'ambient', type: 'musette', keywords: ['musette', 'accordion', 'accordeon', 'french', 'cafe', 'paris', 'music', 'valse'], vol: 0.36 },
 } satisfies Record<string, Preset>;
 
@@ -211,7 +212,10 @@ const CURATED_PLACES: Record<string, Recipe> = {
   // ---- Americas ----
   havana: { extraTags: ['caribbean', 'neotropical'], layers: [
     bed('jazz', { name: 'Son & Trova' }), bed('surf', { name: 'Malecón Surf', vol: 0.34 }),
-    bed('songbird', { name: 'Street Birds' }), bed('cityHum', { name: 'Habana Vieja' }),
+    bed('songbird', { name: 'Street Birds' }),
+    // Bespoke id so Habana Vieja gets its own tall Obispo Street plate instead
+    // of the generic Brooklyn rooftops traffic draw.
+    bed('cityHum', { id: 'havana-cityhum', name: 'Habana Vieja', clip: 'city-latam-aguascalientes' }),
     bed('insects', { name: 'Warm-Night Insects' }),
   ] },
   monteverde: { extraTags: ['neotropical', 'rainforest', 'cloud-forest'], layers: [
@@ -283,15 +287,16 @@ const CURATED_PLACES: Record<string, Recipe> = {
   ] },
   // ---- Africa ----
   serengeti: { extraTags: ['savanna', 'arid', 'african'], layers: [
-    // Accurate open-plains mix. The old "Savanna Birds" layer resolved to an
-    // African Fish Eagle (a waterside raptor, wrong for open grassland); every
-    // bird voice here is now pinned to a genuine savanna species.
-    bed('lion', { name: 'Distant Lion Roar', vol: 0.22 }),
+    // Open-plains mix: a distant elephant trumpet (calmer signature than the
+    // old lion roar), Hadada Ibis + Ring-necked Dove pinned to savanna species,
+    // grassland insects, tall-grass wind, and vervets. Lion stays in the dock.
+    bed('elephant', { name: 'Distant Elephant', vol: 0.2, clip: 'elephant-trumpet-1' }),
     bed('tropicalBird', { name: 'Hadada Ibis', vol: 0.4, clip: 'tropical-bird-hadada-ibis' }),
     bed('songbird', { name: 'Ring-necked Dove', vol: 0.42, clip: 'songbird-cape-turtle-dove' }),
     bed('insects', { name: 'Grassland Insects', clip: 'insects-field-cricket' }),
-    bed('wind', { name: 'Savanna Wind' }),
+    bed('wind', { name: 'Savanna Wind', clip: 'wind-tall-grass' }),
     bed('primates', { name: 'Vervets', vol: 0.28 }),
+    option('lion', { name: 'Distant Lion Roar', vol: 0.22 }),
     option('owl', { name: 'Pearl-spotted Owlet', clip: 'owl-pearl-spotted-owlet' }),
   ] },
   capetown: { extraTags: ['coastal', 'savanna'], layers: [

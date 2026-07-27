@@ -1197,14 +1197,10 @@ export default function App() {
         setCustomGlobeLocation(location);
       }
       applyRegion(location.environmentId, location.regionId);
-      // Picking a place while browsing from the landing is the entry gesture, so
-      // it starts that location's soundscape (matching the search entry). A
-      // mid-session pick keeps the transport untouched: beginSoundscapeTransition
-      // leaves `playing` alone and addSource only starts sources when already
-      // playing, so a paused user stays silent and a playing user keeps playing.
-      if (!hasEntered) {
-        setAutoPlayOnLoad(true);
-      }
+      // Choosing a place on the globe is always an entry gesture — start the
+      // soundscape. (Opening the map from a playing scene pauses it; without
+      // this, mid-session picks stayed silent after the cover revealed.)
+      setAutoPlayOnLoad(true);
       setShowGlobe(false);
       // Keep the outgoing globe mounted so it stays visible and lifts + dims
       // beneath the rising cover panel; the incoming soundscape canvas is
@@ -1217,7 +1213,7 @@ export default function App() {
       // landing gate (a no-op once already inside the workspace).
       setHasEntered(true);
     },
-    [applyRegion, hasEntered, playSceneEntryCover, unlock, warmSceneAssets],
+    [applyRegion, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   // Entry from the landing gate. Unlocking the AudioContext inside this click

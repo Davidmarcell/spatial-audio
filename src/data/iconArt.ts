@@ -94,11 +94,14 @@ const extendedFixedIcons: Record<string, string> = {
   'kyoto-stream': '/icons/kyoto-garden-stream-hiroshige.jpg',
   'kyoto-crows': '/icons/kyoto-jungle-crow-kyosai.jpg',
   'kyoto-frogs': '/icons/kyoto-kajika-frog.jpg',
-  // Serengeti's signature layer. Kuhnert painted lions from life in what is now
-  // Tanzania, so the plate is both regionally right and legible at tile size.
-  // Alternates in the `lion` pool below: `lion-kuhnert-ruaha-tanzania.jpg`
-  // (lion on the Ruaha river bank) and `lion-kuhnert-head.jpg` (head study).
+  // Serengeti: distant elephant (Kuhnert steppe plate). Lion stays available in
+  // the dock with its own Kuhnert plates via the `lion` pool / fixed mapping.
+  'global-elephant': '/icons/elephant-kuhnert-steppe.jpg',
   'global-lion': '/icons/lion-kuhnert-awakening.jpg',
+  // Bangkok street traffic — Kerr's Menam/Chao Phraya painting, not a Paris boulevard.
+  'bangkok-traffic': '/icons/pool/street-bangkok-kerr.jpg',
+  // Havana city hum — tall Obispo Street postcard (Habana Vieja), not Brooklyn.
+  'havana-cityhum': '/icons/havana-obispo-street.jpg',
   // The generic night-insect bed is a cricket chorus, so show a cricket. The
   // pool's Merian moth plate read as "some insect" rather than the thing you
   // hear. Cicada-specific layers keep their own pinned plates (see kyoto-*).
@@ -129,6 +132,29 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     license: 'Public domain',
     sourceUrl:
       'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Des_L%C3%B6wen_Erwachen.jpg',
+  },
+  {
+    file: '/icons/elephant-kuhnert-steppe.jpg',
+    title: 'Afrikanischer Elefant in der Steppe (African Elephant on the Steppe)',
+    author: 'Wilhelm Kuhnert (1922)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Afrikanischer_Elefant_in_der_Steppe_1922.jpg',
+  },
+  {
+    file: '/icons/pool/street-bangkok-kerr.jpg',
+    title: 'Menam River, Bangkok, Siam',
+    author: 'Alexander Kerr (c. 1915)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Menam_River_Bangkok_Siam_Painting_by_A_Kerr_c1915.png',
+  },
+  {
+    file: '/icons/havana-obispo-street.jpg',
+    title: 'Havana — Obispo Street',
+    author: 'American Photo Studios, Havana (photomechanical postcard)',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Havana_-_Obispo_Street_1.jpg',
   },
   {
     file: '/icons/kereru.jpg',
@@ -324,6 +350,23 @@ const SEMANTIC_POOL_RULES: Array<{ test: (soundId: string) => boolean; pool: str
  * the flavour resolver + per-scene dedup pick an in-region street.
  */
 const streetArtExtras: IconPoolEntry[] = [
+  {
+    src: '/icons/pool/street-bangkok-kerr.jpg',
+    title: 'Menam River, Bangkok, Siam',
+    author: 'Alexander Kerr (c. 1915)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Menam_River_Bangkok_Siam_Painting_by_A_Kerr_c1915.png',
+    tags: ['asian', 'seasian', 'tropical', 'urban'],
+  },
+  {
+    src: '/icons/havana-obispo-street.jpg',
+    title: 'Havana — Obispo Street',
+    author: 'American Photo Studios, Havana (photomechanical postcard)',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Havana_-_Obispo_Street_1.jpg',
+    tags: ['americas', 'caribbean', 'tropical', 'urban'],
+  },
   {
     src: '/icons/pool/street-paris.jpg',
     title: 'Paris Street; Rainy Day',
@@ -799,6 +842,17 @@ const speciesArtPools: Record<string, IconPoolEntry[]> = {
       tags: ['african', 'savanna'],
     },
   ],
+  elephant: [
+    {
+      src: '/icons/elephant-kuhnert-steppe.jpg',
+      title: 'Afrikanischer Elefant in der Steppe (African Elephant on the Steppe)',
+      author: 'Wilhelm Kuhnert (1922)',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Afrikanischer_Elefant_in_der_Steppe_1922.jpg',
+      tags: ['african', 'savanna', 'arid'],
+    },
+  ],
   owl: [
     {
       src: '/icons/morepork.jpg',
@@ -973,8 +1027,11 @@ const soundPoolMap: Record<string, string> = {
   'global-fado': 'music',
   'global-adhan': 'mosque',
   'global-ney': 'music',
-  // Distant lion roar (Serengeti signature) → dedicated PD lion plate.
+  // Distant lion / elephant (Serengeti) → dedicated Kuhnert plates.
   'global-lion': 'lion',
+  'global-elephant': 'elephant',
+  'bangkok-traffic': 'traffic',
+  'havana-cityhum': 'traffic',
   // Musette accordion (Paris uses a bespoke pinned plate; this is the fallback
   // for any bare global-musette instance) → the music/instrument art pool.
   'global-musette': 'music',

@@ -150,6 +150,7 @@ function scoreClip(
  */
 const DISTINCTIVE_TYPES = new Set<SoundType>([
   'owl', 'corvid', 'tropical-bird', 'primates', 'songbird', 'seabird',
+  'lion', 'elephant',
 ]);
 
 function pickDispersed(

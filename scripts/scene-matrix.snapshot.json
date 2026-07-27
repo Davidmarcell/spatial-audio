@@ -80,7 +80,7 @@
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/met/12307.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/met/853645.jpg",
+      "global-traffic": "/icons/pool/street-bangkok-kerr.jpg",
       "global-tropical-bird": "/icons/pool/tropicalbird-asian.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
@@ -93,7 +93,7 @@
       "bangkok-monsoon-rain": "rain-terrace",
       "bangkok-river": "stream-flow",
       "bangkok-temple-bells": "bells-bronze",
-      "bangkok-traffic": "city-night-murmur",
+      "bangkok-traffic": "traffic-manila-jeepney",
       "global-forest": "legacy-forest-ambience",
       "global-gull": "seabird-waves-gulls",
       "global-insects": "insects-nocturnal",
@@ -104,7 +104,7 @@
       "global-songbird": "songbird-tree-sparrow",
       "global-stream": "stream-brooklet",
       "global-surf": "waves-agitated",
-      "global-traffic": "city-cheerful-street",
+      "global-traffic": "city-night-murmur",
       "global-tropical-bird": "tropical-bird-great-hornbill",
       "global-wind": "wind-fir-forest"
     },
@@ -115,7 +115,7 @@
       "bangkok-monsoon-rain": "/icons/hiroshige-rain.jpg",
       "bangkok-river": "/icons/met/12307.jpg",
       "bangkok-temple-bells": "/icons/pool/bells-temple.jpg",
-      "bangkok-traffic": "/icons/pool/street-paris.jpg",
+      "bangkok-traffic": "/icons/pool/street-bangkok-kerr.jpg",
       "global-forest": "/icons/met/371022.jpg",
       "global-gull": "/icons/pool/seabird-european.jpg",
       "global-insects": "/icons/cricket-field-ensifera.jpg",
@@ -126,7 +126,7 @@
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/met/286187.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/met/266296.jpg",
+      "global-traffic": "/icons/havana-obispo-street.jpg",
       "global-tropical-bird": "/icons/met/363843.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
@@ -200,7 +200,7 @@
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/pool/stream-river-town.jpg",
       "global-surf": "/icons/met/11908.jpg",
-      "global-traffic": "/icons/met/266296.jpg",
+      "global-traffic": "/icons/havana-obispo-street.jpg",
       "global-wind": "/icons/met/11306.jpg",
       "gray-catbird": "/icons/gray-catbird.jpg",
       "night-owl-brooklyn": "/icons/met/751141.jpg",
@@ -251,9 +251,10 @@
       "global-songbird": "legacy-catbird",
       "global-stream": "legacy-stream-distant",
       "global-surf": "waves-small-beach",
-      "global-traffic": "city-latam-aguascalientes",
+      "global-traffic": "city-night-murmur",
       "global-tropical-bird": "tropical-bird-chestnut-headed-oropendola",
-      "global-wind": "wind-tall-grass"
+      "global-wind": "wind-tall-grass",
+      "havana-cityhum": "city-latam-aguascalientes"
     },
     "image": {
       "global-forest": "/icons/met/371022.jpg",
@@ -268,7 +269,8 @@
       "global-surf": "/icons/met/11138.jpg",
       "global-traffic": "/icons/met/853645.jpg",
       "global-tropical-bird": "/icons/quetzal.jpg",
-      "global-wind": "/icons/met/11131.jpg"
+      "global-wind": "/icons/met/11131.jpg",
+      "havana-cityhum": "/icons/havana-obispo-street.jpg"
     }
   },
   "himalayas": {
@@ -365,7 +367,7 @@
       "global-songbird": "/icons/pool/songbird-asian.jpg",
       "global-stream": "/icons/met/12307.jpg",
       "global-surf": "/icons/met/11908.jpg",
-      "global-traffic": "/icons/met/853645.jpg",
+      "global-traffic": "/icons/pool/street-bangkok-kerr.jpg",
       "global-wind": "/icons/met/11306.jpg",
       "kyoto-bells": "/icons/pool/bells-temple.jpg",
       "kyoto-crows": "/icons/kyoto-jungle-crow-kyosai.jpg",
@@ -466,7 +468,7 @@
       "global-songbird": "/icons/gray-catbird.jpg",
       "global-stream": "/icons/met/286187.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/met/266296.jpg",
+      "global-traffic": "/icons/havana-obispo-street.jpg",
       "global-tropical-bird": "/icons/quetzal.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
@@ -504,7 +506,7 @@
       "global-songbird": "/icons/northern-cardinal.jpg",
       "global-stream": "/icons/met/286187.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/met/266296.jpg",
+      "global-traffic": "/icons/havana-obispo-street.jpg",
       "global-tropical-bird": "/icons/toucan.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
@@ -641,7 +643,7 @@
     },
     "image": {
       "atlantic-wind": "/icons/met/11131.jpg",
-      "city-hum": "/icons/met/853645.jpg",
+      "city-hum": "/icons/havana-obispo-street.jpg",
       "copacabana-surf": "/icons/met/11138.jpg",
       "global-forest": "/icons/met/371022.jpg",
       "global-gull": "/icons/met/830271.jpg",
@@ -653,7 +655,7 @@
       "global-songbird": "/icons/gray-catbird.jpg",
       "global-stream": "/icons/met/10770.jpg",
       "global-surf": "/icons/met/17053.jpg",
-      "global-traffic": "/icons/met/339882.jpg",
+      "global-traffic": "/icons/met/266296.jpg",
       "global-tropical-bird": "/icons/quetzal.jpg",
       "global-wind": "/icons/met/11306.jpg",
       "jungle-primates": "/icons/howler.jpg",
@@ -661,7 +663,7 @@
       "rio-bossa-nova": "/icons/pool/music-ensemble.jpg",
       "rio-rain": "/icons/met/11124.jpg",
       "rio-stream": "/icons/met/286187.jpg",
-      "rio-traffic": "/icons/met/266296.jpg",
+      "rio-traffic": "/icons/met/853645.jpg",
       "seabird": "/icons/pool/seabird-americas.jpg",
       "toucan-rio": "/icons/toucan-toco-gould.jpg",
       "tropical-insects": "/icons/merian-suriname-butterfly.jpg"
@@ -669,6 +671,7 @@
   },
   "serengeti": {
     "audio": {
+      "global-elephant": "elephant-trumpet-1",
       "global-forest": "forest-night-rain",
       "global-gull": "seabird-waves-gulls",
       "global-insects": "insects-field-cricket",
@@ -682,9 +685,10 @@
       "global-surf": "waves-beach-sea",
       "global-traffic": "city-night-murmur",
       "global-tropical-bird": "tropical-bird-hadada-ibis",
-      "global-wind": "wind-fir-forest"
+      "global-wind": "wind-tall-grass"
     },
     "image": {
+      "global-elephant": "/icons/elephant-kuhnert-steppe.jpg",
       "global-forest": "/icons/met/371022.jpg",
       "global-gull": "/icons/met/830271.jpg",
       "global-insects": "/icons/cricket-field-ensifera.jpg",
@@ -696,7 +700,7 @@
       "global-songbird": "/icons/pool/songbird-african.jpg",
       "global-stream": "/icons/met/12307.jpg",
       "global-surf": "/icons/met/11138.jpg",
-      "global-traffic": "/icons/pool/street-paris.jpg",
+      "global-traffic": "/icons/pool/street-bangkok-kerr.jpg",
       "global-tropical-bird": "/icons/pool/tropicalbird-african.jpg",
       "global-wind": "/icons/met/11131.jpg"
     }
