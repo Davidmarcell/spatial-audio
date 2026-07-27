@@ -15,10 +15,10 @@ export const uiAudioAttributions: Attribution[] = [
   },
   {
     file: 'public/audio/ui/globe-ambient.mp3',
-    title: 'Wind in tall grass (quiet globe bed)',
-    author: 'Joseph SARDIN / BigSoundBank',
-    license: 'CC0 1.0',
-    sourceUrl: 'https://bigsoundbank.com/wind-in-tall-grass-s0908.html',
+    title: 'Ethereal globe browse ambient (synthesized soft noise + pad)',
+    author: 'Saudade',
+    license: 'Original (app asset)',
+    sourceUrl: '',
   },
 ];
 

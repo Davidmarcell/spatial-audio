@@ -126,10 +126,10 @@ const canvasSpread = () =>
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
 /** Half the previous one-shot level so the whoosh sits under the reveal. */
 const ENTER_WHOOSH_VOLUME = 0.275;
-/** Quiet wind bed while browsing the globe from the landing. */
+/** Soft synthesized ethereal bed while browsing the world map. */
 const GLOBE_AMBIENT_SRC = '/audio/ui/globe-ambient.mp3';
 const GLOBE_AMBIENT_ID = 'ui:globe-ambient';
-const GLOBE_AMBIENT_VOLUME = 0.16;
+const GLOBE_AMBIENT_VOLUME = 0.2;
 
 export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
@@ -503,21 +503,21 @@ export default function App() {
     void engine.preloadVariants([ENTER_WHOOSH_SRC, GLOBE_AMBIENT_SRC]);
   }, [engine]);
 
-  // Soft ambient for the whole time the world map is up. Opening the globe now
-  // holds the soundscape (see `handleGlobeOpenChange`), so without this the map
-  // would be silent when reached from a playing scene. Stops when the globe
-  // closes or a place is picked.
+  // Ethereal ambient for the whole time the world map is up — a calm bed under
+  // browsing/choosing a place. Opening the globe holds the soundscape (see
+  // `handleGlobeOpenChange`), so without this the map would be silent when
+  // reached from a playing scene. Stops when the globe closes or a place is picked.
   useEffect(() => {
     const shouldPlay = showGlobe && !prefersReducedMotion();
     if (shouldPlay) {
       void playLoop(GLOBE_AMBIENT_ID, GLOBE_AMBIENT_SRC, {
         volume: GLOBE_AMBIENT_VOLUME,
-        fadeInSeconds: 1.1,
+        fadeInSeconds: 1.8,
       });
     } else {
-      stopLoop(GLOBE_AMBIENT_ID);
+      stopLoop(GLOBE_AMBIENT_ID, 0.7);
     }
-    return () => stopLoop(GLOBE_AMBIENT_ID);
+    return () => stopLoop(GLOBE_AMBIENT_ID, 0.7);
   }, [playLoop, showGlobe, stopLoop]);
 
   // Lazy-load: only fetch the variants the current scene actually plays, not
