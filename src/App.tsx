@@ -298,9 +298,22 @@ export default function App() {
   // pushed away (wordmark home), its chrome must stay mounted and lift with it
   // rather than vanishing the instant `hasEntered` flips.
   const showWorkspaceChrome = (hasEntered || workspaceLeaving) && !landingExiting;
-  // The bottom bar / main are pushed up under a rising sheet.
+  // The canvas is pushed up under a rising cover (parallax under the sheet).
   const workspacePageLifting =
     (coverActive || landingEntering || workspaceGlobeOpening) && !globeExiting;
+  /**
+   * The BAR lifts only when the workspace is genuinely the outgoing page — the
+   * landing rising home over it, or the globe rising over it.
+   *
+   * It deliberately excludes `coverActive`. A cover is also used for ARRIVALS
+   * (landing → place, globe → workspace), and `coverActive` stays true through
+   * the cover's cross-fade — which is exactly when the bar's chrome mounts. The
+   * bar was therefore mounting with the outgoing lift applied: held at -18vh and
+   * scale(0.96), so the portalled pill measured its anchor off a scaled box
+   * (244px read as 234px) and then corrected once the lift cleared. That is the
+   * pill appearing in the wrong place, jumping, and visibly widening on entry.
+   */
+  const workspaceBarLifting = (landingEntering || workspaceGlobeOpening) && !globeExiting;
 
   const globeLocations = useMemo(() => {
     const curated = worldLocations.filter((location) => !location.custom);
@@ -1504,7 +1517,7 @@ export default function App() {
 
       <nav
         ref={bottomBarRef}
-        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe && !globeOverWorkspace ? styles.bottomBarHidden : ''} ${workspacePageLifting ? styles.pageExitLift : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
+        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe && !globeOverWorkspace ? styles.bottomBarHidden : ''} ${workspaceBarLifting ? styles.pageExitLift : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
         aria-label="Main controls"
         onPointerMove={(event) => syncBottomBarTooltip(event.target)}
         onPointerLeave={() => setBottomBarTooltip(null)}
@@ -1556,7 +1569,7 @@ export default function App() {
               // Replay the bar's own page animation so the portalled pill is
               // part of the same unit rather than lagging behind it.
               pageMotion={
-                workspacePageLifting ? 'exit-lift' : sceneRising ? 'scene-rise' : 'none'
+                workspaceBarLifting ? 'exit-lift' : sceneRising ? 'scene-rise' : 'none'
               }
             />
             </div>

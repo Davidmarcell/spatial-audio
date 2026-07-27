@@ -415,11 +415,14 @@
   }
 }
 
-/* Closed label is part of the glass, not a second fade after the white pill. */
-.panelAnchor[data-size='lg'][data-landing-entrance='in'] .searchPairClosed,
-.panelAnchor[data-size='lg'][data-landing-entrance='in'] .searchPairClosed.searchPairVisible,
-.panelAnchor[data-size='lg'][data-search-phase='closed'] .searchPairClosed,
-.panelAnchor[data-size='lg'][data-search-phase='closed'] .searchPairClosed.searchPairVisible {
+/* The closed label is part of the glass, not a second fade after the white pill.
+   This applies to EVERY instance, not just the enlarged landing one: the bottom
+   bar's pill was scoped out, so on entering a soundscape the pill appeared and
+   its location text faded in afterwards. */
+.panelAnchor[data-landing-entrance='in'] .searchPairClosed,
+.panelAnchor[data-landing-entrance='in'] .searchPairClosed.searchPairVisible,
+.panelAnchor[data-search-phase='closed'] .searchPairClosed,
+.panelAnchor[data-search-phase='closed'] .searchPairClosed.searchPairVisible {
   opacity: 1;
   transition: none;
 }
