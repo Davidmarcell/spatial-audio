@@ -211,6 +211,9 @@
   border-radius: 999px;
   z-index: 341;
   pointer-events: none;
+  /* Panel keeps overflow:hidden for its fill; the anchor must not clip the
+     pill's drop shadow (especially on phones near the bottom safe-area). */
+  overflow: visible;
   width: var(--search-trigger-width, min(20rem, 52vw));
   min-width: var(--search-trigger-width, min(20rem, 52vw));
   max-width: var(--search-trigger-width, min(20rem, 52vw));
