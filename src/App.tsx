@@ -72,10 +72,18 @@ import { worldLocations, createCustomWorldLocation, formatWorldLocationLabel, ty
 import type { SoundDef, SpatialPoint } from './data/types';
 import { useAudioEngine } from './hooks/useAudioEngine';
 import { useSpatialSources } from './hooks/useSpatialSources';
-import { buildSceneShareUrl, sceneFromAppState } from './utils/sceneShare';
+import {
+  buildSceneShareUrl,
+  customLocationFromScene,
+  hasSharedSceneParam,
+  parseSceneFromUrl,
+  peekSharedSceneFromUrl,
+  sceneFromAppState,
+  type SharedScene,
+} from './utils/sceneShare';
 import { getSoundArtworkForRegion } from './data/iconArt';
 import { resolveTileIconSrc } from './data/iconDetailSrc';
-import { randomizeSceneSounds } from './utils/randomizeSceneSounds';
+import { dockSoundIdsForActive, randomizeSceneSounds } from './utils/randomizeSceneSounds';
 import { regionSeed, selectSceneVariants } from './utils/soundscapeSelection';
 import { enrichSounds } from './utils/soundTypeInference';
 import { defaultSpawnVolumeForSound } from './utils/defaultSoundVolume';
@@ -130,8 +138,15 @@ export default function App() {
   /** Keeps the source canvas tile hidden through the card-expand close flight. */
   const [detailExpandInstanceId, setDetailExpandInstanceId] = useState<string | null>(null);
   const [dockDefaultIds, setDockDefaultIds] = useState<string[]>([]);
-  const [environmentId, setEnvironmentId] = useState(environments[0].id);
-  const [regionId, setRegionId] = useState(environments[0].regions[0].id);
+  // Shared-link boot: seed location from a sync-decodable `?scene=` so the
+  // workspace never flashes the default region before the payload applies.
+  const [environmentId, setEnvironmentId] = useState(
+    () => peekSharedSceneFromUrl()?.environmentId ?? environments[0].id,
+  );
+  const [regionId, setRegionId] = useState(() => {
+    const shared = peekSharedSceneFromUrl();
+    return shared?.regionId ?? environments[0].regions[0].id;
+  });
   const [shuffleSalt, setShuffleSalt] = useState(0);
   const [soundDrag, setSoundDrag] = useState<SoundDrag | null>(null);
   const [returnFlight, setReturnFlight] = useState<ReturnFlight | null>(null);
@@ -210,7 +225,10 @@ export default function App() {
   // True while the workspace page (and its bottom bar) is being pushed away by
   // the landing rising home, so its chrome stays mounted for the whole lift.
   const [workspaceLeaving, setWorkspaceLeaving] = useState(false);
-  const [customGlobeLocation, setCustomGlobeLocation] = useState<WorldLocation | null>(null);
+  const [customGlobeLocation, setCustomGlobeLocation] = useState<WorldLocation | null>(() => {
+    const shared = peekSharedSceneFromUrl();
+    return shared ? customLocationFromScene(shared) : null;
+  });
   const [showProjectInfo, setShowProjectInfo] = useState(false);
   const [showAddSounds, setShowAddSounds] = useState(false);
   const [addSoundOriginRect, setAddSoundOriginRect] = useState<OriginRectSnapshot | null>(null);
@@ -229,7 +247,11 @@ export default function App() {
   // straight into the workspace and the first-gesture unlock() fallback handles
   // audio.
   const [landingEnabled, setLandingEnabled] = useState(() => isLandingGateEnabled());
-  const [hasEntered, setHasEntered] = useState(() => !isLandingGateEnabled());
+  // A share link (`?scene=`) skips the landing and opens straight into that
+  // soundscape. Invalid/missing payloads fall back below once parsed.
+  const [hasEntered, setHasEntered] = useState(
+    () => hasSharedSceneParam() || !isLandingGateEnabled(),
+  );
   // Live fan layout for the landing card row, adjustable via the dev-only fan
   // controls panel and persisted (localStorage) as the landing default.
   const [fanConfig, setFanConfig] = useState<FanConfig>(() => loadLandingFanConfig());
@@ -279,6 +301,7 @@ export default function App() {
     selectedId,
     setSelectedId,
     loadDefaults,
+    loadScene,
     addSound,
     removeSound,
     updatePosition,
@@ -564,15 +587,63 @@ export default function App() {
   );
 
   useEffect(() => {
-    const { canvasBedSounds, dockSoundIds } = randomizeSceneSounds(
-      region.sounds,
-      region.bedSounds ?? [],
-    );
-    setDockDefaultIds(dockSoundIds);
-    loadDefaults(canvasBedSounds);
-    // Initial randomized scene only; region switches call applyRegion.
+    let cancelled = false;
+
+    const bootDefaultScene = () => {
+      const current = getRegion(environmentId, regionId) ?? region;
+      const { canvasBedSounds, dockSoundIds } = randomizeSceneSounds(
+        current.sounds,
+        current.bedSounds ?? [],
+      );
+      setDockDefaultIds(dockSoundIds);
+      loadDefaults(canvasBedSounds);
+    };
+
+    const applySharedScene = (scene: SharedScene) => {
+      const nextRegion = getRegion(scene.environmentId, scene.regionId);
+      if (!nextRegion) return false;
+      const activeIds = new Set(scene.sounds.map((item) => item.soundId));
+      setEnvironmentId(scene.environmentId);
+      setRegionId(scene.regionId);
+      setShuffleSalt(0);
+      setCustomGlobeLocation(customLocationFromScene(scene));
+      setDockDefaultIds(dockSoundIdsForActive(nextRegion.sounds, activeIds));
+      loadScene(scene.sounds);
+      engine.beginSoundscapeTransition();
+      setHasEntered(true);
+      return true;
+    };
+
+    // Cold start: restore a shared `?scene=` layout (skip landing), or compose
+    // the default bed for the boot region. Later switches use `applyRegion`.
+    if (!hasSharedSceneParam()) {
+      bootDefaultScene();
+      return undefined;
+    }
+
+    // Uncompressed payloads decode sync — apply before paint settles so the
+    // canvas never flashes an empty/default layout.
+    const peeked = peekSharedSceneFromUrl();
+    if (peeked && applySharedScene(peeked)) {
+      return undefined;
+    }
+
+    void (async () => {
+      const scene = await parseSceneFromUrl();
+      if (cancelled) return;
+      if (!scene || !applySharedScene(scene)) {
+        // Broken/stale link: drop back to the normal landing (when enabled).
+        if (isLandingGateEnabled()) setHasEntered(false);
+        bootDefaultScene();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // Initial boot only; region switches call applyRegion.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadDefaults]);
+  }, [loadDefaults, loadScene, engine]);
 
   useEffect(() => {
     if (isUnlocked) return;

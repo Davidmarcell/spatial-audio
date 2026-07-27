@@ -141,6 +141,29 @@ export function buildScenePayload(scene: SharedScene): Promise<string> {
   });
 }
 
+function decodeSceneJson(json: string): SharedScene | null {
+  if (!json) return null;
+  try {
+    const wire = JSON.parse(json) as SceneWire;
+    return decodeWire(wire);
+  } catch {
+    return null;
+  }
+}
+
+/** Sync decode for uncompressed payloads (compressed `z.` needs async). */
+export function tryDecodeScenePayloadSync(encoded: string): SharedScene | null {
+  const trimmed = encoded.trim();
+  if (!trimmed || trimmed.startsWith('z.')) return null;
+  let json = '';
+  try {
+    json = new TextDecoder().decode(fromBase64Url(trimmed));
+  } catch {
+    json = trimmed;
+  }
+  return decodeSceneJson(json);
+}
+
 export async function decodeScenePayload(encoded: string): Promise<SharedScene | null> {
   const trimmed = encoded.trim();
   if (!trimmed) return null;
@@ -159,14 +182,27 @@ export async function decodeScenePayload(encoded: string): Promise<SharedScene |
     }
   }
 
-  if (!json) return null;
+  return decodeSceneJson(json);
+}
 
-  try {
-    const wire = JSON.parse(json) as SceneWire;
-    return decodeWire(wire);
-  } catch {
-    return null;
-  }
+/**
+ * Best-effort sync peek at a `?scene=` boot payload. Returns null when absent
+ * or when the payload is compressed (caller should `parseSceneFromUrl`).
+ */
+export function peekSharedSceneFromUrl(
+  href = typeof window !== 'undefined' ? window.location.href : '',
+): SharedScene | null {
+  if (!href) return null;
+  const param = readSceneParam(href);
+  if (!param) return null;
+  return tryDecodeScenePayloadSync(param);
+}
+
+export function hasSharedSceneParam(
+  href = typeof window !== 'undefined' ? window.location.href : '',
+): boolean {
+  if (!href) return false;
+  return Boolean(readSceneParam(href));
 }
 
 export async function buildSceneShareUrl(
