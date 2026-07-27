@@ -16,6 +16,7 @@ import {
   BottomBarMagnetTooltip,
   type BottomBarTooltipAnchor,
 } from './components/BottomBarMagnetTooltip';
+import { AddSoundButton } from './components/AddSoundButton';
 import { MapButton } from './components/MapButton';
 import { FlyingSoundTile, RETURN_FLIGHT_MS } from './components/FlyingSoundTile';
 import { PlayingBarEdgeGradientTuner } from './components/PlayingBarEdgeGradientTuner';
@@ -1534,56 +1535,61 @@ export default function App() {
             />
           </div>
         )}
-        <div className={styles.bottomBarRow}>
-          {showWorkspaceChrome && (
-            <div className={styles.leftActionGroup}>
-              <UseMyLocationButton onMatch={handleGeoMatch} />
-              <RandomizeLocationButton
+        {showWorkspaceChrome && (
+          <div className={styles.bottomBarSearchRow}>
+            <div className={styles.bottomBarSearch}>
+              <LocationSearchSpotlight
                 appLocations={appLocations}
                 worldLocations={worldLocations}
-                onPick={handleRandomRegion}
+                environmentId={environmentId}
+                regionId={regionId}
+                onChange={handleLocationSearchChange}
+                onOpenChange={setLocationSearchOpen}
+                resetToken={locationSearchResetToken}
+                // Phones: search shares a row with the add-sound control and
+                // stretches into the leftover width. Desktop keeps the fixed
+                // centred pill (see the media query on `data-fluid`).
+                fluid
+                // On phones the collapsed pill is not viewport-centred (it
+                // shares its row with +), so the expanded panel recentres.
+                // No-op on desktop, where the pill is already centred.
+                recenterOnExpand
+                // Keep the pill mounted while the globe rises over an open
+                // soundscape (globeOverWorkspace) — blocking on showGlobe alone
+                // made "Kyoto, Japan" vanish mid-transition. Only hard-block when
+                // the bar itself is hidden (e.g. landing browse).
+                blocked={showGlobe && !globeOverWorkspace}
+                recessed={detailTarget !== null}
+                // Replay the bar's own page animation so the portalled pill is
+                // part of the same unit rather than lagging behind it.
+                pageMotion={
+                  workspaceBarLifting ? 'exit-lift' : sceneRising ? 'scene-rise' : 'none'
+                }
               />
             </div>
-          )}
-          {showWorkspaceChrome && (
-            <div className={styles.bottomBarSearch}>
-            <LocationSearchSpotlight
+            <div className={styles.bottomBarAdd}>
+              <AddSoundButton
+                onClick={(originRect) => {
+                  setAddSoundOriginRect(snapshotOriginRect(originRect));
+                  setShowAddSounds(true);
+                }}
+                size={48}
+              />
+            </div>
+          </div>
+        )}
+        {showWorkspaceChrome && (
+          <div className={styles.bottomBarActions}>
+            <UseMyLocationButton onMatch={handleGeoMatch} />
+            <RandomizeLocationButton
               appLocations={appLocations}
               worldLocations={worldLocations}
-              environmentId={environmentId}
-              regionId={regionId}
-              onChange={handleLocationSearchChange}
-              onOpenChange={setLocationSearchOpen}
-              resetToken={locationSearchResetToken}
-              // Phones give the search the whole top row; desktop keeps the
-              // fixed centred pill (see the media query on `data-fluid`).
-              fluid
-              // The collapsed pill no longer sits on the viewport centre (the
-              // play controls share its row), so the expanded panel has to
-              // recentre or it hangs off the left edge. No-op on desktop, where
-              // the pill is already centred.
-              recenterOnExpand
-              // Keep the pill mounted while the globe rises over an open
-              // soundscape (globeOverWorkspace) — blocking on showGlobe alone
-              // made "Kyoto, Japan" vanish mid-transition. Only hard-block when
-              // the bar itself is hidden (e.g. landing browse).
-              blocked={showGlobe && !globeOverWorkspace}
-              recessed={detailTarget !== null}
-              // Replay the bar's own page animation so the portalled pill is
-              // part of the same unit rather than lagging behind it.
-              pageMotion={
-                workspaceBarLifting ? 'exit-lift' : sceneRising ? 'scene-rise' : 'none'
-              }
+              onPick={handleRandomRegion}
             />
-            </div>
-          )}
-          {showWorkspaceChrome && (
-            <div className={styles.rightActionGroup}>
-              <MapButton onClick={() => handleGlobeOpenChange(true)} />
-              <ShareButton onShare={handleShare} />
-            </div>
-          )}
-        </div>
+            <MapButton onClick={() => handleGlobeOpenChange(true)} />
+            <ShareButton onShare={handleShare} />
+          </div>
+        )}
       </nav>
       <BottomBarMagnetTooltip anchor={bottomBarTooltip} />
 

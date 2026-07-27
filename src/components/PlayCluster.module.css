@@ -16,9 +16,9 @@
     /* Same 3rem circle as every other button (was 2.55rem). */
     --control-size: 3rem;
     --volume-gap: 0.45rem;
-    /* The cluster sits at the right edge of the phone bar's top row, so the
-       volume has to pair out to the LEFT or it would run off the screen. */
-    --pair-dir: -1;
+    /* Play sits centred above the bar on phones, so volume pairs out to the
+       right the same way as desktop. */
+    --pair-dir: 1;
   }
 }
 
@@ -156,12 +156,5 @@
   opacity: 0;
 }
 
-/* Reduced motion places the volume rail statically beside the pill. On phones the
-   cluster is right-aligned, so mirror it to the pill's LEFT or it sits off-screen. */
-@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-  .volumeRail,
-  .cluster[data-reduced-motion] .volumeRail {
-    left: auto;
-    right: calc(100% + var(--volume-gap));
-  }
-}
+/* Reduced motion places the volume rail statically beside the pill. Phones keep
+   the desktop (right-side) placement now that play is centred. */
