@@ -246,12 +246,14 @@ const CURATED_PLACES: Record<string, Recipe> = {
   // and a pinned clip so the mix is deterministic. The generic global-market /
   // global-bells / global-jazz ids are gone (they collided on one market plate).
   paris: { extraTags: ['european', 'mediterranean', 'urban', 'garden'], layers: [
-    bed('musette', { id: 'paris-musette', name: 'Musette Accordion', vol: 0.34, clip: 'musette-duet' }),
+    // Accordion / bells are signature but piercing — keep them soft in the bed.
+    bed('musette', { id: 'paris-musette', name: 'Musette Accordion', vol: 0.08, clip: 'musette-duet' }),
     bed('market', { id: 'paris-cafe', name: 'Café Terrace', vol: 0.24, clip: 'market-crowd' }),
-    bed('stream', { id: 'paris-seine', name: 'Seine Quay', vol: 0.3, clip: 'stream-flow' }),
-    bed('bells', { id: 'paris-bells', name: 'Notre-Dame Bells', vol: 0.3, clip: 'bells-4-church' }),
+    bed('bells', { id: 'paris-bells', name: 'Notre-Dame Bells', vol: 0.15, clip: 'bells-4-church' }),
     bed('songbird', { id: 'paris-sparrows', name: 'Tuileries Sparrows', vol: 0.42, clip: 'songbird-house-sparrow' }),
     bed('cityHum', { id: 'paris-cityhum', name: 'Boulevard Hum', vol: 0.2, clip: 'city-pedestrian' }),
+    // Seine stays in the dock so it is one drag away, not auto-playing under the mix.
+    option('stream', { id: 'paris-seine', name: 'Seine Quay', vol: 0.3, clip: 'stream-flow' }),
   ] },
   swissalps: { extraTags: ['alpine', 'mountain'], layers: [
     bed('stream', { name: 'Snowmelt Stream', vol: 0.46 }), bed('wind', { name: 'Alpine Wind' }),

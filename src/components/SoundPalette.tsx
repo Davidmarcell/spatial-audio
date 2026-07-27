@@ -21,6 +21,7 @@ import {
   getDockInsertionIndex,
   getDockSlotCenter,
   getDockSlotCenters,
+  getDockSlotStride,
   getDockSounds,
   getDockTileSize,
   predictInsertedSlotCenter,
@@ -196,10 +197,23 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
         const nextDockDefaults = dockDefaultIdsOverride ?? dockDefaultIds;
         const nextReturning = returningSoundIdOverride ?? returningSoundId;
         const tileSize = getDockTileSize(horizontal);
+        // Prefer the live placeholder/button once the dock has opened the slot —
+        // the tray is vertically centred, so predicting from a pre-grow resting
+        // rect lands a half-slot too high and causes the post-release snap.
+        const live = itemRefs.current.get(soundId);
+        if (live && (nextReturning === soundId || returningSoundId === soundId)) {
+          const liveRect = live.getBoundingClientRect();
+          if (liveRect.width > 1 && liveRect.height > 1) {
+            return {
+              x: liveRect.left + liveRect.width / 2,
+              y: liveRect.top + liveRect.height / 2,
+              size: tileSize,
+            };
+          }
+        }
         // Resolve the tile's final index in the *post-drop* resting dock and,
         // when the slot count is unchanged, land it on the real resting centre
-        // captured at rest. This avoids reading the grown/spread tray (which is
-        // ~half a slot taller mid-drag) and so removes the post-settle jump.
+        // captured at rest.
         const finalDock = getDockSounds(sounds, nextActiveIds, nextDockDefaults, nextReturning);
         const finalIndex = finalDock.findIndex((entry) => entry.id === soundId);
         const captured = restingSlotCentersRef.current;
@@ -207,14 +221,22 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
           return { ...captured[finalIndex], size: tileSize };
         }
         // Returning tile is not in the resting capture yet (slot count +1):
-        // predict from neighbours so the flight stays on the tray instead of
-        // leaping to a vertical-layout fallback at the screen edge.
+        // predict from neighbours. The helper assumes a top-anchored list; the
+        // desktop tray is vertically centred, so convert: growth splits up/down.
         if (finalIndex >= 0 && captured.length === finalDock.length - 1) {
           const predicted = predictInsertedSlotCenter(captured, finalIndex, horizontal);
-          if (predicted) return predicted;
+          if (predicted) {
+            if (!horizontal) {
+              const halfStride = getDockSlotStride(false) / 2;
+              const y =
+                finalIndex <= 0 ? predicted.y + halfStride : predicted.y - halfStride;
+              return { ...predicted, y };
+            }
+            return predicted;
+          }
         }
-        // Fallback: axis-aware geometry against the resting rect.
-        const rect = restingRectRef.current ?? dock.getBoundingClientRect();
+        // Fallback: axis-aware geometry against the live dock rect (post-grow).
+        const rect = dock.getBoundingClientRect();
         return getDockSlotCenter(
           rect,
           soundId,
