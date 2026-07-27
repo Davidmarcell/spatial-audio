@@ -8,6 +8,12 @@
   padding: 0;
 }
 
+/* Escape the resting overflow clip for the duration of a page lift / cover rise
+   so chrome shadows and side tiles are not cut mid-transition. */
+.appTransitioning {
+  overflow: visible;
+}
+
 .header {
   position: absolute;
   top: 0;
@@ -87,6 +93,7 @@
 /* Outgoing workspace push (parallax) while a cover panel or landing rises over it. */
 .pageExitLift {
   pointer-events: none;
+  overflow: visible;
   animation: pageExitLift 1s var(--ease-in-out-strong) both;
 }
 
@@ -462,13 +469,17 @@
     left: 0;
     right: 0;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
-    padding-inline: 16px;
+    /* Extra inset so glass drop-shadows (~32px blur) aren't sheared at the
+       viewport edges; keep overflow visible so row children can paint them. */
+    padding-inline: max(16px, 1.35rem);
+    padding-bottom: 0.55rem;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 0.55rem;
     min-width: 0;
+    overflow: visible;
   }
 
   .bottomBarPlay {
@@ -477,6 +488,7 @@
     align-self: center;
     width: auto;
     pointer-events: auto;
+    overflow: visible;
   }
 
   .bottomBarSearchRow {
@@ -488,11 +500,13 @@
     width: 100%;
     min-width: 0;
     pointer-events: auto;
+    overflow: visible;
   }
 
   .bottomBarSearch {
     flex: 1 1 auto;
     min-width: 0;
+    overflow: visible;
   }
 
   .bottomBarAdd {
@@ -500,6 +514,7 @@
     flex-shrink: 0;
     align-items: center;
     pointer-events: auto;
+    overflow: visible;
     transform-origin: center center;
     transition:
       opacity var(--search-side-shift-duration) var(--search-rise-ease),
@@ -517,6 +532,7 @@
     align-items: stretch;
     gap: 0.5rem;
     width: 100%;
+    overflow: visible;
   }
 
   .actionSlot {
@@ -527,6 +543,7 @@
     height: 3rem;
     display: flex;
     align-items: stretch;
+    overflow: visible;
   }
 
   .actionSlot > * {

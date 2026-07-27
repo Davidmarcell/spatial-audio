@@ -348,6 +348,17 @@ export default function App() {
    * pill appearing in the wrong place, jumping, and visibly widening on entry.
    */
   const workspaceBarLifting = (landingEntering || workspaceGlobeOpening) && !globeExiting;
+  // While any stacked-sheet move is in flight, lift the root overflow clip so
+  // outgoing pages / side tiles / button shadows are not sheared off at the
+  // viewport edge (especially visible on phones).
+  const sheetTransitionActive =
+    coverActive
+    || landingExiting
+    || landingEntering
+    || globeExiting
+    || workspaceGlobeOpening
+    || workspaceLeaving
+    || sceneRising;
 
   const globeLocations = useMemo(() => {
     const curated = worldLocations.filter((location) => !location.custom);
@@ -1535,14 +1546,31 @@ export default function App() {
     wasGlobeOpenRef.current = showGlobe;
   }, [showGlobe]);
 
+  // Publish the sheet-transition flag on <html> so portalled chrome (search
+  // pill, globe, cover) and the root overflow chain can all opt out of clipping
+  // for the same window. Cleared the instant every lift/rise settles.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (sheetTransitionActive) {
+      root.dataset.sheetTransition = 'active';
+    } else {
+      delete root.dataset.sheetTransition;
+    }
+    return () => {
+      delete root.dataset.sheetTransition;
+    };
+  }, [sheetTransitionActive]);
+
   return (
     <SheetStack.Root className={sheetStack.root}>
       <SheetStack.Outlet
-        className={sheetStack.outlet}
+        className={`${sheetStack.outlet}${sheetTransitionActive ? ` ${sheetStack.outletTransitioning}` : ''}`}
         stackingAnimation={appStackingAnimation}
         asChild
       >
-        <div className={styles.app}>
+        <div
+          className={`${styles.app}${sheetTransitionActive ? ` ${styles.appTransitioning}` : ''}`}
+        >
       {(!hasEntered || landingExiting || landingEntering) && (
         <LandingGate
           key={landingReplayKey}

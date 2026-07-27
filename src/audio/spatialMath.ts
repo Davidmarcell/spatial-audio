@@ -72,9 +72,19 @@ export const CANVAS_SPREAD_COMPACT = 1.52;
 
 /** Keep spread tiles clear of the canvas edge (percent of the canvas). */
 const SPREAD_EDGE_INSET_PCT = 5;
+/** Phones push tiles farther out — use a deeper inset so half-tiles + shadows
+ *  don't hang past the viewport edge. */
+const SPREAD_EDGE_INSET_COMPACT_PCT = 12;
 
-function clampPercent(value: number): number {
-  return Math.max(SPREAD_EDGE_INSET_PCT, Math.min(100 - SPREAD_EDGE_INSET_PCT, value));
+function edgeInsetPct(spread: number): number {
+  return spread >= CANVAS_SPREAD_COMPACT - 0.01
+    ? SPREAD_EDGE_INSET_COMPACT_PCT
+    : SPREAD_EDGE_INSET_PCT;
+}
+
+function clampPercent(value: number, spread = CANVAS_SPREAD_DEFAULT): number {
+  const inset = edgeInsetPct(spread);
+  return Math.max(inset, Math.min(100 - inset, value));
 }
 
 export function canvasToNormalized(
@@ -107,8 +117,8 @@ export function normalizedToPercentValues(
   const spreadX = point.x * spread;
   const spreadY = LISTENER.y + (point.y - LISTENER.y) * spread;
   return {
-    leftPercent: clampPercent(((spreadX + 1) / 2) * 100),
-    topPercent: clampPercent((1 - spreadY) * 100),
+    leftPercent: clampPercent(((spreadX + 1) / 2) * 100, spread),
+    topPercent: clampPercent((1 - spreadY) * 100, spread),
   };
 }
 

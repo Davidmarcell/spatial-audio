@@ -24,8 +24,11 @@
     background-color var(--theme-transition-duration) var(--theme-transition-ease);
 }
 
+/* Playing used to clip overflow so the radar rings stayed inside the canvas —
+   that also sheared sound-tile shadows and edge tiles on phones. Keep rings
+   inset via their own sizing; let tiles paint past the canvas bounds. */
 .canvasPlaying {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .canvasDropTarget {

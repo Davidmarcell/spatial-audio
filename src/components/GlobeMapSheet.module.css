@@ -51,6 +51,9 @@
    the landing's curved edge during the transition. */
 .exiting {
   pointer-events: none;
+  /* Let the upward lift paint past the top edge instead of clipping under the
+     fixed fullscreen box — reads as the page pushing forward under the next. */
+  overflow: visible;
   /* Match SHEET_RISE_DURATION_MS (1000). */
   animation: globeExitLift 1s var(--ease-in-out-strong) both;
 }

@@ -333,6 +333,17 @@ body {
   overflow: hidden;
 }
 
+/* Phones: during a stacked-sheet page move, drop the root overflow clip so the
+   outgoing page (and its side tiles / chrome shadows) can travel forward under
+   the rising sheet instead of shearing against the viewport edge. */
+@media (max-width: 768px) {
+  html[data-sheet-transition='active'],
+  html[data-sheet-transition='active'] body,
+  html[data-sheet-transition='active'] #root {
+    overflow: visible;
+  }
+}
+
 button,
 select {
   font: inherit;

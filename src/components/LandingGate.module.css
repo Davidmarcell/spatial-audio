@@ -33,9 +33,15 @@
    through the page during the Enter transition. */
 .gate[data-exiting='true'] {
   pointer-events: none;
+  /* Fan tiles + Enter shadow must travel with the lift, not shear at the clip. */
+  overflow: visible;
   /* Match SHEET_RISE_DURATION_MS (1000). Stronger lift so the homepage push
      reads under the rising globe instead of a tiny -34px nudge. */
   animation: landingExitLift 1s var(--ease-in-out-strong) both;
+}
+
+.gate[data-exiting='true'] .inner {
+  overflow: visible;
 }
 
 /* The search row is part of the landing page, so it LIFTS with it: the Enter
@@ -65,6 +71,11 @@
 .gate[data-entering='true'] {
   z-index: 450;
   pointer-events: none;
+  overflow: visible;
+}
+
+.gate[data-entering='true'] .inner {
+  overflow: visible;
 }
 
 /* Soft editorial glow so the frosted page never reads as a flat wash. */
