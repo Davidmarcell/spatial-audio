@@ -129,6 +129,9 @@ export default function App() {
   // Pending "open the dock slot" timer, so the tray widens as the returning tile
   // arrives rather than before it has moved. Flushed if the flight lands first.
   const dockOpenTimerRef = useRef<number | null>(null);
+  // True while the globe is holding a soundscape that was playing, so closing it
+  // resumes rather than dropping the visitor back into silence.
+  const resumeSceneAfterGlobeRef = useRef(false);
   const [showGlobe, setShowGlobe] = useState(false);
   // True while the full-screen globe was opened from the landing to *browse the
   // world* (Enter / empty-query Enter), as opposed to opening the map from
@@ -412,10 +415,12 @@ export default function App() {
     void engine.preloadVariants([ENTER_WHOOSH_SRC, GLOBE_AMBIENT_SRC]);
   }, [engine]);
 
-  // Soft ambient while browsing the world map from the landing. Stop when the
-  // globe closes or a place is picked (hasEntered / browsing ends).
+  // Soft ambient for the whole time the world map is up. Opening the globe now
+  // holds the soundscape (see `handleGlobeOpenChange`), so without this the map
+  // would be silent when reached from a playing scene. Stops when the globe
+  // closes or a place is picked.
   useEffect(() => {
-    const shouldPlay = showGlobe && browsingFromLanding && !prefersReducedMotion();
+    const shouldPlay = showGlobe && !prefersReducedMotion();
     if (shouldPlay) {
       void playLoop(GLOBE_AMBIENT_ID, GLOBE_AMBIENT_SRC, {
         volume: GLOBE_AMBIENT_VOLUME,
@@ -425,7 +430,7 @@ export default function App() {
       stopLoop(GLOBE_AMBIENT_ID);
     }
     return () => stopLoop(GLOBE_AMBIENT_ID);
-  }, [browsingFromLanding, playLoop, showGlobe, stopLoop]);
+  }, [playLoop, showGlobe, stopLoop]);
 
   // Lazy-load: only fetch the variants the current scene actually plays, not
   // the whole catalog. Palette additions load on demand inside addSource.
@@ -1087,6 +1092,16 @@ export default function App() {
       // the globe visibly pushes it upward like the other stacked-sheet moves.
       // This is not a location entry, so no radiate-in.
       const openingFromWorkspace = hasEntered && !browsingFromLanding;
+      // Same airy whoosh the landing's Enter uses, so arriving at the globe reads
+      // the same way from anywhere. Skipped under reduced motion, where the
+      // visual is near-instant and the sound would outlast it.
+      if (!prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
+      // The globe is its own place — hold the soundscape while it is open, and
+      // remember whether it was playing so closing can pick it back up.
+      resumeSceneAfterGlobeRef.current = openingFromWorkspace && engine.isPlaying;
+      if (engine.isPlaying) pause();
       setWorkspaceGlobeOpening(openingFromWorkspace);
       setGlobeOverWorkspace(openingFromWorkspace);
       setShowGlobe(true);
@@ -1118,8 +1133,22 @@ export default function App() {
       // risen.
       playSceneRevealRise();
       playCover();
+      // Pick the soundscape back up if the globe interrupted it.
+      if (resumeSceneAfterGlobeRef.current) {
+        resumeSceneAfterGlobeRef.current = false;
+        void ensureScenePlaying();
+      }
     }
-  }, [browsingFromLanding, hasEntered, playCover, playSceneRevealRise]);
+  }, [
+    browsingFromLanding,
+    engine,
+    ensureScenePlaying,
+    hasEntered,
+    pause,
+    playCover,
+    playOneShot,
+    playSceneRevealRise,
+  ]);
 
   // The header wordmark doubles as a "home" control: always return to the
   // landing gate (enabling it if the DEV toggle had it off), with the outgoing
