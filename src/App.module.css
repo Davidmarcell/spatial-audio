@@ -523,8 +523,18 @@
     grid-column: auto;
     grid-row: auto;
     flex: 1 1 0;
-    /* Beat each button module's fixed 3rem width so the four share the row. */
+    /* Beat each button module's fixed 3rem width so the four share the row.
+       Share wraps its <button> in a div — stretch both the wrap and the button. */
+    display: flex;
     width: auto !important;
+    min-width: 0 !important;
+    max-width: none;
+    height: 3rem;
+  }
+
+  .bottomBarActions :global(button) {
+    flex: 1 1 auto;
+    width: 100% !important;
     min-width: 0 !important;
     max-width: none;
     height: 3rem;
