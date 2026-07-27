@@ -232,32 +232,32 @@
   display: none;
 }
 
-/* Children become grid items so geo/shuffle flank left and map/share right. */
+/* Slots become grid items so geo/shuffle flank left and map/share right. */
 .bottomBarActions {
   display: contents;
 }
 
-.bottomBarActions > *:nth-child(1) {
+.actionSlot:nth-child(1) {
   grid-column: 1;
   grid-row: 2;
 }
 
-.bottomBarActions > *:nth-child(2) {
+.actionSlot:nth-child(2) {
   grid-column: 2;
   grid-row: 2;
 }
 
-.bottomBarActions > *:nth-child(3) {
+.actionSlot:nth-child(3) {
   grid-column: 4;
   grid-row: 2;
 }
 
-.bottomBarActions > *:nth-child(4) {
+.actionSlot:nth-child(4) {
   grid-column: 5;
   grid-row: 2;
 }
 
-.bottomBarActions > * {
+.actionSlot {
   pointer-events: auto;
   transform-origin: center center;
   transition:
@@ -295,22 +295,22 @@
   pointer-events: none;
 }
 
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(1),
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(2),
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(3),
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(4) {
+.bottomBarSearchOpen .actionSlot:nth-child(1),
+.bottomBarSearchOpen .actionSlot:nth-child(2),
+.bottomBarSearchOpen .actionSlot:nth-child(3),
+.bottomBarSearchOpen .actionSlot:nth-child(4) {
   opacity: 0;
   pointer-events: none;
   transition-delay: var(--search-side-shift-delay);
 }
 
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(1),
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(2) {
+.bottomBarSearchOpen .actionSlot:nth-child(1),
+.bottomBarSearchOpen .actionSlot:nth-child(2) {
   transform: translate3d(calc(-1 * var(--search-side-shift-distance)), 0, 0);
 }
 
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(3),
-.bottomBarSearchOpen .bottomBarActions > *:nth-child(4) {
+.bottomBarSearchOpen .actionSlot:nth-child(3),
+.bottomBarSearchOpen .actionSlot:nth-child(4) {
   transform: translate3d(var(--search-side-shift-distance), 0, 0);
 }
 
@@ -413,10 +413,10 @@
 
   .bottomBarSearchOpen .bottomBarPlay,
   .bottomBarSearchOpen .bottomBarAdd,
-  .bottomBarSearchOpen .bottomBarActions > *,
+  .bottomBarSearchOpen .actionSlot,
   .bottomBarPlay,
   .bottomBarAdd,
-  .bottomBarActions > * {
+  .actionSlot {
     transition: none;
     transition-delay: 0ms;
     transform: none;
@@ -519,20 +519,24 @@
     width: 100%;
   }
 
-  .bottomBarActions > * {
+  .actionSlot {
     grid-column: auto;
     grid-row: auto;
     flex: 1 1 0;
-    /* Beat each button module's fixed 3rem width so the four share the row.
-       Share wraps its <button> in a div — stretch both the wrap and the button. */
-    display: flex;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none;
+    min-width: 0;
     height: 3rem;
+    display: flex;
+    align-items: stretch;
   }
 
-  .bottomBarActions :global(button) {
+  .actionSlot > * {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+  }
+
+  .actionSlot :global(button) {
     flex: 1 1 auto;
     width: 100% !important;
     min-width: 0 !important;

@@ -1580,14 +1580,22 @@ export default function App() {
         )}
         {showWorkspaceChrome && (
           <div className={styles.bottomBarActions}>
-            <UseMyLocationButton onMatch={handleGeoMatch} />
-            <RandomizeLocationButton
-              appLocations={appLocations}
-              worldLocations={worldLocations}
-              onPick={handleRandomRegion}
-            />
-            <MapButton onClick={() => handleGlobeOpenChange(true)} />
-            <ShareButton onShare={handleShare} />
+            <div className={styles.actionSlot}>
+              <UseMyLocationButton onMatch={handleGeoMatch} />
+            </div>
+            <div className={styles.actionSlot}>
+              <RandomizeLocationButton
+                appLocations={appLocations}
+                worldLocations={worldLocations}
+                onPick={handleRandomRegion}
+              />
+            </div>
+            <div className={styles.actionSlot}>
+              <MapButton onClick={() => handleGlobeOpenChange(true)} />
+            </div>
+            <div className={styles.actionSlot}>
+              <ShareButton onShare={handleShare} />
+            </div>
           </div>
         )}
       </nav>
