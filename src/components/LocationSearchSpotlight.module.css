@@ -288,8 +288,14 @@
 
 /* Matches the workspace asset nudge (App.tsx scene rise: 44px, 620ms after the
    cover has risen) so the pill arrives with the bar it sits in. */
+/* No delay: this attribute is only set once the cover has revealed the scene, so
+   the animation's own clock already starts at the reveal. The 1300ms delay that
+   used to be here was copied from the bar's animation, whose delay is measured
+   from the start of the entry — so the pill sat 44px BELOW the bar, in full view,
+   for a second after the scene appeared and then slid up on its own. That was the
+   search "jumping around" on the way into a soundscape. */
 .panelAnchor[data-page-motion='scene-rise'] {
-  animation: searchSceneRise 620ms var(--ease-ios) 1300ms both;
+  animation: searchSceneRise 620ms var(--ease-ios) both;
 }
 
 @keyframes searchSceneRise {

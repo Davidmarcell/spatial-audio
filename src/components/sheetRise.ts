@@ -31,11 +31,14 @@ export const SCENE_TILE_ENTRANCE_MS = 640;
 /** Max per-tile stagger for the radiate-in (SpatialCanvas). */
 export const SCENE_TILE_STAGGER_MAX_MS = 320;
 /**
- * Delay from scene-entry cover start until autoplay is safe: cover reveal +
- * last tile stagger + radiate duration.
+ * Delay from scene-entry cover start until autoplay is safe.
+ *
+ * This is the moment the cover finishes rising and the scene is actually on
+ * screen. It used to also wait out the tile stagger + radiate-in (another ~960ms
+ * after the reveal), which — on top of loading the clips — is why audio arrived
+ * seconds late. Audio still never leads the visuals; it just arrives with them.
  */
-export const SCENE_AUTOPLAY_AFTER_MS =
-  SHEET_SCENE_REVEAL_MS + SCENE_TILE_STAGGER_MAX_MS + SCENE_TILE_ENTRANCE_MS;
+export const SCENE_AUTOPLAY_AFTER_MS = SHEET_SCENE_REVEAL_MS;
 /**
  * Peak depth of the curved leading edge at the start of the rise, as a fraction
  * of viewport height. The edge starts this deeply bowed and eases to flat by the

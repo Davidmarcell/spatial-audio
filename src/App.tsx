@@ -524,6 +524,20 @@ export default function App() {
         }
       }
 
+      // Start the reveal clock NOW, so the wait for the visuals overlaps the
+      // fetch + decode of the clips instead of following it. Time-to-audio is
+      // then max(load, reveal) rather than load + reveal.
+      const delayMs = autoPlayOnLoad && !prefersReducedMotion() ? SCENE_AUTOPLAY_AFTER_MS : 0;
+      const revealReached = delayMs > 0
+        ? new Promise<void>((resolve) => {
+            autoPlayTimer = window.setTimeout(resolve, delayMs);
+          })
+        : Promise.resolve();
+
+      // Every layer loads CONCURRENTLY. Awaiting each `addSource` in turn made
+      // entry cost the sum of five or six sequential network round-trips, which
+      // is most of why audio arrived seconds after the scene did.
+      const additions: Array<Promise<void>> = [];
       for (const item of activeSounds) {
         if (cancelled) return;
         if (item.instanceId === returningId) continue;
@@ -541,31 +555,29 @@ export default function App() {
                 loopOffset: variant.loopOffset,
               }
             : undefined;
-          await engine.addSource(item.instanceId, sound, item.position, item.volume, recipe);
-          if (cancelled) {
-            engine.removeSource(item.instanceId);
-            return;
-          }
+          additions.push(
+            engine
+              .addSource(item.instanceId, sound, item.position, item.volume, recipe)
+              .then(() => {
+                if (cancelled) engine.removeSource(item.instanceId);
+              }),
+          );
         } else {
           engine.updatePosition(item.instanceId, item.position);
           engine.updateVolume(item.instanceId, item.volume);
         }
       }
 
+      await Promise.all(additions);
       if (cancelled) return;
 
       if (autoPlayOnLoad) {
         await unlock();
         if (cancelled) return;
-        // Wait until the entry cover dissolves and canvas tiles finish radiating
-        // before starting the soundscape, so audio does not lead the visuals.
-        const delayMs = prefersReducedMotion() ? 0 : SCENE_AUTOPLAY_AFTER_MS;
-        if (delayMs > 0) {
-          await new Promise<void>((resolve) => {
-            autoPlayTimer = window.setTimeout(resolve, delayMs);
-          });
-          autoPlayTimer = null;
-        }
+        // Hold only until the entry cover has revealed the scene, so audio never
+        // leads the visuals — but no longer waits on the tile radiate-in too.
+        await revealReached;
+        autoPlayTimer = null;
         if (cancelled) return;
         await play();
         if (cancelled) return;
