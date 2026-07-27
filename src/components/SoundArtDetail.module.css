@@ -239,7 +239,9 @@
     gap: 1rem;
   }
 
-  .artworkWrap {
+  .artworkWrap,
+  .artworkWrapShared {
+    width: 100%;
     max-width: none;
   }
 

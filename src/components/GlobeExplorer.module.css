@@ -801,4 +801,20 @@
   .list {
     max-height: 11rem;
   }
+
+  /* Slightly smaller polaroids — less type/photo competition on a phone globe. */
+  .pinCard {
+    width: 48px;
+    padding: 2px 2px 3px;
+  }
+
+  .pinImage,
+  .pinFallback {
+    height: 42px;
+  }
+
+  .pinCaption {
+    font-size: 0.4rem;
+    line-height: 1.2;
+  }
 }

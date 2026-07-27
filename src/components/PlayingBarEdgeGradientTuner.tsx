@@ -90,9 +90,12 @@ const BREATH_FIELDS: SliderField[] = [
 function readTunerVisible(): boolean {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
-  if (params.get('radiance') === '1' || params.get('shaderDebug') === '1') return true;
   if (params.get('radiance') === '0' || params.get('shaderDebug') === '0') return false;
-  return window.localStorage.getItem('saudade:playing-bar-edge-gradient-tuner-visible') === '1';
+  // Default ON so the Radiance controls are available without a query flag.
+  // Opt out with `?radiance=0`.
+  if (params.get('radiance') === '1' || params.get('shaderDebug') === '1') return true;
+  const stored = window.localStorage.getItem('saudade:playing-bar-edge-gradient-tuner-visible');
+  return stored !== '0';
 }
 
 export function PlayingBarEdgeGradientTuner({
@@ -106,7 +109,8 @@ export function PlayingBarEdgeGradientTuner({
   // Resolved once at mount from the URL / stored flag. Read lazily rather than in
   // an effect so the first render already knows, with no extra pass.
   const [available] = useState(() => readTunerVisible());
-  const [open, setOpen] = useState(false);
+  // Open the panel so the controls are immediately reachable when reviewing.
+  const [open, setOpen] = useState(() => readTunerVisible());
 
   // Apply on mount even when the panel is hidden, so a saved default is what the
   // app actually renders rather than only taking effect once the panel is opened.

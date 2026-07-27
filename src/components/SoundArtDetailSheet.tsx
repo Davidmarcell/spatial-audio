@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { RegionArtContext } from '../data/iconArt';
-import { useMediaQuery } from '../hooks/useMediaQuery';
 import type { OriginRectSnapshot } from '../utils/overlayOriginAnimation';
 import { ScaleBlurOverlay } from './ScaleBlurOverlay';
 import { SoundArtDetailContent, type DetailTarget } from './SoundArtDetail';
 import { SoundTileCardExpand } from './SoundTileCardExpand';
-import { SoundTileMobileSheet } from './SoundTileMobileSheet';
 import {
   loadSoundTileDesign,
   soundTileDesignToCssVars,
@@ -21,7 +19,10 @@ type Props = {
   target: DetailTarget | null;
   onVolumeChange: (instanceId: string, volume: number) => void;
   regionArt: RegionArtContext;
-  /** Desktop shared-element card expand. Mobile always uses the iOS sheet. */
+  /**
+   * Shared-element card expand (tile → card). Used on all viewports so mobile
+   * gets the same image-scale handoff instead of a bottom sheet.
+   */
   useCardExpand?: boolean;
   onExpandExited?: () => void;
 };
@@ -36,7 +37,6 @@ export function SoundArtDetailSheet({
   useCardExpand = true,
   onExpandExited,
 }: Props) {
-  const isMobile = useMediaQuery('(max-width: 768px)');
   const [displayTarget, setDisplayTarget] = useState<DetailTarget | null>(target);
   const [contentPhase, setContentPhase] = useState<'idle' | 'out' | 'in'>('idle');
   const wasOpenRef = useRef(open);
@@ -85,19 +85,6 @@ export function SoundArtDetailSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [open, target?.instanceId],
   );
-
-  if (isMobile) {
-    return (
-      <SoundTileMobileSheet
-        open={open}
-        onOpenChange={onOpenChange}
-        target={target}
-        onVolumeChange={onVolumeChange}
-        regionArt={regionArt}
-        onExited={onExpandExited}
-      />
-    );
-  }
 
   if (useCardExpand) {
     return (

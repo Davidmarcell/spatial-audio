@@ -53,8 +53,8 @@
   --search-height-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --search-rise-duration: 0.46s;
   --search-rise-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --search-open-width-duration: 0.42s;
-  --search-open-rise-duration: 0.46s;
+  --search-open-width-duration: 0.21s;
+  --search-open-rise-duration: 0.23s;
   --search-open-total-duration: var(--search-open-rise-duration);
   --search-open-width-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --search-open-rise-ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -74,8 +74,8 @@
   --search-shell-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --search-content-duration: 0.46s;
   --search-content-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --search-content-delay: 175ms;
-  --search-rise-overlap-ms: 460ms;
+  --search-content-delay: 80ms;
+  --search-rise-overlap-ms: 230ms;
   --search-side-shift-distance: 24px;
   --search-side-shift-duration: 0.42s;
   --search-side-shift-delay: 0ms;

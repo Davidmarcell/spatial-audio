@@ -7,6 +7,19 @@
 
 .button {
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.button :global(i) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  width: 1rem;
+  height: 1rem;
 }
 
 .button:hover:not(:disabled) {

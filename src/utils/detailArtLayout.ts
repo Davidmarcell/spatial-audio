@@ -37,7 +37,33 @@ export function estimateDetailOpenRect(
   columnGapPx: number,
   aspect: number,
 ): { left: number; top: number; width: number; height: number; artW: number; artH: number } {
+  const vw = typeof window !== 'undefined' ? window.innerWidth : panelWidthPx;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 420;
+  const stacked = vw <= 760;
   const box = detailArtBox(aspect, imageSizePx);
+
+  if (stacked) {
+    // Phone: full-width card, art on top, meta below — same shared-element path.
+    const width = clampDetailCardWidth(Math.min(panelWidthPx, vw - 24), vw - 24);
+    const artW = Math.max(120, width - paddingPx * 2);
+    const artH = box.isLandscape
+      ? Math.min(LANDSCAPE_ART_HEIGHT_PX, artW / Math.max(0.4, aspect))
+      : artW / Math.max(0.4, aspect);
+    const infoBlock = 220;
+    const height = Math.min(
+      paddingPx * 2 + artH + infoBlock + 12,
+      vh * 0.88,
+    );
+    return {
+      left: (vw - width) / 2,
+      top: (vh - height) / 2,
+      width,
+      height,
+      artW,
+      artH,
+    };
+  }
+
   const contentW = box.artW + columnGapPx + DETAIL_INFO_COLUMN_MIN_PX + paddingPx * 2;
   const preferredW = box.isLandscape ? Math.max(panelWidthPx, contentW) : panelWidthPx;
   const width = clampDetailCardWidth(preferredW);
@@ -46,12 +72,7 @@ export function estimateDetailOpenRect(
   const artW = Math.min(box.artW, maxArtW);
   const artH = artW / Math.max(0.4, aspect);
 
-  const height = Math.min(
-    paddingPx * 2 + Math.max(artH, 240),
-    typeof window !== 'undefined' ? window.innerHeight * 0.85 : 420,
-  );
-  const vw = typeof window !== 'undefined' ? window.innerWidth : width;
-  const vh = typeof window !== 'undefined' ? window.innerHeight : height;
+  const height = Math.min(paddingPx * 2 + Math.max(artH, 240), vh * 0.85);
   return {
     left: (vw - width) / 2,
     top: (vh - height) / 2,

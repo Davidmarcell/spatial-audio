@@ -52,7 +52,7 @@
 .exiting {
   pointer-events: none;
   /* Match SHEET_RISE_DURATION_MS (1300). */
-  animation: globeExitLift 1.3s var(--ease-in-out-strong) both;
+  animation: globeExitLift 1s var(--ease-in-out-strong) both;
 }
 
 @keyframes globeExitLift {

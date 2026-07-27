@@ -87,7 +87,7 @@
 /* Outgoing workspace push (parallax) while a cover panel or landing rises over it. */
 .pageExitLift {
   pointer-events: none;
-  animation: pageExitLift 1.3s var(--ease-in-out-strong) both;
+  animation: pageExitLift 1s var(--ease-in-out-strong) both;
 }
 
 @keyframes pageExitLift {

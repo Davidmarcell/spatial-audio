@@ -420,6 +420,8 @@ export function LocationSearchSpotlight({
   const [panelAnchor, setPanelAnchor] = useState<PanelAnchor | null>(null);
   const panelAnchorRef = useRef<PanelAnchor | null>(panelAnchor);
   panelAnchorRef.current = panelAnchor;
+  /** iOS keyboard overlap — lift the portalled panel so the field stays in view. */
+  const [keyboardLiftPx, setKeyboardLiftPx] = useState(0);
   // Read inside the measure callbacks, which are memoised and must not go stale.
   const hostSettledRef = useRef(true);
   const [query, setQuery] = useState('');
@@ -1068,6 +1070,30 @@ export function LocationSearchSpotlight({
     return () => window.clearTimeout(timer);
   }, [phase]);
 
+  // Keep the open search above the iPhone keyboard by tracking visualViewport.
+  useEffect(() => {
+    const openPhases =
+      phase === 'open' || phase === 'opening-rise' || phase === 'opening-width';
+    if (!openPhases || typeof window === 'undefined') {
+      setKeyboardLiftPx(0);
+      return undefined;
+    }
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+
+    const sync = () => {
+      const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardLiftPx(covered > 48 ? covered : 0);
+    };
+    sync();
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    return () => {
+      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('scroll', sync);
+    };
+  }, [phase]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -1248,7 +1274,7 @@ export function LocationSearchSpotlight({
             data-theme={theme}
             style={
               {
-                top: `${panelAnchor.top}px`,
+                top: `${Math.max(8, panelAnchor.top - keyboardLiftPx)}px`,
                 left: `${panelAnchor.centerX}px`,
                 height: `${panelAnchor.height}px`,
                 '--recenter-x': `${recenterX}px`,
