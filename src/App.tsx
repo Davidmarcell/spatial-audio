@@ -45,7 +45,15 @@ import { GlobeMapSheet } from './components/GlobeMapSheet';
 import { AddSoundSheet } from './components/AddSoundSheet';
 import { LandingGate } from './components/LandingGate';
 import { EnterTransition } from './components/EnterTransition';
-import { SHEET_SCENE_REVEAL_MS, SCENE_AUTOPLAY_AFTER_MS, prefersReducedMotion } from './components/sheetRise';
+import {
+  SHEET_SCENE_REVEAL_MS,
+  SCENE_AUTOPLAY_AFTER_MS,
+  SCENE_ASSET_RISE_MS,
+  SCENE_ASSET_RISE_PX,
+  SCENE_RISE_VAR,
+  easeIos,
+  prefersReducedMotion,
+} from './components/sheetRise';
 import { loadLandingFanConfig, type FanConfig } from './components/landingFan';
 import { LandingFanTuner } from './components/LandingFanTuner';
 import { LandingEntranceTuner } from './components/LandingEntranceTuner';
@@ -167,9 +175,9 @@ export default function App() {
   // soundscape, so the tiles/UI push up from below rather than just fading in. 0
   // at boot means no rise on the very first paint.
   const [sceneRiseToken, setSceneRiseToken] = useState(0);
-  // True for the scene-rise window so the bottom bar's portalled search pill
-  // tracks the rising bar instead of staying pinned to its resting anchor while
-  // the bar rises around it. Cleared once the rise animation settles.
+  // True for the covered scene-entry window so the bottom bar's portalled
+  // search pill reads `--scene-rise-y` (0 until reveal, then the shared nudge)
+  // instead of staying pinned while the bar rises. Cleared once the nudge settles.
   const [sceneRising, setSceneRising] = useState(false);
   // True only while the globe is opening over an already-entered soundscape. The
   // workspace stays mounted and lifts beneath the rising globe so the transition
@@ -1032,13 +1040,16 @@ export default function App() {
 
   // Rise the revealed soundscape assets. When a scene enters behind the cover
   // panel, the canvas (sound tiles, rings, listener) and the bottom control bar
-  // are held one short step below their resting spot and then glide up as the
-  // cover sweeps away, so the reveal and the assets settling read as one
-  // continuous upward motion (the same feel as the sheet rises). The animation
-  // is delayed to the reveal moment (SHEET_SCENE_REVEAL_MS) with no fill, so the
-  // assets sit naturally until the cover fully covers them and the brief
-  // downward offset it starts from is hidden behind the cover. Reduced motion
-  // skips the rise entirely (the tiles also skip their radiate-in).
+  // sit at rest until the cover fully covers them, then take a brief downward
+  // offset (hidden by the cover) and glide up as it reveals — one continuous
+  // upward settle with the sheet.
+  //
+  // The search pill is portalled to <body>, so it cannot inherit the bar's
+  // transform. `sceneRising` arms at entry start so the pill already reads
+  // `--scene-rise-y`; that var stays 0 until reveal, then this rAF writes the
+  // same y onto the bar/canvas and the var each frame. A parallel CSS keyframe
+  // used to free-run from entry start and finish before the chrome moved.
+  // Reduced motion skips the rise entirely.
   useEffect(() => {
     if (sceneRiseToken === 0) return undefined;
     if (prefersReducedMotion()) {
@@ -1052,31 +1063,56 @@ export default function App() {
       setSceneRising(false);
       return undefined;
     }
+
+    const root = document.documentElement;
+    const clearRise = () => {
+      root.style.removeProperty(SCENE_RISE_VAR);
+      targets.forEach((el) => {
+        el.style.transform = '';
+        el.style.willChange = '';
+      });
+    };
+    const writeRise = (y: number) => {
+      const value = `${y.toFixed(2)}px`;
+      root.style.setProperty(SCENE_RISE_VAR, value);
+      targets.forEach((el) => {
+        el.style.transform = y === 0 ? '' : `translate3d(0, ${value}, 0)`;
+      });
+    };
+
     let cancelled = false;
-    const animations = targets.map((el) =>
-      el.animate(
-        [
-          { transform: 'translate3d(0, 44px, 0)' },
-          { transform: 'translate3d(0, 0, 0)' },
-        ],
-        {
-          duration: 620,
-          delay: SHEET_SCENE_REVEAL_MS,
-          easing: 'cubic-bezier(0.32, 0.72, 0, 1)',
-          fill: 'none',
-        },
-      ),
-    );
-    // Keep the bottom bar's search pill tracking the rising bar until the rise
-    // settles, then release it back to the resting anchor.
-    void Promise.all(
-      animations.map((animation) => animation.finished.catch(() => undefined)),
-    ).then(() => {
+    let raf = 0;
+    let start = 0;
+    const tick = (now: number) => {
+      if (cancelled) return;
+      const t = Math.min(1, (now - start) / SCENE_ASSET_RISE_MS);
+      writeRise(SCENE_ASSET_RISE_PX * (1 - easeIos(t)));
+      if (t < 1) {
+        raf = window.requestAnimationFrame(tick);
+        return;
+      }
+      clearRise();
       if (!cancelled) setSceneRising(false);
-    });
+    };
+
+    const delayTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      // Jump to the offset in this turn (still under the cover), then ease up
+      // on the next frames so pill + bar share one clock from the first paint
+      // of the reveal.
+      targets.forEach((el) => {
+        el.style.willChange = 'transform';
+      });
+      writeRise(SCENE_ASSET_RISE_PX);
+      start = performance.now();
+      raf = window.requestAnimationFrame(tick);
+    }, SHEET_SCENE_REVEAL_MS);
+
     return () => {
       cancelled = true;
-      animations.forEach((animation) => animation.cancel());
+      window.clearTimeout(delayTimer);
+      window.cancelAnimationFrame(raf);
+      clearRise();
     };
   }, [sceneRiseToken]);
 

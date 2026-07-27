@@ -95,7 +95,8 @@ type Props = {
    *   • `exit-lift`  — host page is lifting away (landing exit / workspace push
    *                    under a rising sheet). Mirrors `pageExitLift`.
    *   • `rise-home`  — host page is rising home from below (`animateRise`).
-   *   • `scene-rise` — workspace assets nudge up as a cover reveals the scene.
+   *   • `scene-rise` — workspace assets nudge up as a cover reveals the scene
+   *                    (`--scene-rise-y` from App's shared rAF clock).
    *
    * The pill's resting anchor is frozen for the duration, so the animation is
    * the only motion and it lands exactly where it started/belongs.

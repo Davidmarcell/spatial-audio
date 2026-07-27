@@ -93,6 +93,19 @@ function makeCubicBezier(x1: number, y1: number, x2: number, y2: number) {
 }
 
 export const easeInOutStrong = makeCubicBezier(0.77, 0, 0.175, 1);
+/** Matches `--ease-ios` / the workspace scene-asset nudge. */
+export const easeIos = makeCubicBezier(0.32, 0.72, 0, 1);
+
+/**
+ * After a covered scene reveal, the canvas + bottom bar (and the portalled
+ * search pill, via `--scene-rise-y`) glide up from this offset into rest.
+ */
+export const SCENE_ASSET_RISE_PX = 44;
+/** Duration of the post-reveal scene-asset nudge (must match the pill). */
+export const SCENE_ASSET_RISE_MS = 620;
+
+/** CSS custom property publishing the live scene-asset rise offset. */
+export const SCENE_RISE_VAR = '--scene-rise-y';
 
 export function prefersReducedMotion() {
   return (

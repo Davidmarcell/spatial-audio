@@ -290,25 +290,18 @@
   );
 }
 
-/* Matches the workspace asset nudge (App.tsx scene rise: 44px, 620ms after the
-   cover has risen) so the pill arrives with the bar it sits in. */
-/* No delay: this attribute is only set once the cover has revealed the scene, so
-   the animation's own clock already starts at the reveal. The 1300ms delay that
-   used to be here was copied from the bar's animation, whose delay is measured
-   from the start of the entry — so the pill sat 44px BELOW the bar, in full view,
-   for a second after the scene appeared and then slid up on its own. That was the
-   search "jumping around" on the way into a soundscape. */
+/* Scene reveal nudge: App publishes `--scene-rise-y` on the same rAF that
+   transforms the bottom bar / canvas. The pill keeps this attribute for the
+   whole covered entry (`y` stays 0 until reveal) so it never free-runs a
+   parallel keyframe and finishes before the chrome moves. */
 .panelAnchor[data-page-motion='scene-rise'] {
-  animation: searchSceneRise 620ms var(--ease-ios) both;
-}
-
-@keyframes searchSceneRise {
-  from {
-    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 44px, 0);
-  }
-  to {
-    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 0, 0);
-  }
+  pointer-events: none;
+  transition: none;
+  transform: translate3d(
+    calc(-50% + var(--recenter-anchor, 0px)),
+    var(--scene-rise-y, 0px),
+    0
+  );
 }
 
 /* Sound-tile (and similar) overlays sit at z-index 500+. Keep the portalled
