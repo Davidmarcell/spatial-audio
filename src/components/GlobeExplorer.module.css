@@ -344,9 +344,9 @@
      always dark text on white, so it never goes white-on-white). The border is
      themed so the card's edge reads on the white light-mode globe and on the
      dark-mode surface alike. */
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Fully opaque: at 0.92 with a blur behind it, the globe's dot map showed
+     through the card. */
+  background: #ffffff;
   border: 1px solid var(--border-strong);
   box-shadow:
     0 1px 6px rgba(41, 55, 76, 0.16),
@@ -489,9 +489,9 @@
   position: relative;
   flex: none;
   width: min(26rem, 100%);
-  /* Pulled up closer under the globe. */
+  /* Pulled up closer under the globe, and lifted off the bottom edge. */
   margin: -5.4rem auto 0;
-  padding: 0 1rem 0.55rem;
+  padding: 0 1rem 1.35rem;
   z-index: 6;
 }
 
@@ -547,7 +547,11 @@
   position: absolute;
   left: 1rem;
   right: 1rem;
-  bottom: calc(100% - 0.6rem);
+  /* Anchored to the field's top edge with an 8px gap, so the list grows upward
+     from the bar and never overlaps it. The host's bottom padding sits between
+     the field and the host's bottom edge, so it has to be added back here. */
+  bottom: calc(1.35rem + var(--search-shell-collapsed-height) + 8px);
+  transform-origin: 50% 100%;
   z-index: 7;
   display: flex;
   flex-direction: column;
