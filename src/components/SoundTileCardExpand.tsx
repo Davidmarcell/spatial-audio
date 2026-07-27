@@ -10,6 +10,7 @@ import {
 import { createPortal } from 'react-dom';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import { resolveTileIconSrc } from '../data/iconDetailSrc';
+import { estimateDetailOpenRect, detailArtBox } from '../utils/detailArtLayout';
 import { publicUrl } from '../utils/publicUrl';
 import {
   type OriginRectSnapshot,
@@ -69,33 +70,22 @@ function easeCardExpand(t: number): number {
   return 3 * u * u * x * c1y + 3 * u * x * x * c2y + x * x * x;
 }
 
-function clampCardWidth(preferred: number): number {
-  if (typeof window === 'undefined') return preferred;
-  return Math.min(preferred, Math.max(280, window.innerWidth - 32));
-}
-
-/** width/height of the art — portrait images are taller (aspect < 1). */
+/** Portrait grows taller; landscape locks ~330px tall and widens the card. */
 function estimateOpenRect(
   panelWidthPx: number,
   imageSizePx: number,
   paddingPx: number,
+  columnGapPx: number,
   aspect: number,
 ): Rect {
-  const width = clampCardWidth(panelWidthPx);
-  const artW = Math.min(imageSizePx, Math.max(120, width - paddingPx * 2));
-  const artH = artW / Math.max(0.4, aspect);
-  const height = Math.min(
-    paddingPx * 2 + Math.max(artH, 240),
-    typeof window !== 'undefined' ? window.innerHeight * 0.85 : 420,
+  const { left, top, width, height } = estimateDetailOpenRect(
+    panelWidthPx,
+    imageSizePx,
+    paddingPx,
+    columnGapPx,
+    aspect,
   );
-  const vw = typeof window !== 'undefined' ? window.innerWidth : width;
-  const vh = typeof window !== 'undefined' ? window.innerHeight : height;
-  return {
-    left: (vw - width) / 2,
-    top: (vh - height) / 2,
-    width,
-    height,
-  };
+  return { left, top, width, height };
 }
 
 function readLiveTileRect(instanceId: string): Rect | null {
@@ -221,7 +211,13 @@ export function SoundTileCardExpand({
 
   const restingRectFor = useCallback(
     (aspect: number) =>
-      estimateOpenRect(design.panelWidthPx, design.imageSizePx, design.paddingPx, aspect),
+      estimateOpenRect(
+        design.panelWidthPx,
+        design.imageSizePx,
+        design.paddingPx,
+        design.columnGapPx,
+        aspect,
+      ),
     [design],
   );
 
@@ -345,8 +341,15 @@ export function SoundTileCardExpand({
   const radius = lerp(TILE_RADIUS_PX, cardRadius, progress);
 
   const pad = design.paddingPx;
-  const destArtW = Math.min(design.imageSizePx, Math.max(48, to.width - pad * 2));
-  const destArtH = destArtW / Math.max(0.4, artAspect);
+  const openLayout = estimateDetailOpenRect(
+    design.panelWidthPx,
+    design.imageSizePx,
+    design.paddingPx,
+    design.columnGapPx,
+    artAspect,
+  );
+  const destArtW = openLayout.artW;
+  const destArtH = openLayout.artH;
 
   // One clock for both axes: square tile → final art box together.
   const faceLeft = lerp(0, pad, progress);
@@ -380,13 +383,17 @@ export function SoundTileCardExpand({
       ? Math.min(1, (progress - COPY_REVEAL_AT) / Math.max(0.001, 1 - COPY_REVEAL_AT))
       : 0;
 
+  const artBox = detailArtBox(artAspect, design.imageSizePx);
   const sheetStyle = {
     ...designVars,
+    '--sound-tile-art-width': `${destArtW}px`,
+    '--sound-tile-art-height': `${destArtH}px`,
+    '--sound-tile-image-size': `${artBox.isLandscape ? destArtW : design.imageSizePx}px`,
     left: `${sheetLeft}px`,
     top: `${sheetTop}px`,
     width: `${sheetWidth}px`,
     height: `${sheetHeight}px`,
-    maxWidth: `min(${design.panelWidthPx}px, calc(100vw - 2rem))`,
+    maxWidth: `min(${Math.max(design.panelWidthPx, to.width)}px, calc(100vw - 2rem))`,
     maxHeight: 'min(85dvh, calc(100dvh - 2.5rem))',
     borderRadius: `${radius}px`,
   } as CSSProperties;

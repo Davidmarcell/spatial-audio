@@ -9,14 +9,14 @@
  * z-stacked above the outgoing one) share one curve, clock and easing.
  */
 
-/** Rise length. Kept in the ~1.2-1.4s band so the enter whoosh can breathe. */
-export const SHEET_RISE_DURATION_MS = 1300;
+/** Rise length. Kept short so the scene (and audio) arrive quickly; whoosh can still breathe past the settle. */
+export const SHEET_RISE_DURATION_MS = 500;
 /**
  * Short cross-fade once the cover panel has fully risen, so the reveal of the
  * destination beneath it is soft even when its surface differs from the panel's
  * page background (e.g. a playing soundscape canvas).
  */
-export const SHEET_REVEAL_FADE_MS = 200;
+export const SHEET_REVEAL_FADE_MS = 140;
 /**
  * When a scene arrives behind a rising cover panel, the canvas holds its tile
  * radiate-in until roughly the moment the panel finishes rising and reveals it,

@@ -7,7 +7,7 @@
 
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, var(--sound-tile-image-size)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, var(--sound-tile-art-width, var(--sound-tile-image-size))) minmax(0, 1fr);
   gap: var(--sound-tile-column-gap);
   align-items: start;
   flex: 1;
@@ -53,7 +53,7 @@
 
 .artworkWrap {
   width: 100%;
-  max-width: var(--sound-tile-image-size);
+  max-width: var(--sound-tile-art-width, var(--sound-tile-image-size));
   align-self: start;
   flex-shrink: 0;
 }
@@ -62,10 +62,10 @@
   visibility: hidden;
 }
 
-/* Shared-element slot: natural aspect (portrait grows taller). */
+/* Shared-element slot: natural aspect (portrait grows taller; landscape wider). */
 .artworkWrapShared {
-  width: var(--sound-tile-image-size);
-  max-width: var(--sound-tile-image-size);
+  width: var(--sound-tile-art-width, var(--sound-tile-image-size));
+  max-width: 100%;
   aspect-ratio: var(--sound-tile-art-aspect, 1);
 }
 

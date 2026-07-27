@@ -65,6 +65,8 @@ import type { SoundDef, SpatialPoint } from './data/types';
 import { useAudioEngine } from './hooks/useAudioEngine';
 import { useSpatialSources } from './hooks/useSpatialSources';
 import { buildSceneShareUrl, sceneFromAppState } from './utils/sceneShare';
+import { getSoundArtworkForRegion } from './data/iconArt';
+import { resolveTileIconSrc } from './data/iconDetailSrc';
 import { randomizeSceneSounds } from './utils/randomizeSceneSounds';
 import { regionSeed, selectSceneVariants } from './utils/soundscapeSelection';
 import { enrichSounds } from './utils/soundTypeInference';
@@ -75,6 +77,8 @@ import {
   snapshotOriginRect,
   type OriginRectSnapshot,
 } from './utils/overlayOriginAnimation';
+import { preloadDecodedImages } from './utils/preloadImages';
+import { publicUrl } from './utils/publicUrl';
 import styles from './App.module.css';
 
 type SoundDrag = {
@@ -99,7 +103,6 @@ type ReturnFlight = {
   dockIds: string[];
 };
 
-/** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~1300ms). */
 /** Placement spread in force for this viewport (phones push tiles further out). */
 const canvasSpread = () =>
   isCompactViewport() ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
@@ -359,6 +362,47 @@ export default function App() {
     [activeSounds],
   );
 
+  /** Warm bed audio + tile art for a destination before/while the cover rises. */
+  const warmSceneAssets = useCallback(
+    (nextEnvironmentId: string, nextRegionId: string) => {
+      const nextRegion = getRegion(nextEnvironmentId, nextRegionId);
+      if (!nextRegion) return;
+
+      const beds = nextRegion.bedSounds ?? [];
+      const catalog = getRegionSoundCatalog(nextRegion.sounds, nextRegion.tags);
+      const regionSoundIds = catalog.map((item) => item.id);
+      const audioSrcs: string[] = [];
+      const imageSrcs: string[] = [];
+
+      for (const bed of beds) {
+        const sound =
+          catalog.find((item) => item.id === bed.soundId) ??
+          getSoundDef(nextEnvironmentId, nextRegionId, bed.soundId);
+        if (sound?.src) audioSrcs.push(sound.src);
+        const art = getSoundArtworkForRegion(
+          nextRegionId,
+          regionSoundIds,
+          bed.soundId,
+          undefined,
+          nextRegion.tags,
+        );
+        imageSrcs.push(
+          publicUrl(
+            resolveTileIconSrc({
+              src: art.src,
+              sourceUrl: art.sourceUrl,
+              detailSrc: art.detailSrc,
+            }),
+          ),
+        );
+      }
+
+      if (audioSrcs.length > 0) void engine.preloadVariants(audioSrcs);
+      if (imageSrcs.length > 0) void preloadDecodedImages(imageSrcs);
+    },
+    [engine],
+  );
+
   const recipeForSound = useCallback(
     (soundId: string): PlaybackRecipe | undefined => {
       const variant = variantSelection.get(soundId);
@@ -462,6 +506,29 @@ export default function App() {
     }
     if (srcs.length > 0) void engine.preloadVariants(srcs);
   }, [activeSounds, engine, soundMap, variantSelection]);
+
+  // Decode the active tile plates during the cover window so the first beds
+  // paint full-frame as soon as the scene radiates in (no empty squares).
+  useEffect(() => {
+    if (activeSounds.length === 0) return;
+    const urls = activeSounds.map((item) => {
+      const art = getSoundArtworkForRegion(
+        regionArt.id,
+        regionArt.soundIds,
+        item.soundId,
+        item.instanceId,
+        regionArt.tags,
+      );
+      return publicUrl(
+        resolveTileIconSrc({
+          src: art.src,
+          sourceUrl: art.sourceUrl,
+          detailSrc: art.detailSrc,
+        }),
+      );
+    });
+    void preloadDecodedImages(urls);
+  }, [activeSounds, regionArt]);
 
   const applyRegion = useCallback(
     (nextEnvironmentId: string, nextRegionId: string) => {
@@ -582,14 +649,12 @@ export default function App() {
         }
       }
 
-      await Promise.all(additions);
-      if (cancelled) return;
-
       if (autoPlayOnLoad) {
         await unlock();
         if (cancelled) return;
-        // Hold only until the entry cover has revealed the scene, so audio never
-        // leads the visuals — but no longer waits on the tile radiate-in too.
+        // Hold only until the entry cover has revealed the scene. Do NOT wait
+        // for every bed to finish loading — play() arms the engine so each
+        // layer starts as its buffer lands (progressive beds, faster first sound).
         await revealReached;
         autoPlayTimer = null;
         if (cancelled) return;
@@ -597,6 +662,9 @@ export default function App() {
         if (cancelled) return;
         setAutoPlayOnLoad(false);
       }
+
+      await Promise.all(additions);
+      if (cancelled) return;
     };
 
     void sync();
@@ -1027,6 +1095,7 @@ export default function App() {
     (location: WorldLocation) => {
       void unlock();
       setWorkspaceGlobeOpening(false);
+      warmSceneAssets(location.environmentId, location.regionId);
       playSceneEntryCover();
       if (location.custom) {
         setCustomGlobeLocation(location);
@@ -1052,7 +1121,7 @@ export default function App() {
       // landing gate (a no-op once already inside the workspace).
       setHasEntered(true);
     },
-    [applyRegion, hasEntered, playSceneEntryCover, unlock],
+    [applyRegion, hasEntered, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   // Entry from the landing gate. Unlocking the AudioContext inside this click
@@ -1062,6 +1131,7 @@ export default function App() {
   const handleEnterLocation = useCallback(
     (location: WorldLocation) => {
       void unlock();
+      warmSceneAssets(location.environmentId, location.regionId);
       playSceneEntryCover();
       // Keep the landing mounted and lifting beneath the rising cover panel even
       // though `hasEntered` flips true, so the old page stays and pushes up while
@@ -1075,7 +1145,7 @@ export default function App() {
       setAutoPlayOnLoad(true);
       setHasEntered(true);
     },
-    [applyRegion, playSceneEntryCover, unlock],
+    [applyRegion, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   // Entry via the Enter button or an empty-query Enter in the landing search:
@@ -1089,7 +1159,7 @@ export default function App() {
   // Closing the globe (X) returns to the landing; picking a place enters it.
   const handleEnterExperience = useCallback(() => {
     void unlock();
-    // Calm airy whoosh swells with the ~860ms sheet rise. Skip under reduced
+    // Calm airy whoosh swells with the sheet rise. Skip under reduced
     // motion so audio does not outlast the near-instant visual (~140ms).
     if (!prefersReducedMotion()) {
       void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
@@ -1242,6 +1312,7 @@ export default function App() {
 
   const handleGeoMatch = useCallback(
     (match: GeoMatchResult) => {
+      warmSceneAssets(match.environmentId, match.regionId);
       playSceneEntryCover();
       setCustomGlobeLocation(
         createCustomWorldLocation({
@@ -1256,7 +1327,7 @@ export default function App() {
       applyRegion(match.environmentId, match.regionId);
       // Mid-session switch: respect the transport rather than forcing playback.
     },
-    [applyRegion, playSceneEntryCover],
+    [applyRegion, playSceneEntryCover, warmSceneAssets],
   );
 
   const handleRandomRegion = useCallback(
@@ -1301,6 +1372,7 @@ export default function App() {
       // on the globe at the searched coordinates; a curated soundscape clears
       // any existing custom pin.
       void unlock();
+      warmSceneAssets(nextEnvironmentId, nextRegionId);
       playSceneEntryCover();
       setCustomGlobeLocation(customLocation ?? null);
       applyRegion(nextEnvironmentId, nextRegionId);
@@ -1317,7 +1389,7 @@ export default function App() {
       // Searching is the alternate entry gesture, so it also leaves the gate.
       setHasEntered(true);
     },
-    [applyRegion, hasEntered, playSceneEntryCover, unlock],
+    [applyRegion, hasEntered, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   const handleReturnComplete = useCallback(() => {

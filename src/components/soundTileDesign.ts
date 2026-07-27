@@ -31,7 +31,8 @@ const STORAGE_KEY = 'saudade:sound-tile-design';
 const VISIBLE_KEY = 'saudade:sound-tile-design-tuner-visible';
 
 const PANEL_WIDTH_MIN = 420;
-const PANEL_WIDTH_MAX = 720;
+/** Wide enough for landscape art at ~330px tall beside the meta column. */
+const PANEL_WIDTH_MAX = 880;
 
 function clampPanelWidthPx(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_SOUND_TILE_DESIGN.panelWidthPx;

@@ -68,9 +68,10 @@ export function SoundIconImage({
         alt={alt}
         draggable={false}
         /* Canvas / dock / landing faces should decode with the scene — lazy
-           left too many empty square frames while the network caught up. */
+           left too many empty square frames while the network caught up. Canvas
+           uses sync decode so a preloaded plate never paints an empty frame. */
         loading="eager"
-        decoding={isDetail || decodeSync ? 'sync' : 'async'}
+        decoding={isDetail || decodeSync || size === 'canvas' ? 'sync' : 'async'}
         fetchPriority={size === 'canvas' || size === 'detail' || size === 'detailNatural' ? 'high' : 'auto'}
         onError={() => {
           setChainIndex((current) => {

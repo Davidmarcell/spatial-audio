@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
+import { detailArtBox } from '../utils/detailArtLayout';
 import { SoundIconImage } from './SoundIconImage';
 import {
   loadSoundTileDesign,
@@ -59,9 +60,19 @@ export function SoundArtDetailContent({
   );
   const percent = Math.round(target.volume * 100);
   const sourceLabel = shortArtworkSourceLabel(artwork.sourceUrl);
-  const designStyle = soundTileDesignToCssVars(
-    designConfig ?? loadSoundTileDesign(),
-  ) as CSSProperties;
+  const design = designConfig ?? loadSoundTileDesign();
+  const artBox =
+    artworkMode === 'shared' ? detailArtBox(artAspect, design.imageSizePx) : null;
+  const designStyle = {
+    ...soundTileDesignToCssVars(design),
+    ...(artBox
+      ? {
+          '--sound-tile-art-width': `${artBox.artW}px`,
+          '--sound-tile-art-height': `${artBox.artH}px`,
+          '--sound-tile-image-size': `${artBox.isLandscape ? artBox.artW : design.imageSizePx}px`,
+        }
+      : null),
+  } as CSSProperties;
 
   return (
     <div
