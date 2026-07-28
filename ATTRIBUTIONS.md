@@ -61,8 +61,8 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 
 | File | Title | Author | License | Source |
 |------|-------|--------|---------|--------|
-| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (extended ~2.2s with soft fade) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
-| `public/audio/ui/globe-ambient.mp3` | Ethereal globe browse ambient (synthesized soft noise + pad) | Saudade | Original (app asset) | — |
+| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (extended ~3.9s with soft fade) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
+| `public/audio/ui/globe-ambient.mp3` | Globe browse ambient — quiet Auckland soundscape wireframe (tui / fantail / forest / insects) | Saudade (mixed from bundled NZ beds) | Composite | — |
 
 ## Icon fonts
 

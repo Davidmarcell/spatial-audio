@@ -123,6 +123,12 @@
   opacity: var(--playing-bar-wave-opacity, 0.4);
 }
 
+/* Soft swell while a tile is dragged — only when drag-reactive is enabled. */
+:root[data-playing-bar-drag-reactive='1'][data-radiance-dragging='1'] .playingBarShader {
+  opacity: max(var(--playing-bar-wave-opacity, 0), 0.34);
+  transition: opacity 0.18s var(--ease-ios);
+}
+
 :root[data-playing-bar-breathe='1'] .playingBarShaderActive {
   animation: playingBarRadianceBreath var(--playing-bar-breath-duration, 9.5s) ease-in-out infinite;
 }

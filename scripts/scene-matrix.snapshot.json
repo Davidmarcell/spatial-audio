@@ -44,7 +44,7 @@
       "gull": "/icons/gull.jpg",
       "kereru": "/icons/kereru.jpg",
       "morepork": "/icons/morepork.jpg",
-      "summer-cicadas": "/icons/cricket-field-ensifera.jpg",
+      "summer-cicadas": "/icons/insect-jardine-plate.jpg",
       "surf": "/icons/waves-courbet-the-wave.jpg",
       "tui": "/icons/tui.jpg",
       "urban-creek": "/icons/met/12307.jpg",
@@ -109,7 +109,7 @@
       "global-wind": "wind-fir-forest"
     },
     "image": {
-      "bangkok-insects": "/icons/merian-suriname-butterfly.jpg",
+      "bangkok-insects": "/icons/cicada-maculata.jpg",
       "bangkok-koel": "/icons/pool/tropicalbird-asian.jpg",
       "bangkok-market": "/icons/pool/market-asian.jpg",
       "bangkok-monsoon-rain": "/icons/hiroshige-rain.jpg",
@@ -190,7 +190,7 @@
       "blue-jay": "/icons/blue-jay.jpg",
       "brooklyn-rain": "/icons/met/11124.jpg",
       "distant-traffic": "/icons/met/853645.jpg",
-      "evening-crickets": "/icons/merian-suriname-butterfly.jpg",
+      "evening-crickets": "/icons/insect-jardine-plate.jpg",
       "global-forest": "/icons/met/371022.jpg",
       "global-gull": "/icons/pool/seabird-americas.jpg",
       "global-insects": "/icons/cricket-field-ensifera.jpg",
@@ -739,16 +739,17 @@
     "audio": {
       "global-forest": "forest-1",
       "global-gull": "seabird-gulls-harbour",
-      "global-insects": "insects-cicadas",
+      "global-insects": "insects-nocturnal",
       "global-jazz": "jazz-what-can-i-say",
       "global-kookaburra": "kookaburra-1",
       "global-night-owl": "owl-morepork-ruru",
-      "global-rain": "thunder-6",
+      "global-rain": "rain-umbrella",
       "global-songbird": "songbird-australian-magpie",
       "global-stream": "stream-brooklet",
       "global-surf": "waves-beach-sea",
       "global-traffic": "city-night-murmur",
-      "global-wind": "wind-fir-forest"
+      "global-wind": "wind-fir-forest",
+      "sydney-cicadas": "insects-cicadas"
     },
     "image": {
       "global-forest": "/icons/met/10378.jpg",
@@ -762,7 +763,8 @@
       "global-stream": "/icons/met/12307.jpg",
       "global-surf": "/icons/met/460052.jpg",
       "global-traffic": "/icons/met/853645.jpg",
-      "global-wind": "/icons/met/11306.jpg"
+      "global-wind": "/icons/met/11306.jpg",
+      "sydney-cicadas": "/icons/cicada-maculata.jpg"
     }
   }
 }

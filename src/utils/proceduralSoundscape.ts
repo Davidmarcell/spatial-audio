@@ -340,12 +340,18 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // Australian Magpie carol, pinned to the sourced Pacific/Australia clip
     // (routed through the deep songbird pool). Replaces the generic "Bush Birds".
     bed('songbird', { name: 'Australian Magpie', vol: 0.42, clip: 'songbird-australian-magpie' }),
-    // Pin a real cicada so the tile stops resolving to a field cricket.
-    bed('insects', { name: 'Cicadas', vol: 0.22, clip: 'insects-cicadas' }),
+    // Bespoke id so Sydney cicadas can keep a cicada plate (not the cricket default).
+    bed('insects', { id: 'sydney-cicadas', name: 'Cicadas', vol: 0.22, clip: 'insects-cicadas' }),
     // Pin a cleaner beach/surf bed instead of the Adriatic `legacy-surf`.
     bed('surf', { name: 'Harbour Surf', vol: 0.38, clip: 'waves-beach-sea' }),
     // Pin the harbour-tagged gull clip.
     bed('seabird', { name: 'Silver Gulls', vol: 0.4, clip: 'seabird-gulls-harbour' }),
+    // Side-dock options to add by hand (rain, breeze, bush, city, night owl).
+    option('rain', { name: 'Harbour Rain', vol: 0.38 }),
+    option('wind', { name: 'Harbour Breeze', vol: 0.3 }),
+    option('forest', { name: 'Bush Reserve', vol: 0.4 }),
+    option('cityHum', { name: 'City Hum', vol: 0.2 }),
+    option('owl', { name: 'Night Owl', vol: 0.32 }),
   ] },
   bali: { extraTags: ['tropical', 'coastal', 'rainforest'], layers: [
     bed('tropicalBird', { name: 'Rice-Field Birds' }), bed('frogs', { name: 'Paddy Frogs' }),

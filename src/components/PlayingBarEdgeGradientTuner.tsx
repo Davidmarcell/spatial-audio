@@ -8,6 +8,12 @@ import {
   savePlayingBarEdgeGradientSavedDefault,
   type PlayingBarEdgeGradientConfig,
 } from '../utils/playingBarEdgeGradient';
+import {
+  INSECT_ART_CHANGE_EVENT,
+  cycleInsectArtOptionId,
+  getInsectArtOption,
+  loadInsectArtOptionId,
+} from '../utils/insectArtOptions';
 import styles from './PlayingBarEdgeGradientTuner.module.css';
 
 type PlayingBarEdgeGradientTunerProps = {
@@ -111,6 +117,7 @@ export function PlayingBarEdgeGradientTuner({
   const [available] = useState(() => readTunerVisible());
   // Open the panel so the controls are immediately reachable when reviewing.
   const [open, setOpen] = useState(() => readTunerVisible());
+  const [insectArtId, setInsectArtId] = useState(() => loadInsectArtOptionId());
 
   // Apply on mount even when the panel is hidden, so a saved default is what the
   // app actually renders rather than only taking effect once the panel is opened.
@@ -121,6 +128,17 @@ export function PlayingBarEdgeGradientTuner({
   useEffect(() => {
     if (available) persistPlayingBarEdgeGradientTunerVisible(true);
   }, [available]);
+
+  useEffect(() => {
+    const onChange = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: string }>).detail?.id;
+      if (id) setInsectArtId(id);
+    };
+    window.addEventListener(INSECT_ART_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(INSECT_ART_CHANGE_EVENT, onChange);
+  }, []);
+
+  const insectArt = getInsectArtOption(insectArtId);
 
   const update = useCallback(<K extends keyof PlayingBarEdgeGradientConfig>(
     key: K,
@@ -164,6 +182,15 @@ export function PlayingBarEdgeGradientTuner({
           onClick={() => setOpen(true)}
         >
           Radiance
+        </button>
+        <button
+          type="button"
+          className={styles.landingChip}
+          title={`Insect art: ${insectArt.label}. Click to cycle options.`}
+          onClick={() => setInsectArtId(cycleInsectArtOptionId(insectArtId))}
+        >
+          Insects
+          <span className={styles.landingChipState}>{insectArt.label}</span>
         </button>
         {onLandingEnabledChange && (
           <button
@@ -257,6 +284,29 @@ export function PlayingBarEdgeGradientTuner({
             />
           </div>
           {config.breatheEnabled && BREATH_FIELDS.map(renderSlider)}
+          <div className={styles.fieldToggle}>
+            <span className={styles.fieldLabel}>Swell while dragging</span>
+            <input
+              type="checkbox"
+              checked={config.dragReactive}
+              onChange={(event) => update('dragReactive', event.target.checked)}
+            />
+          </div>
+          <p className={styles.hint}>
+            Drag swell wakes a soft bottom glow while tiles are moved — works even
+            when Strength is 0.
+          </p>
+        </div>
+
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Insect art</h3>
+          <button
+            type="button"
+            className={styles.saveButton}
+            onClick={() => setInsectArtId(cycleInsectArtOptionId(insectArtId))}
+          >
+            Cycle plate · {insectArt.label}
+          </button>
         </div>
 
         <div className={styles.footer}>

@@ -12,6 +12,11 @@ import {
   resolveTileIconSrc,
 } from './iconDetailSrc';
 import type { VariantTag } from './types';
+import {
+  getInsectArtOption,
+  isInsectArtOverrideTarget,
+  loadInsectArtOptionId,
+} from '../utils/insectArtOptions';
 
 /**
  * Sound → art rationale (curated pass):
@@ -102,10 +107,10 @@ const extendedFixedIcons: Record<string, string> = {
   'bangkok-traffic': '/icons/pool/street-bangkok-kerr.jpg',
   // Havana city hum — tall Obispo Street postcard (Habana Vieja), not Brooklyn.
   'havana-cityhum': '/icons/havana-obispo-street.jpg',
-  // The generic night-insect bed is a cricket chorus, so show a cricket. The
-  // pool's Merian moth plate read as "some insect" rather than the thing you
-  // hear. Cicada-specific layers keep their own pinned plates (see kyoto-*).
+  // Default insect plates (live Insects chip can override these while reviewing).
   'global-insects': '/icons/cricket-field-ensifera.jpg',
+  'summer-cicadas': '/icons/insect-jardine-plate.jpg',
+  'sydney-cicadas': '/icons/cicada-maculata.jpg',
 };
 
 /** Attributions for the extended fixed plates above (kept out of the generated file). */
@@ -124,6 +129,40 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     author: 'Gotthilf Heinrich von Schubert, Naturgeschichte (1886)',
     license: 'Public domain',
     sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ensifera_Naturgeschichte.jpg',
+  },
+  {
+    file: '/icons/cicada-maculata.jpg',
+    title: 'Illustrations of Exotic Entomology — Cicada Maculata',
+    author: 'Dru Drury / John Obadiah Westwood',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Illustrations_of_Exotic_Entomology_Cicada_Maculata.jpg',
+  },
+  {
+    file: '/icons/insect-jardine-plate.jpg',
+    title: "Naturalist's Library Entomology, Plate 21 (cicada)",
+    author: "Sir William Jardine (Naturalist's Library)",
+    license: 'Public domain',
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Jardine_Naturalist's_library_Entomology_Plate_21.jpg",
+  },
+  {
+    file: '/icons/insect-field-cricket-plate.jpg',
+    title:
+      'Locusta sexpunctata, Gryllus campestris, Gryllotalpa mitidula (plate detail)',
+    author: '19th-century natural history plate (Wikimedia Commons)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Locusta_sexpunctata(grasshopper_of_six_points),_Gryllus_campestris(field_crickets),_Gryllotalpa_mitidula(Australian_Crickets).jpg',
+  },
+  {
+    file: '/icons/insect-natural-history.jpg',
+    title:
+      'Natural history of the animal kingdom for the use of young people (Plate XXIV)',
+    author: 'W. F. Kirby / public-domain plate',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Natural_history_of_the_animal_kingdom_for_the_use_of_young_people_(Plate_XXIV)_(5974465081).jpg',
   },
   {
     file: '/icons/lion-kuhnert-awakening.jpg',
@@ -605,6 +644,24 @@ const sceneArtPools: Record<string, IconPoolEntry[]> = {
 const speciesArtPools: Record<string, IconPoolEntry[]> = {
   insects: [
     {
+      src: '/icons/insect-jardine-plate.jpg',
+      title: "Naturalist's Library Entomology, Plate 21 (cicada)",
+      author: "Sir William Jardine (Naturalist's Library)",
+      license: 'Public domain',
+      sourceUrl:
+        "https://commons.wikimedia.org/wiki/File:Jardine_Naturalist's_library_Entomology_Plate_21.jpg",
+      tags: ['temperate', 'summer', 'cicada'],
+    },
+    {
+      src: '/icons/cicada-maculata.jpg',
+      title: 'Illustrations of Exotic Entomology — Cicada Maculata',
+      author: 'Dru Drury / John Obadiah Westwood',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Illustrations_of_Exotic_Entomology_Cicada_Maculata.jpg',
+      tags: ['tropical', 'summer', 'cicada'],
+    },
+    {
       src: '/icons/cricket-field-ensifera.jpg',
       title: 'Cricket, from a plate of Ensifera (crickets and bush-crickets)',
       author: 'Gotthilf Heinrich von Schubert, Naturgeschichte (1886)',
@@ -613,12 +670,32 @@ const speciesArtPools: Record<string, IconPoolEntry[]> = {
       tags: ['temperate', 'european', 'night'],
     },
     {
+      src: '/icons/insect-field-cricket-plate.jpg',
+      title:
+        'Locusta sexpunctata, Gryllus campestris, Gryllotalpa mitidula (plate detail)',
+      author: '19th-century natural history plate (Wikimedia Commons)',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Locusta_sexpunctata(grasshopper_of_six_points),_Gryllus_campestris(field_crickets),_Gryllotalpa_mitidula(Australian_Crickets).jpg',
+      tags: ['temperate', 'australian', 'summer'],
+    },
+    {
       src: '/icons/insects.jpg',
       title: 'Metamorphosis of a Small Emperor Moth on a Damson Plum (plate 13)',
       author: 'Maria Sibylla Merian (Getty Museum)',
       license: 'Public domain',
       sourceUrl:
         'https://commons.wikimedia.org/wiki/File:Metamorphosis_of_a_Small_Emperor_Moth_on_a_Damson_Plum,_plate_13_of_the_Caterpillar_Book,_by_Maria_Sibylla_Merian_(Getty_109Q5N).jpg',
+      tags: ['temperate', 'european'],
+    },
+    {
+      src: '/icons/insect-natural-history.jpg',
+      title:
+        'Natural history of the animal kingdom for the use of young people (Plate XXIV)',
+      author: 'W. F. Kirby / public-domain plate',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Natural_history_of_the_animal_kingdom_for_the_use_of_young_people_(Plate_XXIV)_(5974465081).jpg',
       tags: ['temperate', 'european'],
     },
     {
@@ -1361,11 +1438,27 @@ export function getSoundIconEntry(
   return withDisplaySrc(pickFromPool(pool, key, sceneTags));
 }
 
+function insectArtOverrideEntry(soundId: string): IconPoolEntry | null {
+  if (typeof window === 'undefined') return null;
+  if (!isInsectArtOverrideTarget(soundId)) return null;
+  const option = getInsectArtOption(loadInsectArtOptionId());
+  return {
+    src: option.src,
+    title: option.title,
+    author: option.author,
+    license: option.license,
+    sourceUrl: option.sourceUrl,
+  };
+}
+
 export function getSoundArtwork(
   soundId: string,
   variantKey?: string,
   sceneTags?: VariantTag[],
 ): IconPoolEntry {
+  const insectOverride = insectArtOverrideEntry(soundId);
+  if (insectOverride) return withDisplaySrc(insectOverride);
+
   const fixed = fixedIconEntry(soundId);
   if (fixed) return withDisplaySrc(fixed);
 
@@ -1395,6 +1488,9 @@ export function getSoundArtworkForRegion(
   variantKey?: string,
   sceneTags?: VariantTag[],
 ): IconPoolEntry {
+  const insectOverride = insectArtOverrideEntry(soundId);
+  if (insectOverride) return withDisplaySrc(insectOverride);
+
   const regional = getRegionArtworkMap(regionId, regionSoundIds, sceneTags).get(soundId);
   if (regional) return regional;
   return getSoundArtwork(soundId, variantKey, sceneTags);
@@ -1405,6 +1501,8 @@ export type RegionArtContext = {
   soundIds: string[];
   /** Scene-wide region/climate flavour tags biasing tile art selection. */
   tags?: VariantTag[];
+  /** Optional revision so art-preference changes remount tile consumers. */
+  insectArtRevision?: number;
 };
 
 /**

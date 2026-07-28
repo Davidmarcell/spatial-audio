@@ -95,6 +95,10 @@ import {
 } from './utils/overlayOriginAnimation';
 import { preloadDecodedImages } from './utils/preloadImages';
 import { publicUrl } from './utils/publicUrl';
+import {
+  INSECT_ART_CHANGE_EVENT,
+  loadInsectArtOptionId,
+} from './utils/insectArtOptions';
 import styles from './App.module.css';
 
 type SoundDrag = {
@@ -124,12 +128,12 @@ const canvasSpread = () =>
   isCompactViewport() ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
 
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
-/** Half the previous one-shot level so the whoosh sits under the reveal. */
-const ENTER_WHOOSH_VOLUME = 0.275;
-/** Soft synthesized ethereal bed while browsing the world map. */
+/** Extended ~3.9s whoosh — soft enough to sit under sheet rise / ethereal bed. */
+const ENTER_WHOOSH_VOLUME = 0.32;
+/** Quiet Auckland-layout wireframe bed while browsing the world map. */
 const GLOBE_AMBIENT_SRC = '/audio/ui/globe-ambient.mp3';
 const GLOBE_AMBIENT_ID = 'ui:globe-ambient';
-const GLOBE_AMBIENT_VOLUME = 0.2;
+const GLOBE_AMBIENT_VOLUME = 0.22;
 
 export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
@@ -267,6 +271,8 @@ export default function App() {
   // re-arming every one-shot entrance latch (wordmark/fan/tagline/search/Enter)
   // without a page refresh.
   const [landingReplayKey, setLandingReplayKey] = useState(0);
+  // Bumped when the Insects art chip cycles so tiles remount with the new plate.
+  const [insectArtRevision, setInsectArtRevision] = useState(0);
   const canvasRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   const bottomBarRef = useRef<HTMLElement>(null);
@@ -394,9 +400,32 @@ export default function App() {
       id: regionId,
       soundIds: librarySounds.map((sound) => sound.id),
       tags: region.tags,
+      // Included so cycling insect art invalidates memoised tile art consumers.
+      insectArtRevision,
     }),
-    [regionId, librarySounds, region.tags],
+    [regionId, librarySounds, region.tags, insectArtRevision],
   );
+
+  useEffect(() => {
+    const onInsectArtChange = () => {
+      // Touch storage so the next getSoundArtwork read sees the new id.
+      void loadInsectArtOptionId();
+      setInsectArtRevision((value) => value + 1);
+    };
+    window.addEventListener(INSECT_ART_CHANGE_EVENT, onInsectArtChange);
+    return () => window.removeEventListener(INSECT_ART_CHANGE_EVENT, onInsectArtChange);
+  }, []);
+
+  // Soft radiance swell while dragging tiles (opt-in via Radiance → Drag swell).
+  useEffect(() => {
+    const root = document.documentElement;
+    const dragging = Boolean(soundDrag?.active);
+    if (dragging) root.dataset.radianceDragging = '1';
+    else delete root.dataset.radianceDragging;
+    return () => {
+      delete root.dataset.radianceDragging;
+    };
+  }, [soundDrag?.active]);
 
   const activeSoundIds = useMemo(
     () => activeSounds.map((item) => item.soundId),
@@ -523,7 +552,8 @@ export default function App() {
     if (shouldPlay) {
       void playLoop(GLOBE_AMBIENT_ID, GLOBE_AMBIENT_SRC, {
         volume: GLOBE_AMBIENT_VOLUME,
-        fadeInSeconds: 1.8,
+        // Quicker swell so the Auckland wireframe bed is audible as the map rises.
+        fadeInSeconds: 0.85,
       });
     } else {
       stopLoop(GLOBE_AMBIENT_ID, 0.7);
@@ -1201,6 +1231,10 @@ export default function App() {
   const handleGlobeSelect = useCallback(
     (location: WorldLocation) => {
       void unlock();
+      // Extended enter whoosh rides the cover rise into the soundscape.
+      if (!prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
       setWorkspaceGlobeOpening(false);
       warmSceneAssets(location.environmentId, location.regionId);
       playSceneEntryCover();
@@ -1224,7 +1258,7 @@ export default function App() {
       // landing gate (a no-op once already inside the workspace).
       setHasEntered(true);
     },
-    [applyRegion, playSceneEntryCover, unlock, warmSceneAssets],
+    [applyRegion, playOneShot, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   // Entry from the landing gate. Unlocking the AudioContext inside this click
@@ -1234,6 +1268,9 @@ export default function App() {
   const handleEnterLocation = useCallback(
     (location: WorldLocation) => {
       void unlock();
+      if (!prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
       warmSceneAssets(location.environmentId, location.regionId);
       playSceneEntryCover();
       // Keep the landing mounted and lifting beneath the rising cover panel even
@@ -1248,7 +1285,7 @@ export default function App() {
       setAutoPlayOnLoad(true);
       setHasEntered(true);
     },
-    [applyRegion, playSceneEntryCover, unlock, warmSceneAssets],
+    [applyRegion, playOneShot, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   // Entry via the Enter button or an empty-query Enter in the landing search:
@@ -1475,6 +1512,10 @@ export default function App() {
       // on the globe at the searched coordinates; a curated soundscape clears
       // any existing custom pin.
       void unlock();
+      // Landing search entry into a soundscape gets the same extended whoosh.
+      if (!hasEntered && !prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
       warmSceneAssets(nextEnvironmentId, nextRegionId);
       playSceneEntryCover();
       setCustomGlobeLocation(customLocation ?? null);
@@ -1492,7 +1533,7 @@ export default function App() {
       // Searching is the alternate entry gesture, so it also leaves the gate.
       setHasEntered(true);
     },
-    [applyRegion, hasEntered, playSceneEntryCover, unlock, warmSceneAssets],
+    [applyRegion, hasEntered, playOneShot, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   const handleReturnComplete = useCallback(() => {
