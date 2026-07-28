@@ -50,6 +50,14 @@
   transition: transform var(--pair-duration) var(--pair-ease);
 }
 
+/* Fully opaque play/pause chrome — no frosted wash. */
+.playPill :global(button),
+.volumeRail :global(button) {
+  background-color: #fff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 .playSlot[data-phase='opening'] .playPill,
 .playSlot[data-phase='expanded'] .playPill {
   transform: translateX(calc(-1 * var(--pair-offset, 0px) * var(--pair-dir, 1)));
@@ -71,19 +79,24 @@
   backface-visibility: hidden;
   transform: translate(-50%, -50%);
   transform-origin: center center;
-  transition: transform var(--pair-duration) var(--pair-ease);
+  transition:
+    transform var(--pair-duration) var(--pair-ease),
+    opacity var(--pair-duration) var(--pair-ease);
 }
 
 .volumeRail[data-phase='opening'],
 .volumeRail[data-phase='expanded'] {
+  /* Sit above the play pill while paired out so volume never vanishes under it. */
+  z-index: 3;
   opacity: 1;
   pointer-events: auto;
   transform: translate(calc(-50% + var(--pair-offset, 0px) * var(--pair-dir, 1)), -50%);
 }
 
 .volumeRail[data-phase='closing'] {
-  /* Stay fully opaque while sliding back — the play pill masks it at centre. */
-  opacity: 1;
+  /* Fade out as it returns — do not tuck an opaque control behind play. */
+  z-index: 1;
+  opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%);
 }

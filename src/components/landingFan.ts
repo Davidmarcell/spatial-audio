@@ -83,16 +83,17 @@ export const MOBILE_FAN_CONFIG: FanConfig = {
 };
 
 /**
- * Compact / phone layout is a SCATTER, not a fan: the plates read as a loose
- * splattering — irregular heights, mixed rotations and slightly varied sizes —
- * rather than a symmetric hand of cards. Values are hand-authored per position
- * (deterministic, so the layout never jitters between loads) and are the single
- * place to drop in a new arrangement.
+ * Compact / phone layout is a SCATTERED 3×3 (two rows of three), not one long
+ * chain of six: each plate keeps an organic tilt / nudge / scale, but the
+ * roster reads as two short hands stacked vertically so nothing clips the
+ * phone frame.
  *
  *   xPx   — horizontal nudge from the packed row position
  *   yPx   — vertical offset (negative = higher)
  *   rotDeg— resting tilt
  *   scale — resting size multiplier
+ *
+ * Indices 0–2 = top row, 3–5 = bottom row.
  */
 export type ScatterSpot = {
   xPx: number;
@@ -102,16 +103,21 @@ export type ScatterSpot = {
 };
 
 export const MOBILE_SCATTER_LAYOUT: ScatterSpot[] = [
-  { xPx: -4, yPx: 15, rotDeg: -15, scale: 0.92 },
-  { xPx: 3, yPx: -17, rotDeg: 7, scale: 1.04 },
-  { xPx: -3, yPx: 23, rotDeg: -4, scale: 0.98 },
-  { xPx: 6, yPx: 4, rotDeg: 14, scale: 0.95 },
-  { xPx: -2, yPx: -13, rotDeg: -9, scale: 1.02 },
-  { xPx: 4, yPx: 19, rotDeg: 5, scale: 0.96 },
+  // Top row
+  { xPx: -5, yPx: 10, rotDeg: -13, scale: 0.94 },
+  { xPx: 2, yPx: -16, rotDeg: 6, scale: 1.05 },
+  { xPx: 5, yPx: 8, rotDeg: 12, scale: 0.96 },
+  // Bottom row
+  { xPx: -4, yPx: 6, rotDeg: -9, scale: 0.97 },
+  { xPx: 3, yPx: -12, rotDeg: 8, scale: 1.03 },
+  { xPx: -2, yPx: 14, rotDeg: -5, scale: 0.95 },
 ];
 
-/** Horizontal nesting for the scattered plates, in rem (negative margin). */
-export const MOBILE_SCATTER_OVERLAP_REM = 2.15;
+/** Horizontal nesting inside each 3-tile row, in rem (negative margin). */
+export const MOBILE_SCATTER_OVERLAP_REM = 1.55;
+
+/** How many tiles per mobile scatter row (3 + 3). */
+export const MOBILE_SCATTER_ROW_SIZE = 3;
 
 export function scatterSpotFor(index: number): ScatterSpot {
   return MOBILE_SCATTER_LAYOUT[index % MOBILE_SCATTER_LAYOUT.length];
@@ -120,7 +126,7 @@ export function scatterSpotFor(index: number): ScatterSpot {
 /** Landing tile edge length on desktop (matches `.locationImage` in CSS). */
 export const DESKTOP_TILE_PX = 150;
 /** Landing tile edge length on compact viewports. */
-export const MOBILE_TILE_PX = 84;
+export const MOBILE_TILE_PX = 88;
 
 export const LANDING_FAN_STORAGE_KEY = 'saudade:landing-fan:saved-default';
 

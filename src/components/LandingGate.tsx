@@ -23,6 +23,7 @@ import {
   MOBILE_FAN_CONFIG,
   MOBILE_SCATTER_LAYOUT,
   MOBILE_SCATTER_OVERLAP_REM,
+  MOBILE_SCATTER_ROW_SIZE,
   MOBILE_TILE_PX,
   scatterSpotFor,
   type FanConfig,
@@ -562,6 +563,63 @@ export function LandingGate({
   const rowPadTopPx = Math.ceil(scatterHighestPx + rotationOverhangPx + 4);
   const overlapRem = scattered ? MOBILE_SCATTER_OVERLAP_REM : fan.overlapRem;
 
+  const locationRows = scattered
+    ? [
+        locations.slice(0, MOBILE_SCATTER_ROW_SIZE),
+        locations.slice(MOBILE_SCATTER_ROW_SIZE),
+      ].filter((row) => row.length > 0)
+    : [locations];
+
+  const renderLocationTile = (
+    { location, src, label }: (typeof locations)[number],
+    index: number,
+    rowLength: number,
+  ) => {
+    const centre = (rowLength - 1) / 2;
+    const offset = centre === 0 ? 0 : (index % rowLength - centre) / centre;
+    const spot = scattered ? scatterSpotFor(index) : null;
+    const restRotation = spot ? spot.rotDeg : offset * fan.endRotationDeg;
+    const arcY = spot ? spot.yPx : offset * offset * fan.arcDepthPx;
+    const restScale = spot ? spot.scale : 1 - Math.abs(offset) * fan.scaleFalloff;
+    return (
+      <li
+        key={location.id}
+        className={styles.locationItem}
+        style={{ '--landing-index': index } as React.CSSProperties}
+      >
+        <button
+          type="button"
+          className={styles.locationButton}
+          data-tooltip={label}
+          aria-label={`Enter ${label}`}
+          disabled={!artReady}
+          style={{
+            '--rest-rot': `${restRotation.toFixed(2)}deg`,
+            '--arc-y': `${arcY.toFixed(2)}px`,
+            '--rest-scale': restScale.toFixed(3),
+            '--scatter-x': `${(spot?.xPx ?? 0).toFixed(2)}px`,
+          } as React.CSSProperties}
+          onClick={() => onSelect(location)}
+          onPointerMove={handleTilePointerMove}
+          onPointerLeave={resetTileMagnet}
+          onPointerCancel={resetTileMagnet}
+          onBlur={(event) => {
+            event.currentTarget.style.setProperty('--magnet-x', '0px');
+            event.currentTarget.style.setProperty('--magnet-y', '0px');
+          }}
+        >
+          <LandingFanImage
+            src={src}
+            sizePx={tilePx}
+            imgRef={(node) => {
+              fanImageRefs.current[index] = node;
+            }}
+          />
+        </button>
+      </li>
+    );
+  };
+
   const content = (
     <div
       ref={gateRef}
@@ -592,8 +650,8 @@ export function LandingGate({
             </span>
           ))}
         </h1>
-        <ul
-          className={styles.locationRow}
+        <div
+          className={scattered ? styles.locationStack : undefined}
           style={
             {
               '--overlap': `${overlapRem}rem`,
@@ -603,52 +661,30 @@ export function LandingGate({
             } as React.CSSProperties
           }
         >
-          {locations.map(({ location, src, label }, index) => {
-            const centre = (locations.length - 1) / 2;
-            const offset = centre === 0 ? 0 : (index - centre) / centre;
-            const spot = scattered ? scatterSpotFor(index) : null;
-            const restRotation = spot ? spot.rotDeg : offset * fan.endRotationDeg;
-            const arcY = spot ? spot.yPx : offset * offset * fan.arcDepthPx;
-            const restScale = spot ? spot.scale : 1 - Math.abs(offset) * fan.scaleFalloff;
-            return (
-              <li
-                key={location.id}
-                className={styles.locationItem}
-                style={{ '--landing-index': index } as React.CSSProperties}
-              >
-                <button
-                  type="button"
-                  className={styles.locationButton}
-                  data-tooltip={label}
-                  aria-label={`Enter ${label}`}
-                  disabled={!artReady}
-                  style={{
-                    '--rest-rot': `${restRotation.toFixed(2)}deg`,
-                    '--arc-y': `${arcY.toFixed(2)}px`,
-                    '--rest-scale': restScale.toFixed(3),
-                    '--scatter-x': `${(spot?.xPx ?? 0).toFixed(2)}px`,
-                  } as React.CSSProperties}
-                  onClick={() => onSelect(location)}
-                  onPointerMove={handleTilePointerMove}
-                  onPointerLeave={resetTileMagnet}
-                  onPointerCancel={resetTileMagnet}
-                  onBlur={(event) => {
-                    event.currentTarget.style.setProperty('--magnet-x', '0px');
-                    event.currentTarget.style.setProperty('--magnet-y', '0px');
-                  }}
-                >
-                  <LandingFanImage
-                    src={src}
-                    sizePx={tilePx}
-                    imgRef={(node) => {
-                      fanImageRefs.current[index] = node;
-                    }}
-                  />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+          {locationRows.map((row, rowIndex) => (
+            <ul
+              key={`landing-row-${rowIndex}`}
+              className={styles.locationRow}
+              style={
+                scattered
+                  ? ({
+                      '--fan-pad-bottom':
+                        rowIndex === locationRows.length - 1 ? `${rowPadBottomPx}px` : '0.45rem',
+                      '--fan-pad-top': rowIndex === 0 ? `${rowPadTopPx}px` : '0.35rem',
+                    } as React.CSSProperties)
+                  : undefined
+              }
+            >
+              {row.map((item, localIndex) =>
+                renderLocationTile(
+                  item,
+                  scattered ? rowIndex * MOBILE_SCATTER_ROW_SIZE + localIndex : localIndex,
+                  row.length,
+                ),
+              )}
+            </ul>
+          ))}
+        </div>
         <p className={styles.tagline}>
           An experience of sound. Invoking places, and the memories they hold through spatial audio. Best experienced with headphones.
         </p>

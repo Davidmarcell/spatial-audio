@@ -362,11 +362,11 @@
    metric custom properties, so the pill and the expanded panel enlarge together
    and the in-flow reservation matches the portalled pill. */
 .root[data-size='lg'] {
-  --search-trigger-width: min(25rem, 62vw);
-  flex-basis: min(25rem, 62vw);
-  width: min(25rem, 62vw);
-  min-width: min(25rem, 62vw);
-  max-width: min(25rem, 62vw);
+  --search-trigger-width: min(25rem, calc(100% - 0.2rem));
+  flex-basis: min(25rem, calc(100% - 0.2rem));
+  width: min(25rem, calc(100% - 0.2rem));
+  min-width: min(25rem, calc(100% - 0.2rem));
+  max-width: min(25rem, calc(100% - 0.2rem));
   --search-shell-collapsed-height: 3.68rem;
   /* In-flow node is only a layout spacer; the visible pill is portalled. */
   visibility: hidden;
@@ -374,14 +374,19 @@
 }
 
 .panelAnchor[data-size='lg'] {
-  --search-trigger-width: min(25rem, 62vw);
-  --search-bar-width: min(700px, calc(100vw - 1.5rem));
+  --search-trigger-width: min(25rem, calc(100vw - 2.4rem));
+  --search-bar-width: min(700px, calc(100vw - 2.4rem));
   --search-shell-collapsed-height: 3.68rem;
   /* Stay inside the phone viewport when the landing pill opens upward. */
   --search-shell-expanded-height: min(
     28rem,
     calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
   );
+}
+
+.panelAnchor[data-size='lg'] .panel {
+  /* Solid white — no frosted wash through the landing search. */
+  background-color: #fff;
 }
 
 .panelAnchor[data-size='lg'] .searchRow {

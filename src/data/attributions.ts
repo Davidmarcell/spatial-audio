@@ -8,16 +8,16 @@ import { audioAttributionsFromPools } from './soundPools';
 export const uiAudioAttributions: Attribution[] = [
   {
     file: 'public/audio/ui/enter-whoosh.mp3',
-    title: 'Swooshes, whoosh, short, deep (extended ~3.9s with soft fade)',
+    title: 'Swooshes, whoosh, short, deep (extended ~5.8s with soft fade)',
     author: 'susssounds',
     license: 'CC0 1.0',
     sourceUrl: 'https://freesound.org/people/susssounds/sounds/752068/',
   },
   {
     file: 'public/audio/ui/globe-ambient.mp3',
-    title: 'Globe browse ambient — quiet Auckland soundscape wireframe',
-    author: 'Saudade (mixed from bundled NZ beds)',
-    license: 'Composite (see NZ / Costa Rica sources)',
+    title: 'Ethereal globe browse ambient (synthesized soft noise + pad)',
+    author: 'Saudade',
+    license: 'Original (app asset)',
     sourceUrl: '',
   },
 ];

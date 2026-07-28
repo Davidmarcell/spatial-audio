@@ -19,20 +19,20 @@ export type SoundTileDesignConfig = {
 };
 
 export const DEFAULT_SOUND_TILE_DESIGN: SoundTileDesignConfig = {
-  cardRadiusPx: 36,
-  imageRadiusPx: 22,
-  paddingPx: 22,
-  imageSizePx: 280,
-  columnGapPx: 28,
-  panelWidthPx: 600,
+  cardRadiusPx: 28,
+  imageRadiusPx: 18,
+  paddingPx: 18,
+  imageSizePx: 320,
+  columnGapPx: 16,
+  panelWidthPx: 380,
 };
 
-const STORAGE_KEY = 'saudade:sound-tile-design';
+const STORAGE_KEY = 'saudade:sound-tile-design:v2';
 const VISIBLE_KEY = 'saudade:sound-tile-design-tuner-visible';
 
-const PANEL_WIDTH_MIN = 420;
-/** Wide enough for landscape art at ~330px tall beside the meta column. */
-const PANEL_WIDTH_MAX = 880;
+const PANEL_WIDTH_MIN = 320;
+/** Narrow Arcade-style sheet — not a wide sidebar card. */
+const PANEL_WIDTH_MAX = 440;
 
 function clampPanelWidthPx(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_SOUND_TILE_DESIGN.panelWidthPx;
@@ -70,9 +70,9 @@ export function loadSoundTileDesign(): SoundTileDesignConfig {
         ? { ...rest, panelWidthPx: Math.round(panelWidthRem * 16) }
         : rest;
     const merged = { ...DEFAULT_SOUND_TILE_DESIGN, ...migrated };
-    // Previous default was 580; bump saved copies to the new resting width.
+    // Drop legacy wide sidebar cards onto the Arcade sheet width.
     const panelWidthPx =
-      merged.panelWidthPx === 580 ? 600 : clampPanelWidthPx(merged.panelWidthPx);
+      merged.panelWidthPx >= 520 ? DEFAULT_SOUND_TILE_DESIGN.panelWidthPx : clampPanelWidthPx(merged.panelWidthPx);
     return {
       ...merged,
       panelWidthPx,

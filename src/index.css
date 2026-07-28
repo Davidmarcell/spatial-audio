@@ -179,7 +179,8 @@
   --overlay-panel-shadow: var(--glass-panel-shadow);
   --search-backdrop: rgba(245, 242, 236, 0.18);
   --search-backdrop-open: rgba(245, 242, 236, 0.28);
-  --search-panel-bg: var(--glass-panel-bg);
+  /* Fully opaque search chrome — no frosted wash through the pill. */
+  --search-panel-bg: #ffffff;
   --search-panel-open-bg: #ffffff;
   --search-panel-border: transparent;
   --search-panel-shadow: var(--glass-panel-shadow);
@@ -266,7 +267,7 @@
   --overlay-panel-shadow: var(--glass-panel-shadow);
   --search-backdrop: rgba(0, 0, 0, 0.24);
   --search-backdrop-open: rgba(0, 0, 0, 0.38);
-  --search-panel-bg: var(--glass-panel-bg);
+  --search-panel-bg: rgb(36, 36, 38);
   --search-panel-open-bg: rgb(36, 36, 38);
   --search-panel-border: transparent;
   --search-panel-shadow: var(--glass-panel-shadow);

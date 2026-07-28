@@ -1,6 +1,10 @@
 .button {
   font-size: 0.9375rem;
   font-weight: 500;
+  /* Fully opaque play/pause surface. */
+  background-color: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 @media (max-width: 768px) {

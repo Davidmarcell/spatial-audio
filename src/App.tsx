@@ -128,12 +128,12 @@ const canvasSpread = () =>
   isCompactViewport() ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
 
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
-/** Extended ~3.9s whoosh — soft enough to sit under sheet rise / ethereal bed. */
-const ENTER_WHOOSH_VOLUME = 0.32;
-/** Quiet Auckland-layout wireframe bed while browsing the world map. */
+/** Extended ~5.8s whoosh — soft enough to sit under sheet rise without cutting. */
+const ENTER_WHOOSH_VOLUME = 0.34;
+/** Soft ethereal bed while browsing the world map (not a place soundscape). */
 const GLOBE_AMBIENT_SRC = '/audio/ui/globe-ambient.mp3';
 const GLOBE_AMBIENT_ID = 'ui:globe-ambient';
-const GLOBE_AMBIENT_VOLUME = 0.22;
+const GLOBE_AMBIENT_VOLUME = 0.12;
 
 export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
@@ -1299,6 +1299,9 @@ export default function App() {
   // Closing the globe (X) returns to the landing; picking a place enters it.
   const handleEnterExperience = useCallback(() => {
     void unlock();
+    // Enter opens the world map only — never start (or keep) a place soundscape.
+    setAutoPlayOnLoad(false);
+    if (engine.isPlaying) pause();
     // Calm airy whoosh swells with the sheet rise. Skip under reduced
     // motion so audio does not outlast the near-instant visual (~140ms).
     if (!prefersReducedMotion()) {
@@ -1313,7 +1316,7 @@ export default function App() {
     setLandingExiting(true);
     setBrowsingFromLanding(true);
     setShowGlobe(true);
-  }, [playOneShot, unlock]);
+  }, [engine, pause, playOneShot, unlock]);
 
   // Close handler for the full-screen globe. Opening always just shows it; the
   // interesting case is closing. When the globe was opened from the landing to

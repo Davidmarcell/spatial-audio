@@ -25,14 +25,14 @@ import {
 } from './soundTileDesign';
 import styles from './SoundTileCardExpand.module.css';
 
-/** Card flight: prior iOS-style decelerating ease (kept with linked W/H growth). */
+/** Card flight: App Store Arcade–style decelerating ease. */
 const EXPAND_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-/** Snappier than the original 440/380 while keeping the same ease shape. */
-const OPEN_MS = 320;
-const CLOSE_MS = 280;
+/** Slower shared-element open — closer to Arcade card → sheet. */
+const OPEN_MS = 620;
+const CLOSE_MS = 480;
 const TILE_RADIUS_PX = 13.6;
 /** Copy fades in after this progress — body is already laid out at resting width. */
-const COPY_REVEAL_AT = 0.9;
+const COPY_REVEAL_AT = 0.78;
 
 type Rect = OriginRectSnapshot;
 
@@ -393,8 +393,8 @@ export function SoundTileCardExpand({
     top: `${sheetTop}px`,
     width: `${sheetWidth}px`,
     height: `${sheetHeight}px`,
-    maxWidth: `min(${Math.max(design.panelWidthPx, to.width)}px, calc(100vw - 2rem))`,
-    maxHeight: 'min(85dvh, calc(100dvh - 2.5rem))',
+    maxWidth: `min(${Math.max(design.panelWidthPx, to.width)}px, calc(100vw - 2.75rem))`,
+    maxHeight: 'min(92dvh, calc(100dvh - 1.75rem))',
     borderRadius: `${radius}px`,
   } as CSSProperties;
 

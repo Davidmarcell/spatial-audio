@@ -1,14 +1,15 @@
 .root {
-  --sound-tile-card-radius: 36px;
-  --sound-tile-image-radius: 22px;
-  --sound-tile-padding: 22px;
-  --sound-tile-image-size: 280px;
-  --sound-tile-column-gap: 28px;
+  --sound-tile-card-radius: 28px;
+  --sound-tile-image-radius: 18px;
+  --sound-tile-padding: 18px;
+  --sound-tile-image-size: 320px;
+  --sound-tile-column-gap: 16px;
 
   position: relative;
+  /* Arcade sheet: always a single tall column — art above, meta below. */
   display: grid;
-  grid-template-columns: minmax(0, var(--sound-tile-art-width, var(--sound-tile-image-size))) minmax(0, 1fr);
-  gap: var(--sound-tile-column-gap);
+  grid-template-columns: 1fr;
+  gap: 1rem;
   align-items: start;
   flex: 1;
   min-height: 0;
@@ -53,8 +54,8 @@
 
 .artworkWrap {
   width: 100%;
-  max-width: var(--sound-tile-art-width, var(--sound-tile-image-size));
-  align-self: start;
+  max-width: none;
+  align-self: stretch;
   flex-shrink: 0;
 }
 
@@ -64,8 +65,8 @@
 
 /* Shared-element slot: natural aspect (portrait grows taller; landscape wider). */
 .artworkWrapShared {
-  width: var(--sound-tile-art-width, var(--sound-tile-image-size));
-  max-width: 100%;
+  width: 100%;
+  max-width: none;
   aspect-ratio: var(--sound-tile-art-aspect, 1);
 }
 
@@ -92,7 +93,7 @@
   min-width: 0;
   min-height: 0;
   /* Room for the absolute close control. */
-  padding: 0.1rem 2rem 0 0;
+  padding: 0.15rem 2.2rem 0 0;
 }
 
 .scroll {
@@ -235,14 +236,7 @@
 
 @media (max-width: 760px) {
   .root {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .artworkWrap,
-  .artworkWrapShared {
-    width: 100%;
-    max-width: none;
+    gap: 0.95rem;
   }
 
   .infoColumn {
