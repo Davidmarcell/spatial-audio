@@ -1,0 +1,19 @@
+.page {
+  min-height: 100vh;
+  margin: 0;
+  background: #020203;
+}
+
+.caption {
+  margin: 0;
+  font-family:
+    'SF Mono',
+    Menlo,
+    Consolas,
+    'Liberation Mono',
+    monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(220, 228, 236, 0.42);
+}

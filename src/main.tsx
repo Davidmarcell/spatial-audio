@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import AsciiBackgroundPreview from './pages/AsciiBackgroundPreview';
 import '@silk-hq/components/unlayered-styles.css';
 import './styles/fontawesome.css';
 import './styles/romie.css';
@@ -18,12 +19,18 @@ initTheme();
 applySearchSpotlightAnimation(loadSearchSpotlightAnimation());
 applyPlayingBarEdgeGradient(loadPlayingBarEdgeGradient());
 
+const showAsciiPreview = new URLSearchParams(window.location.search).get('view') === 'ascii';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SearchSpotlightAnimationProvider>
-      <PlayingBarEdgeGradientProvider>
-        <App />
-      </PlayingBarEdgeGradientProvider>
-    </SearchSpotlightAnimationProvider>
+    {showAsciiPreview ? (
+      <AsciiBackgroundPreview />
+    ) : (
+      <SearchSpotlightAnimationProvider>
+        <PlayingBarEdgeGradientProvider>
+          <App />
+        </PlayingBarEdgeGradientProvider>
+      </SearchSpotlightAnimationProvider>
+    )}
   </StrictMode>,
 );
