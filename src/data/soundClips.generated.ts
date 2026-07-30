@@ -1309,7 +1309,7 @@ export const soundClips: SoundClip[] = [
       "cold"
     ],
     "sustained": true,
-    "src": "/audio/pool/seabird/arctic-tern-2.wav",
+    "src": "/audio/pool/seabird/arctic-tern-2.mp3",
     "title": "Holm of Papa Sterna paradisaea",
     "author": "Gunther Tschuch",
     "license": "CC BY-SA 4.0",
@@ -2268,7 +2268,7 @@ export const soundClips: SoundClip[] = [
       "forest"
     ],
     "sustained": false,
-    "src": "/audio/pool/tropical-bird/tropical-bird-great-hornbill.wav",
+    "src": "/audio/pool/tropical-bird/tropical-bird-great-hornbill.mp3",
     "title": "Great hornbill , Buceros bicornis,call",
     "author": "Shino jacob koottanad",
     "license": "CC BY-SA 4.0",

@@ -441,14 +441,29 @@ export default function App() {
       const beds = nextRegion.bedSounds ?? [];
       const catalog = getRegionSoundCatalog(nextRegion.sounds, nextRegion.tags);
       const regionSoundIds = catalog.map((item) => item.id);
-      const audioSrcs: string[] = [];
+      // Procedural pool sounds carry no fixed `src` — they only resolve to a
+      // concrete clip via the same seeded selection used once the region is
+      // actually applied (salt is always reset to 0 on entry). Replicating
+      // that selection here lets a destination's real audio warm during the
+      // cover window instead of most scenes warming nothing at all.
+      const nextLibrarySounds = enrichSounds(catalog, nextRegion.tags);
+      const nextVariants = selectSceneVariants(nextLibrarySounds, {
+        seed: nextRegion.seed ?? regionSeed(nextEnvironmentId, nextRegionId),
+        salt: 0,
+        sceneTags: nextRegion.tags,
+      });
+      const primarySrcs: string[] = [];
+      const secondarySrcs: string[] = [];
       const imageSrcs: string[] = [];
 
       for (const bed of beds) {
+        const variant = nextVariants.get(bed.soundId);
         const sound =
           catalog.find((item) => item.id === bed.soundId) ??
           getSoundDef(nextEnvironmentId, nextRegionId, bed.soundId);
-        if (sound?.src) audioSrcs.push(sound.src);
+        const src = variant?.src ?? sound?.src;
+        if (src) primarySrcs.push(src);
+        if (variant?.secondarySrc) secondarySrcs.push(variant.secondarySrc);
         const art = getSoundArtworkForRegion(
           nextRegionId,
           regionSoundIds,
@@ -467,7 +482,13 @@ export default function App() {
         );
       }
 
-      if (audioSrcs.length > 0) void engine.preloadVariants(audioSrcs);
+      // Primary layers first (what's audible immediately); crossfade partners
+      // trail behind at a lower priority so they don't compete for bandwidth
+      // with the bytes that matter for the first playable moment.
+      if (primarySrcs.length > 0) void engine.preloadVariants(primarySrcs);
+      if (secondarySrcs.length > 0) {
+        void Promise.resolve().then(() => engine.preloadVariants(secondarySrcs));
+      }
       if (imageSrcs.length > 0) void preloadDecodedImages(imageSrcs);
     },
     [engine],

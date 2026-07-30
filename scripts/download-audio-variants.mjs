@@ -197,7 +197,8 @@ const COMMONS = [
   ['puffin-1', 'seabird', ['european', 'coastal', 'cold'], true, 'Atlantic Puffin (Fratercula arctica) (W1CDR0001416 BD3).ogg', 'CC BY-SA 4.0', 'British Library'],
   ['gannet-1', 'seabird', ['european', 'coastal'], true, 'Northern Gannet (Morus bassanus) (W1CDR0001422 BD11).ogg', 'CC BY-SA 4.0', 'British Library'],
   ['arctic-tern-1', 'seabird', ['european', 'coastal', 'cold'], false, 'Sterna paradisaea - Arctic Tern XC564600.mp3', 'CC BY-SA 4.0', 'Doug Hynes'],
-  ['arctic-tern-2', 'seabird', ['european', 'coastal', 'cold'], true, 'Holm of Papa Sterna paradisaea.wav', 'CC BY-SA 4.0', 'Gunther Tschuch'],
+  // arctic-tern-2: Commons original is an uncompressed WAV; see LOCAL below
+  // for the committed MP3 transcode.
   // ---- North African / Mediterranean songbirds ----
   ['laughing-dove-1', 'songbird', ['mediterranean', 'arid'], true, 'Spilopelia senegalensis call in Tehran.ogg', 'CC BY-SA 4.0', 'MRG90'],
   ['laughing-dove-2', 'songbird', ['mediterranean', 'arid'], true, 'S-senegalensis.ogg', 'CC BY 2.5', 'L. Shyamal'],
@@ -222,7 +223,8 @@ const COMMONS = [
   ['tropical-bird-asian-koel', 'tropical-bird', ['asian', 'tropical', 'forest', 'garden'], true, 'Eudynamys scolopaceus - Asian Koel XC476378.mp3', 'CC BY-SA 4.0', 'Manoj Karingamadathil'],
   ['tropical-bird-racket-tailed-drongo', 'tropical-bird', ['asian', 'tropical', 'forest'], true, 'Dicrurus paradiseus - Greater Racket-tailed Drongo XC124717.ogg', 'CC BY-SA 3.0', 'Sudipto Roy'],
   ['tropical-bird-red-whiskered-bulbul', 'tropical-bird', ['asian', 'tropical', 'forest', 'garden'], true, 'Pycnonotus jocosus (Red-whiskered Bulbul).wav', 'CC BY-SA 4.0', 'Subhashish Panigrahi'],
-  ['tropical-bird-great-hornbill', 'tropical-bird', ['asian', 'tropical', 'forest'], false, 'Great hornbill , Buceros bicornis,call.wav', 'CC BY-SA 4.0', 'Shino jacob koottanad'],
+  // tropical-bird-great-hornbill: Commons original is an uncompressed WAV;
+  // see LOCAL below for the committed MP3 transcode.
   // ---- Asian songbirds ----
   ['songbird-japanese-bush-warbler-uguisu', 'songbird', ['asian', 'temperate', 'forest', 'garden'], true, 'Uguisu5707.ogg', 'CC BY 2.1 jp', 'Jnn'],
   ['songbird-japanese-bush-warbler-2', 'songbird', ['asian', 'temperate', 'forest', 'garden'], true, 'Japanese nightingale note01.ogg', 'CC BY-SA 3.0', 'Unknown'],
@@ -348,6 +350,10 @@ const LOCAL = [
   // Distant Serengeti elephant — Commons trumpet (~1.4s, CC0) padded/loudnormed
   // into an ~11s intermittent call so it sits as a bed without looping frantically.
   ['elephant-trumpet-1', 'elephant', ['african', 'savanna', 'arid'], false, '/audio/pool/elephant/elephant-trumpet-1.mp3', 'Elephant voice — trumpeting (padded loop for distant savanna call)', 'தகவலுழவன் (Wikimedia Commons)', 'CC0', 'https://commons.wikimedia.org/wiki/File:Elephant_voice_-_trumpeting.ogg'],
+  // Commons originals for these two are uncompressed WAVs (0.6–3.4 MB); we
+  // ship a lighter MP3 transcode (scripts/optimize-audio.mjs) instead.
+  ['arctic-tern-2', 'seabird', ['european', 'coastal', 'cold'], true, '/audio/pool/seabird/arctic-tern-2.mp3', 'Holm of Papa Sterna paradisaea (MP3 transcode of the CC BY-SA 4.0 WAV original)', 'Gunther Tschuch (Wikimedia Commons)', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Holm_of_Papa_Sterna_paradisaea.wav'],
+  ['tropical-bird-great-hornbill', 'tropical-bird', ['asian', 'tropical', 'forest'], false, '/audio/pool/tropical-bird/tropical-bird-great-hornbill.mp3', 'Great hornbill, Buceros bicornis, call (MP3 transcode of the CC BY-SA 4.0 WAV original)', 'Shino jacob koottanad (Wikimedia Commons)', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Great_hornbill_,_Buceros_bicornis,call.wav'],
 ];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

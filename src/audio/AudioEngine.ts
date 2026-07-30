@@ -2,6 +2,27 @@ import type { SoundDef, SpatialPoint } from '../data/types';
 import { publicUrl } from '../utils/publicUrl';
 import { gainFromDistance, toPannerPosition } from './spatialMath';
 
+/** Cap on simultaneous fetch+decode preload requests so a scene with many
+ * beds doesn't saturate the connection/CPU and starve the first playable
+ * layer behind a wall of parallel work. */
+const PRELOAD_CONCURRENCY = 4;
+
+async function mapWithConcurrency<T>(
+  items: readonly T[],
+  limit: number,
+  task: (item: T) => Promise<unknown>,
+): Promise<void> {
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const item = items[cursor];
+      cursor += 1;
+      await task(item);
+    }
+  });
+  await Promise.all(workers);
+}
+
 /**
  * Per-playback recipe resolved by the soundscape selection layer. Lets the
  * engine play a location-seeded variant (and an optional second variant for
@@ -112,7 +133,7 @@ export class AudioEngine {
       }
     }
     const unique = [...new Set([...srcs].filter(Boolean))];
-    await Promise.all(unique.map((src) => this.loadBuffer(src)));
+    await mapWithConcurrency(unique, PRELOAD_CONCURRENCY, (src) => this.loadBuffer(src));
   }
 
   /**
