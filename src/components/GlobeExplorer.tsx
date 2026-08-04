@@ -9,6 +9,7 @@ import {
   type GeocodeResult,
 } from '../utils/geocode';
 import { getLocationArtForItem } from '../data/locationArt';
+import { getGeocodePlaceholderArt } from '../utils/geocodePlaceholderArt';
 import { publicUrl } from '../utils/publicUrl';
 import { getResolvedTheme, type ResolvedTheme } from '../utils/theme';
 import styles from './GlobeExplorer.module.css';
@@ -1369,10 +1370,17 @@ export function GlobeExplorer({
                               className={styles.spotlightRow}
                               onClick={() => handleSpotlightGeocode(result)}
                             >
-                              <span
-                                className={`${styles.rowThumbFallback} ${styles.geocodeThumb}`}
-                                aria-hidden
-                              />
+                              <span className={styles.rowThumbWrap}>
+                                <img
+                                  className={styles.rowThumb}
+                                  src={publicUrl(getGeocodePlaceholderArt(result))}
+                                  alt=""
+                                  width={34}
+                                  height={34}
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              </span>
                               <span className={styles.locationText}>
                                 <span className={styles.locationName}>
                                   {formatWorldLocationLabel({

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import type { AppLocation } from '../data/environments';
 import { getRegion } from '../data/environments';
 import { getLocationArtForItem } from '../data/locationArt';
+import { getGeocodePlaceholderArt } from '../utils/geocodePlaceholderArt';
 import { publicUrl } from '../utils/publicUrl';
 import { resolveProceduralSoundscape } from '../utils/proceduralSoundscape';
 import {
@@ -1426,7 +1427,15 @@ export function LocationSearchSpotlight({
                                         onMouseEnter={() => setHighlightIndex(index)}
                                         onClick={() => generateFor(result)}
                                       >
-                                        <ThumbPlaceholder className={styles.geocodeThumb} />
+                                        <span className={styles.thumbWrap}>
+                                          <img
+                                            src={publicUrl(getGeocodePlaceholderArt(result))}
+                                            alt=""
+                                            className={styles.thumb}
+                                            loading="lazy"
+                                            decoding="async"
+                                          />
+                                        </span>
                                         <span className={styles.resultText}>
                                           <span className={styles.resultName}>{geocodeResultLabel(result)}</span>
                                         </span>
