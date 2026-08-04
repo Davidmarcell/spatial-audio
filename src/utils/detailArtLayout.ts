@@ -14,15 +14,31 @@ export type DetailArtBox = {
 /**
  * Arcade-style sheet: single column, art on top. Portrait grows taller inside
  * a narrow card; landscape keeps a fixed height and widens within the panel.
+ *
+ * `maxHeightPx` lets callers tighten the portrait cap to the viewport (a very
+ * tall plate — e.g. a full-page Audubon portrait — otherwise blows past the
+ * fixed 420px cap's *intent* was already there, but nothing consumed it: the
+ * width stayed fixed while only height shrank, silently warping the ratio.
+ * Now width shrinks in step with height so the plate never looks squashed,
+ * and the whole card reliably fits the sheet instead of overflowing offscreen).
  */
-export function detailArtBox(aspect: number, imageSizePx: number): DetailArtBox {
-  const a = Math.max(0.4, aspect);
+export function detailArtBox(
+  aspect: number,
+  imageSizePx: number,
+  maxHeightPx: number = PORTRAIT_ART_MAX_HEIGHT_PX,
+): DetailArtBox {
+  const a = Math.max(0.25, aspect);
   if (a > 1.02) {
     const artH = LANDSCAPE_ART_HEIGHT_PX;
     return { artW: artH * a, artH, isLandscape: true };
   }
-  const artW = imageSizePx;
-  const artH = Math.min(PORTRAIT_ART_MAX_HEIGHT_PX, artW / a);
+  const naturalW = imageSizePx;
+  const naturalH = naturalW / a;
+  const artH = Math.min(maxHeightPx, naturalH);
+  // Recompute width to match the (possibly capped) height at the true ratio,
+  // instead of leaving width fixed and only shrinking height — that used to
+  // stretch tall plates wider than their real proportions.
+  const artW = artH < naturalH ? artH * a : naturalW;
   return { artW, artH, isLandscape: false };
 }
 
