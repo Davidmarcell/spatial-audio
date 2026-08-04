@@ -40,7 +40,7 @@
       "global-stream": "/icons/met/12586.jpg",
       "global-surf": "/icons/met/17053.jpg",
       "global-traffic": "/icons/met/853645.jpg",
-      "global-wind": "/icons/met/11306.jpg",
+      "global-wind": "/icons/met/11131.jpg",
       "gull": "/icons/gull.jpg",
       "kereru": "/icons/kereru.jpg",
       "morepork": "/icons/morepork.jpg",
@@ -158,7 +158,7 @@
       "global-stream": "/icons/met/12586.jpg",
       "global-surf": "/icons/met/11908.jpg",
       "global-traffic": "/icons/met/853645.jpg",
-      "global-wind": "/icons/met/11306.jpg"
+      "global-wind": "/icons/met/11131.jpg"
     }
   },
   "bed-stuy": {
@@ -201,7 +201,7 @@
       "global-stream": "/icons/pool/stream-river-town.jpg",
       "global-surf": "/icons/met/11908.jpg",
       "global-traffic": "/icons/havana-obispo-street.jpg",
-      "global-wind": "/icons/met/11306.jpg",
+      "global-wind": "/icons/met/11131.jpg",
       "gray-catbird": "/icons/gray-catbird.jpg",
       "night-owl-brooklyn": "/icons/met/751141.jpg",
       "northern-cardinal": "/icons/northern-cardinal.jpg",
@@ -226,7 +226,7 @@
       "global-wind": "wind-tall-grass"
     },
     "image": {
-      "global-forest": "/icons/met/11306.jpg",
+      "global-forest": "/icons/met/10378.jpg",
       "global-gull": "/icons/met/830271.jpg",
       "global-insects": "/icons/cricket-field-ensifera.jpg",
       "global-jazz": "/icons/pool/music-guitar.jpg",
@@ -368,7 +368,7 @@
       "global-stream": "/icons/met/12307.jpg",
       "global-surf": "/icons/met/11908.jpg",
       "global-traffic": "/icons/pool/street-bangkok-kerr.jpg",
-      "global-wind": "/icons/met/11306.jpg",
+      "global-wind": "/icons/wind-trees.jpg",
       "kyoto-bells": "/icons/pool/bells-temple.jpg",
       "kyoto-crows": "/icons/kyoto-jungle-crow-kyosai.jpg",
       "kyoto-frogs": "/icons/kyoto-kajika-frog.jpg",
@@ -606,7 +606,7 @@
       "global-stream": "/icons/met/12586.jpg",
       "global-surf": "/icons/met/17053.jpg",
       "global-traffic": "/icons/met/853645.jpg",
-      "global-wind": "/icons/met/11306.jpg",
+      "global-wind": "/icons/met/11131.jpg",
       "redwoods-canopy": "/icons/redwoods-bierstadt.jpg",
       "redwoods-drip": "/icons/forest-stream.jpg",
       "redwoods-jay": "/icons/redwoods-stellers-jay-audubon.jpg",
@@ -657,7 +657,7 @@
       "global-surf": "/icons/met/17053.jpg",
       "global-traffic": "/icons/met/266296.jpg",
       "global-tropical-bird": "/icons/quetzal.jpg",
-      "global-wind": "/icons/met/11306.jpg",
+      "global-wind": "/icons/wind-trees.jpg",
       "jungle-primates": "/icons/howler.jpg",
       "quetzal-rio": "/icons/northern-cardinal.jpg",
       "rio-bossa-nova": "/icons/pool/music-ensemble.jpg",
@@ -763,7 +763,7 @@
       "global-stream": "/icons/met/12307.jpg",
       "global-surf": "/icons/met/460052.jpg",
       "global-traffic": "/icons/met/853645.jpg",
-      "global-wind": "/icons/met/11306.jpg",
+      "global-wind": "/icons/wind-trees.jpg",
       "sydney-cicadas": "/icons/cicada-maculata.jpg"
     }
   }

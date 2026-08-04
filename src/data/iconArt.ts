@@ -340,9 +340,11 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
 const POOL_TITLE_BLOCKLIST: Partial<Record<string, RegExp>> = {
   stream: /figure on shore|boys in a dory|figure in a canoe|portrait|marie antoinette/i,
   surf: /figure on shore/i,
-  wind: /marie antoinette|portrait/i,
+  // "Birch Tree, Niagara" reads as a single spindly trunk sketch, not a forest —
+  // excluded from both wind and forest so neither tile draws it.
+  wind: /marie antoinette|portrait|birch tree, niagara/i,
   rain: /new york from the heights/i,
-  forest: /figure in a canoe/i,
+  forest: /figure in a canoe|birch tree, niagara/i,
 };
 
 /** Keyword rules for sounds missing an explicit pool mapping (checked in order). */
