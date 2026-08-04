@@ -29,6 +29,12 @@
     var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1)) both;
 }
 
+.sucking {
+  will-change: transform, opacity;
+  animation: soundIconSuck var(--randomize-suck-duration, 420ms)
+    cubic-bezier(0.32, 0, 0.12, 1) both;
+}
+
 @keyframes soundIconRadiate {
   from {
     transform: translate(-50%, -50%)
@@ -49,14 +55,35 @@
   }
 }
 
+@keyframes soundIconSuck {
+  from {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  62% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translate(-50%, -50%)
+      translate(var(--entrance-dx, 0), var(--entrance-dy, 0)) scale(0.18);
+    opacity: 0;
+  }
+}
+
+.sucking .iconBody {
+  pointer-events: none;
+}
+
 .iconBodyDragging {
   transition: none;
 }
 
 .icon {
   position: relative;
-  width: 5.25rem;
-  height: 5.25rem;
+  width: var(--canvas-tile-size, 5.25rem);
+  height: var(--canvas-tile-size, 5.25rem);
   padding: 0;
   /* Shared image-tile radius + hairline stroke, matching every other tile. */
   border: 1px solid var(--glass-border);
@@ -221,13 +248,56 @@
   isolation: isolate;
 }
 
+@media (max-width: 768px) {
+  .icon {
+    /* ~72px. The tiles sit further apart on phones now (see CANVAS_SPREAD_COMPACT),
+       so a larger face reads clearly without crowding its neighbours. */
+    --canvas-tile-size: 4.5rem;
+  }
+
+  .label {
+    top: calc(100% + 3px);
+    font-size: 0.58rem;
+    padding: 0.1rem 0.42rem;
+  }
+
+  .actionButton {
+    top: 0.18rem;
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .actionLeft {
+    left: 0.18rem;
+  }
+
+  .actionRight {
+    right: 0.18rem;
+  }
+
+  .actionHit {
+    top: 0.1rem;
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .actionHitLeft {
+    left: 0.1rem;
+  }
+
+  .actionHitRight {
+    right: 0.1rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .iconBody,
   .icon,
   .hoverOverlay,
   .actionButton,
   .dismissing .icon,
-  .entering {
+  .entering,
+  .sucking {
     animation: none;
     transition: none;
   }

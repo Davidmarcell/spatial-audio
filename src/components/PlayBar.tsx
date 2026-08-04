@@ -11,7 +11,8 @@ type Props = {
 
 const PLAY_LABEL = 'Play audio';
 const PAUSE_LABEL = 'Pause audio';
-const LABEL_SIZER = PAUSE_LABEL;
+/** Keep the pill wide enough for the longer label so morphing never reflows. */
+const LABEL_SIZER = 'Pause audio';
 
 /** Per-letter wave — slower motion, longer gap before the next word slides in beneath. */
 const LETTER_STAGGER_MS = 24;

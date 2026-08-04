@@ -1,8 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { RegionArtContext } from '../data/iconArt';
 import type { OriginRectSnapshot } from '../utils/overlayOriginAnimation';
 import { ScaleBlurOverlay } from './ScaleBlurOverlay';
 import { SoundArtDetailContent, type DetailTarget } from './SoundArtDetail';
+import { SoundTileCardExpand } from './SoundTileCardExpand';
+import {
+  loadSoundTileDesign,
+  soundTileDesignToCssVars,
+} from './soundTileDesign';
 import styles from './SoundArtDetailSheet.module.css';
 
 const CONTENT_SWAP_MS = 460;
@@ -14,6 +19,12 @@ type Props = {
   target: DetailTarget | null;
   onVolumeChange: (instanceId: string, volume: number) => void;
   regionArt: RegionArtContext;
+  /**
+   * Shared-element card expand (tile → card). Used on all viewports so mobile
+   * gets the same image-scale handoff instead of a bottom sheet.
+   */
+  useCardExpand?: boolean;
+  onExpandExited?: () => void;
 };
 
 export function SoundArtDetailSheet({
@@ -23,6 +34,8 @@ export function SoundArtDetailSheet({
   target,
   onVolumeChange,
   regionArt,
+  useCardExpand = true,
+  onExpandExited,
 }: Props) {
   const [displayTarget, setDisplayTarget] = useState<DetailTarget | null>(target);
   const [contentPhase, setContentPhase] = useState<'idle' | 'out' | 'in'>('idle');
@@ -32,23 +45,17 @@ export function SoundArtDetailSheet({
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = open;
 
-    // While closing, keep the last content (and title) mounted so the panel
-    // retains its full height and fades/scales out cleanly. Clearing it here
-    // would collapse the panel to a header-only "Sound" pill for a frame.
     if (!open) {
       setContentPhase('idle');
       return;
     }
 
-    // Fresh open (was closed): show the target immediately with no swap so the
-    // origin-enter animation plays instead of a stale-content cross-fade.
     if (!target || !wasOpen || !displayTarget || displayTarget.instanceId === target.instanceId) {
       setDisplayTarget(target);
       setContentPhase('idle');
       return;
     }
 
-    // Already open and the target changed → cross-fade to the new sound.
     setContentPhase('out');
     const timer = window.setTimeout(() => {
       setDisplayTarget(target);
@@ -73,6 +80,26 @@ export function SoundArtDetailSheet({
     .filter(Boolean)
     .join(' ');
 
+  const panelStyle = useMemo(
+    () => soundTileDesignToCssVars(loadSoundTileDesign()) as CSSProperties,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [open, target?.instanceId],
+  );
+
+  if (useCardExpand) {
+    return (
+      <SoundTileCardExpand
+        open={open}
+        onOpenChange={onOpenChange}
+        originRect={originRect ?? null}
+        target={target}
+        onVolumeChange={onVolumeChange}
+        regionArt={regionArt}
+        onExited={onExpandExited}
+      />
+    );
+  }
+
   return (
     <ScaleBlurOverlay
       open={open}
@@ -80,9 +107,12 @@ export function SoundArtDetailSheet({
       title={name}
       titleId="art-detail-overlay-title"
       closeLabel={`Close ${name} details`}
-      wide
+      hideTitle
       lockBodyScroll
       bodyClassName={styles.body}
+      extraPanelClassName={styles.panel}
+      headerClassName={styles.headerHidden}
+      panelStyle={panelStyle}
       originRect={originRect}
       swapKey={target?.instanceId ?? null}
     >
@@ -92,6 +122,7 @@ export function SoundArtDetailSheet({
             target={displayTarget}
             onVolumeChange={onVolumeChange}
             regionArt={regionArt}
+            onClose={() => onOpenChange(false)}
           />
         </div>
       )}

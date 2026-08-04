@@ -1,0 +1,132 @@
+/**
+ * Live-tunable design tokens for the sound-detail card. Edited via the DEV
+ * SoundTile button; applied as CSS variables on the detail sheet / preview.
+ */
+
+export type SoundTileDesignConfig = {
+  /** Outer card corner radius (px). */
+  cardRadiusPx: number;
+  /** Inner artwork corner radius (px). */
+  imageRadiusPx: number;
+  /** Card padding around the two columns (px). */
+  paddingPx: number;
+  /** Artwork column size on desktop (px). */
+  imageSizePx: number;
+  /** Horizontal gap between artwork and info (px). */
+  columnGapPx: number;
+  /** Panel max width (px). */
+  panelWidthPx: number;
+};
+
+export const DEFAULT_SOUND_TILE_DESIGN: SoundTileDesignConfig = {
+  cardRadiusPx: 28,
+  imageRadiusPx: 18,
+  paddingPx: 18,
+  imageSizePx: 320,
+  columnGapPx: 16,
+  panelWidthPx: 380,
+};
+
+const STORAGE_KEY = 'saudade:sound-tile-design:v2';
+const VISIBLE_KEY = 'saudade:sound-tile-design-tuner-visible';
+
+const PANEL_WIDTH_MIN = 320;
+/** Narrow Arcade-style sheet — not a wide sidebar card. */
+const PANEL_WIDTH_MAX = 440;
+
+function clampPanelWidthPx(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_SOUND_TILE_DESIGN.panelWidthPx;
+  return Math.min(PANEL_WIDTH_MAX, Math.max(PANEL_WIDTH_MIN, Math.round(value)));
+}
+
+export function soundTileDesignToCssVars(
+  config: SoundTileDesignConfig,
+): Record<string, string> {
+  const panelWidthPx = clampPanelWidthPx(config.panelWidthPx);
+  return {
+    '--sound-tile-card-radius': `${config.cardRadiusPx}px`,
+    '--sound-tile-image-radius': `${config.imageRadiusPx}px`,
+    '--sound-tile-padding': `${config.paddingPx}px`,
+    '--sound-tile-image-size': `${config.imageSizePx}px`,
+    '--sound-tile-column-gap': `${config.columnGapPx}px`,
+    '--sound-tile-panel-width': `${panelWidthPx}px`,
+    // Inline on the overlay panel so ScaleBlurOverlay's `.panelWide` (44rem)
+    // cannot override the sound-tile width token.
+    '--scale-blur-panel-width': `${panelWidthPx}px`,
+  };
+}
+
+export function loadSoundTileDesign(): SoundTileDesignConfig {
+  if (typeof window === 'undefined') return { ...DEFAULT_SOUND_TILE_DESIGN };
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { ...DEFAULT_SOUND_TILE_DESIGN };
+    const parsed = JSON.parse(raw) as Partial<SoundTileDesignConfig> & {
+      panelWidthRem?: number;
+    };
+    const { panelWidthRem, ...rest } = parsed;
+    const migrated =
+      rest.panelWidthPx == null && typeof panelWidthRem === 'number'
+        ? { ...rest, panelWidthPx: Math.round(panelWidthRem * 16) }
+        : rest;
+    const merged = { ...DEFAULT_SOUND_TILE_DESIGN, ...migrated };
+    // Drop legacy wide sidebar cards onto the Arcade sheet width.
+    const panelWidthPx =
+      merged.panelWidthPx >= 520 ? DEFAULT_SOUND_TILE_DESIGN.panelWidthPx : clampPanelWidthPx(merged.panelWidthPx);
+    return {
+      ...merged,
+      panelWidthPx,
+    };
+  } catch {
+    return { ...DEFAULT_SOUND_TILE_DESIGN };
+  }
+}
+
+export function saveSoundTileDesign(config: SoundTileDesignConfig): void {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      ...config,
+      panelWidthPx: clampPanelWidthPx(config.panelWidthPx),
+    }),
+  );
+}
+
+export function isSoundTileTunerVisible(): boolean {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('soundTileDebug') === '1') return true;
+  return window.localStorage.getItem(VISIBLE_KEY) === '1';
+}
+
+export function persistSoundTileTunerVisible(visible: boolean): void {
+  if (typeof window === 'undefined') return;
+  if (visible) window.localStorage.setItem(VISIBLE_KEY, '1');
+  else window.localStorage.removeItem(VISIBLE_KEY);
+}
+
+export function soundTileDesignSummary(config: SoundTileDesignConfig): string {
+  return [
+    `r ${config.cardRadiusPx}`,
+    `img ${config.imageSizePx}`,
+    `pad ${config.paddingPx}`,
+  ].join(' · ');
+}
+
+/** Short museum/source label for the card meta row (e.g. "Met"). */
+export function shortArtworkSourceLabel(sourceUrl: string): string {
+  try {
+    const host = new URL(sourceUrl).hostname.replace(/^www\./, '').toLowerCase();
+    if (host.includes('metmuseum')) return 'Met';
+    if (host.includes('nypl')) return 'NYPL';
+    if (host.includes('aucklandmuseum')) return 'Auckland Museum';
+    if (host.includes('wikimedia') || host.includes('wikipedia')) return 'Wikimedia';
+    if (host.includes('britishmuseum')) return 'British Museum';
+    if (host.includes('nga.gov')) return 'NGA';
+    const base = host.split('.')[0] ?? 'Source';
+    return base.charAt(0).toUpperCase() + base.slice(1);
+  } catch {
+    return 'Source';
+  }
+}

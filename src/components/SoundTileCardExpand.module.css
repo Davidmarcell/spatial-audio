@@ -1,0 +1,56 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--overlay-backdrop-open, rgba(0, 0, 0, 0.48));
+  opacity: 0;
+  transition: opacity 300ms var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+.backdropOpen {
+  opacity: 1;
+}
+
+.sheet {
+  position: fixed;
+  z-index: 501;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #fff;
+  color: #121212;
+  filter: none;
+  box-shadow: none;
+  will-change: left, top, width, height, border-radius;
+}
+
+.face {
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+  background: var(--surface-solid, #f3efe8);
+  pointer-events: none;
+  /* Match SoundIconImage frame: clip scaled/cover art to the flying radius. */
+  border-radius: inherit;
+  transform: translateZ(0);
+}
+
+.body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* Prefer the resting width from the expand driver; don't let flex shrink
+     the copy column mid-flight (that reflows wrapping title/artist lines). */
+  box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .sheet {
+    transition: none !important;
+  }
+}

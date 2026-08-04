@@ -9,20 +9,36 @@
  * z-stacked above the outgoing one) share one curve, clock and easing.
  */
 
-/** Rise length. Kept in the ~0.8-1.0s "quick but buttery" band. */
-export const SHEET_RISE_DURATION_MS = 860;
+/** Rise length — one second so the sheet can breathe without feeling sluggish. */
+export const SHEET_RISE_DURATION_MS = 1000;
 /**
  * Short cross-fade once the cover panel has fully risen, so the reveal of the
  * destination beneath it is soft even when its surface differs from the panel's
  * page background (e.g. a playing soundscape canvas).
  */
-export const SHEET_REVEAL_FADE_MS = 200;
+export const SHEET_REVEAL_FADE_MS = 180;
 /**
  * When a scene arrives behind a rising cover panel, the canvas holds its tile
  * radiate-in until roughly the moment the panel finishes rising and reveals it,
  * so the tiles push out just as/after the sheet arrives rather than under it.
  */
 export const SHEET_SCENE_REVEAL_MS = SHEET_RISE_DURATION_MS;
+/**
+ * Canvas tile radiate-in duration (must stay in sync with SpatialCanvas).
+ * Used to defer soundscape autoplay until tiles have finished entering.
+ */
+export const SCENE_TILE_ENTRANCE_MS = 640;
+/** Max per-tile stagger for the radiate-in (SpatialCanvas). */
+export const SCENE_TILE_STAGGER_MAX_MS = 320;
+/**
+ * Delay from scene-entry cover start until autoplay is safe.
+ *
+ * This is the moment the cover finishes rising and the scene is actually on
+ * screen. It used to also wait out the tile stagger + radiate-in (another ~960ms
+ * after the reveal), which — on top of loading the clips — is why audio arrived
+ * seconds late. Audio still never leads the visuals; it just arrives with them.
+ */
+export const SCENE_AUTOPLAY_AFTER_MS = SHEET_SCENE_REVEAL_MS;
 /**
  * Peak depth of the curved leading edge at the start of the rise, as a fraction
  * of viewport height. The edge starts this deeply bowed and eases to flat by the
@@ -77,6 +93,19 @@ function makeCubicBezier(x1: number, y1: number, x2: number, y2: number) {
 }
 
 export const easeInOutStrong = makeCubicBezier(0.77, 0, 0.175, 1);
+/** Matches `--ease-ios` / the workspace scene-asset nudge. */
+export const easeIos = makeCubicBezier(0.32, 0.72, 0, 1);
+
+/**
+ * After a covered scene reveal, the canvas + bottom bar (and the portalled
+ * search pill, via `--scene-rise-y`) glide up from this offset into rest.
+ */
+export const SCENE_ASSET_RISE_PX = 44;
+/** Duration of the post-reveal scene-asset nudge (must match the pill). */
+export const SCENE_ASSET_RISE_MS = 620;
+
+/** CSS custom property publishing the live scene-asset rise offset. */
+export const SCENE_RISE_VAR = '--scene-rise-y';
 
 export function prefersReducedMotion() {
   return (
@@ -90,6 +119,13 @@ type RiseOptions = {
   duration?: number;
   /** Fired once the element has fully risen into a flat, full-viewport cover. */
   onDone?: () => void;
+  /**
+   * Fired with the live vertical offset (px) every frame, BEFORE the frame is
+   * painted. Lets chrome that cannot be a child of the rising sheet (the search
+   * pill is portalled to `document.body`) travel on this exact clock instead of
+   * running a parallel animation that drifts a frame or two out of step.
+   */
+  onFrame?: (translateY: number, progress: number) => void;
 };
 
 /**
@@ -108,7 +144,7 @@ type RiseOptions = {
  */
 export function animateRise(
   el: HTMLElement,
-  { duration = SHEET_RISE_DURATION_MS, onDone }: RiseOptions = {},
+  { duration = SHEET_RISE_DURATION_MS, onDone, onFrame }: RiseOptions = {},
 ) {
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -125,6 +161,7 @@ export function animateRise(
       `path('M 0 ${depth.toFixed(2)} `
       + `Q ${(width / 2).toFixed(2)} ${(-depth).toFixed(2)} ${width} ${depth.toFixed(2)} `
       + `L ${width} ${bottom} L 0 ${bottom} Z')`;
+    onFrame?.(translateY, progress);
   };
 
   el.style.willChange = 'transform, clip-path';

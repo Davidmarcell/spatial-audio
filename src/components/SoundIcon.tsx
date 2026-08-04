@@ -1,12 +1,16 @@
 import { useRef, type CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import {
+  CANVAS_SPREAD_COMPACT,
+  CANVAS_SPREAD_DEFAULT,
   depthZIndex,
   distanceFromListener,
   normalizedToPercent,
+  normalizedToPercentValues,
   scaleFromDistance,
 } from '../audio/spatialMath';
 import type { SpatialPoint } from '../data/types';
+import { isCompactViewport } from './soundPaletteLayout';
 import { SoundIconImage } from './SoundIconImage';
 import { UiIcon } from './UiIcon';
 import styles from './SoundIcon.module.css';
@@ -23,6 +27,8 @@ type Props = {
    * small and faded at the listener centre and glides to its resting position.
    */
   entering?: boolean;
+  /** When true, the tile collapses back into the listener during randomize. */
+  sucking?: boolean;
   /** Per-tile stagger (ms) so tiles further out land a touch later. */
   entranceDelayMs?: number;
   selected: boolean;
@@ -32,6 +38,11 @@ type Props = {
    * mirror can still measure its position/size.
    */
   hiddenForGhost?: boolean;
+  /**
+   * Hide while the shared-element card expand is in flight / open for this
+   * instance, so the clone is the only visible tile.
+   */
+  hiddenForDetailExpand?: boolean;
   regionArt: RegionArtContext;
   onSelect: (instanceId: string) => void;
   onRemove: (instanceId: string, iconRect: DOMRect, dropPoint?: { x: number; y: number }) => void;
@@ -47,9 +58,11 @@ export function SoundIcon({
   sway,
   isDragging,
   entering = false,
+  sucking = false,
   entranceDelayMs = 0,
   selected,
   hiddenForGhost = false,
+  hiddenForDetailExpand = false,
   onSelect,
   onRemove,
   onOpenDetail,
@@ -57,18 +70,21 @@ export function SoundIcon({
   regionArt,
 }: Props) {
   const iconRef = useRef<HTMLButtonElement>(null);
-  const { left, top } = normalizedToPercent(position);
+  const compact = isCompactViewport();
+  // Phones spread the placement space so the tiles sit further out from the
+  // listener instead of bunching around it; spatial coordinates are untouched.
+  const spread = compact ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
+  const { left, top } = normalizedToPercent(position, spread);
   // Vector from the tile's resting spot back to the listener centre (50%, 50%),
   // expressed in container-query units so the entrance offset tracks the canvas
   // size. The tile animates from this offset (at centre) to zero (at rest).
-  const leftPercent = ((position.x + 1) / 2) * 100;
-  const topPercent = (1 - position.y) * 100;
+  const { leftPercent, topPercent } = normalizedToPercentValues(position, spread);
   const entranceDx = 50 - leftPercent;
   const entranceDy = 50 - topPercent;
   const swayDeg = (sway * 180) / Math.PI;
   const distance = distanceFromListener(position);
   const proximityScale = scaleFromDistance(distance);
-  const dragBoost = isDragging ? 1.06 : 1;
+  const dragBoost = isDragging ? 1.04 : 1;
   const scale = proximityScale * dragBoost;
 
   const handleDismiss = (event: React.MouseEvent) => {
@@ -94,13 +110,13 @@ export function SoundIcon({
 
   return (
     <div
-      className={`${styles.wrapper} ${selected ? styles.selected : ''} ${isDragging ? styles.dragging : ''} ${entering ? styles.entering : ''}`}
+      className={`${styles.wrapper} ${selected ? styles.selected : ''} ${isDragging ? styles.dragging : ''} ${entering ? styles.entering : ''} ${sucking ? styles.sucking : ''}`}
       style={{
         left,
         top,
         zIndex: isDragging ? 470 : depthZIndex(distance),
-        visibility: hiddenForGhost ? 'hidden' : undefined,
-        ...(entering
+        visibility: hiddenForGhost || hiddenForDetailExpand ? 'hidden' : undefined,
+        ...(entering || sucking
           ? ({
               '--entrance-dx': `${entranceDx}cqw`,
               '--entrance-dy': `${entranceDy}cqh`,

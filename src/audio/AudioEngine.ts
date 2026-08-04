@@ -2,6 +2,27 @@ import type { SoundDef, SpatialPoint } from '../data/types';
 import { publicUrl } from '../utils/publicUrl';
 import { gainFromDistance, toPannerPosition } from './spatialMath';
 
+/** Cap on simultaneous fetch+decode preload requests so a scene with many
+ * beds doesn't saturate the connection/CPU and starve the first playable
+ * layer behind a wall of parallel work. */
+const PRELOAD_CONCURRENCY = 4;
+
+async function mapWithConcurrency<T>(
+  items: readonly T[],
+  limit: number,
+  task: (item: T) => Promise<unknown>,
+): Promise<void> {
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const item = items[cursor];
+      cursor += 1;
+      await task(item);
+    }
+  });
+  await Promise.all(workers);
+}
+
 /**
  * Per-playback recipe resolved by the soundscape selection layer. Lets the
  * engine play a location-seeded variant (and an optional second variant for
@@ -112,7 +133,7 @@ export class AudioEngine {
       }
     }
     const unique = [...new Set([...srcs].filter(Boolean))];
-    await Promise.all(unique.map((src) => this.loadBuffer(src)));
+    await mapWithConcurrency(unique, PRELOAD_CONCURRENCY, (src) => this.loadBuffer(src));
   }
 
   /**
@@ -150,6 +171,76 @@ export class AudioEngine {
       }
     };
     source.start(0);
+  }
+
+  /** Non-spatial looping UI beds (e.g. quiet globe browse ambience). */
+  private uiLoops = new Map<string, { source: AudioBufferSourceNode; gain: GainNode }>();
+
+  async playLoop(
+    id: string,
+    src: string,
+    options?: { volume?: number; fadeInSeconds?: number },
+  ): Promise<void> {
+    await this.unlock();
+    const ctx = this.context!;
+    const master = this.masterGain;
+    if (!master) return;
+
+    this.stopLoop(id);
+
+    const buffer = await this.loadBuffer(src);
+    if (!this.context || !this.masterGain) return;
+
+    const volume = Math.max(0, Math.min(1, options?.volume ?? 0.2));
+    const fadeIn = Math.max(0, options?.fadeInSeconds ?? 0.8);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(gain);
+    gain.connect(master);
+    source.start(0);
+    if (fadeIn > 0) {
+      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + fadeIn);
+    } else {
+      gain.gain.value = volume;
+    }
+    this.uiLoops.set(id, { source, gain });
+  }
+
+  stopLoop(id: string, fadeOutSeconds = 0.45): void {
+    const entry = this.uiLoops.get(id);
+    if (!entry || !this.context) return;
+    this.uiLoops.delete(id);
+    const { source, gain } = entry;
+    const ctx = this.context;
+    const fade = Math.max(0.05, fadeOutSeconds);
+    try {
+      gain.gain.cancelScheduledValues(ctx.currentTime);
+      gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + fade);
+    } catch {
+      // Ignore scheduling races on teardown.
+    }
+    window.setTimeout(() => {
+      try {
+        source.stop();
+      } catch {
+        // Already stopped.
+      }
+      try {
+        source.disconnect();
+      } catch {
+        // Already disconnected.
+      }
+      try {
+        gain.disconnect();
+      } catch {
+        // Already disconnected.
+      }
+    }, fade * 1000 + 30);
   }
 
   async preloadSounds(sounds: SoundDef[]): Promise<void> {
@@ -224,7 +315,11 @@ export class AudioEngine {
     const panner = ctx.createPanner();
     panner.panningModel = 'equalpower';
     panner.distanceModel = 'inverse';
-    panner.refDistance = 0.35;
+    // Raised alongside `PANNER_LATERAL_GAIN`: widening the stereo field pushes
+    // side-placed sources further from the listener, and on the old 0.35 ref the
+    // inverse curve dimmed them by ~25%. This keeps their loudness where it was
+    // so the wider image is heard as direction, not as a volume drop.
+    panner.refDistance = 0.5;
     panner.maxDistance = 3;
     panner.rolloffFactor = 1.2;
     panner.coneInnerAngle = 360;

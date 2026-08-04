@@ -12,3 +12,9 @@
   overflow: hidden;
   isolation: isolate;
 }
+
+/* Let outgoing lifts + side tiles paint past the viewport while a stacked-sheet
+   move is in flight, so the push reads forward instead of shearing under a clip. */
+.outletTransitioning {
+  overflow: visible;
+}

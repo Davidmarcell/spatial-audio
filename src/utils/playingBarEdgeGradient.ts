@@ -29,18 +29,27 @@ export type PlayingBarEdgeGradientConfig = {
   breatheEnabled: boolean;
   /** Main breath cycle duration (seconds). */
   breathDurationSec: number;
+  /**
+   * When true, a quiet radiance swell follows tile drags even if Strength is
+   * zero — useful for trying a more dynamic bar without leaving glow on idle.
+   */
+  dragReactive: boolean;
 };
 
 /** Legacy session key; read once for migration if no saved default exists. */
 export const PLAYING_BAR_EDGE_GRADIENT_STORAGE_KEY = 'saudade:playing-bar-edge-gradient:v4';
+/** Bumped so older "radiance on" saved defaults do not override the new hide. */
 export const PLAYING_BAR_EDGE_GRADIENT_SAVED_DEFAULT_KEY =
-  'saudade:playing-bar-edge-gradient:saved-default';
+  'saudade:playing-bar-edge-gradient:saved-default:v5';
 export const PLAYING_BAR_EDGE_GRADIENT_TUNER_VISIBLE_KEY =
   'saudade:playing-bar-edge-gradient-tuner-visible';
 
-/** Defaults aligned with kirschberg.co.nz/bar-shaders (`va` config). */
+/**
+ * Radiance is hidden by default (Strength 0). The tuner can restore a glow, and
+ * `dragReactive` optionally wakes a soft swell while tiles are moved.
+ */
 export const DEFAULT_PLAYING_BAR_EDGE_GRADIENT: PlayingBarEdgeGradientConfig = {
-  waveOpacity: 0.4,
+  waveOpacity: 0,
   useSceneColours: true,
   colour1: '#47b9ff',
   colour2: '#ffd9e8',
@@ -49,12 +58,13 @@ export const DEFAULT_PLAYING_BAR_EDGE_GRADIENT: PlayingBarEdgeGradientConfig = {
   gradientScale: 0.64,
   gradientMidpoint: 0.73,
   gradientSoftness: 1,
-  glowStopHigh: 1.35,
-  glowStopLow: 0.72,
-  edgeRise: 0.39,
+  glowStopHigh: 1.52,
+  glowStopLow: 0.68,
+  edgeRise: 0.56,
   verticalOffset: 0,
-  breatheEnabled: true,
+  breatheEnabled: false,
   breathDurationSec: 9.5,
+  dragReactive: true,
 };
 
 function clamp01(value: number): number {
@@ -84,6 +94,7 @@ export function applyPlayingBarEdgeGradient(config: PlayingBarEdgeGradientConfig
   );
 
   root.dataset.playingBarBreathe = config.breatheEnabled ? '1' : '0';
+  root.dataset.playingBarDragReactive = config.dragReactive ? '1' : '0';
 
   root.style.setProperty('--playing-bar-wave-opacity', clamp01(config.waveOpacity).toFixed(3));
   root.style.setProperty('--playing-bar-gradient-angle', String(config.gradientAngle));
@@ -179,5 +190,6 @@ export function configSummary(config: PlayingBarEdgeGradientConfig): string {
     `${config.gradientAngle}°`,
     config.useSceneColours ? 'Scene colours' : 'Custom colours',
     config.breatheEnabled ? 'Breathing on' : 'Breathing off',
+    config.dragReactive ? 'Drag swell on' : 'Drag swell off',
   ].join(' · ');
 }

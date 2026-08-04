@@ -53,8 +53,8 @@
   --search-height-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --search-rise-duration: 0.46s;
   --search-rise-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --search-open-width-duration: 0.42s;
-  --search-open-rise-duration: 0.46s;
+  --search-open-width-duration: 0.21s;
+  --search-open-rise-duration: 0.23s;
   --search-open-total-duration: var(--search-open-rise-duration);
   --search-open-width-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --search-open-rise-ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -74,8 +74,8 @@
   --search-shell-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --search-content-duration: 0.46s;
   --search-content-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --search-content-delay: 175ms;
-  --search-rise-overlap-ms: 460ms;
+  --search-content-delay: 80ms;
+  --search-rise-overlap-ms: 230ms;
   --search-side-shift-distance: 24px;
   --search-side-shift-duration: 0.42s;
   --search-side-shift-delay: 0ms;
@@ -167,9 +167,9 @@
   --radar-ring: rgba(0, 0, 0, 0.07);
   --drop-highlight: rgba(17, 17, 17, 0.16);
   --listener-glow: rgba(76, 175, 120, 0.55);
-  --playing-bar-accent: rgba(76, 175, 120, 0.38);
+  --playing-bar-accent: rgba(76, 175, 120, 0.56);
   --playing-bar-mid: rgba(76, 175, 120, 0.16);
-  --playing-bar-warm: rgba(225, 200, 160, 0.28);
+  --playing-bar-warm: rgba(225, 200, 160, 0.5);
   --playing-bar-line: rgba(76, 175, 120, 0.40);
   --overlay-backdrop: rgba(245, 242, 236, 0.18);
   --overlay-backdrop-open: rgba(245, 242, 236, 0.32);
@@ -179,7 +179,8 @@
   --overlay-panel-shadow: var(--glass-panel-shadow);
   --search-backdrop: rgba(245, 242, 236, 0.18);
   --search-backdrop-open: rgba(245, 242, 236, 0.28);
-  --search-panel-bg: var(--glass-panel-bg);
+  /* Fully opaque search chrome — no frosted wash through the pill. */
+  --search-panel-bg: #ffffff;
   --search-panel-open-bg: #ffffff;
   --search-panel-border: transparent;
   --search-panel-shadow: var(--glass-panel-shadow);
@@ -254,9 +255,9 @@
   --radar-ring: rgba(255, 255, 255, 0.08);
   --drop-highlight: rgba(255, 255, 255, 0.18);
   --listener-glow: rgba(76, 175, 120, 0.45);
-  --playing-bar-accent: rgba(76, 175, 120, 0.44);
+  --playing-bar-accent: rgba(76, 175, 120, 0.58);
   --playing-bar-mid: rgba(76, 175, 120, 0.18);
-  --playing-bar-warm: rgba(40, 72, 58, 0.36);
+  --playing-bar-warm: rgba(40, 72, 58, 0.56);
   --playing-bar-line: rgba(76, 175, 120, 0.40);
   --overlay-backdrop: rgba(0, 0, 0, 0.38);
   --overlay-backdrop-open: rgba(0, 0, 0, 0.48);
@@ -266,7 +267,7 @@
   --overlay-panel-shadow: var(--glass-panel-shadow);
   --search-backdrop: rgba(0, 0, 0, 0.24);
   --search-backdrop-open: rgba(0, 0, 0, 0.38);
-  --search-panel-bg: var(--glass-panel-bg);
+  --search-panel-bg: rgb(36, 36, 38);
   --search-panel-open-bg: rgb(36, 36, 38);
   --search-panel-border: transparent;
   --search-panel-shadow: var(--glass-panel-shadow);
@@ -331,6 +332,17 @@ body {
   position: relative;
   z-index: 1;
   overflow: hidden;
+}
+
+/* Phones: during a stacked-sheet page move, drop the root overflow clip so the
+   outgoing page (and its side tiles / chrome shadows) can travel forward under
+   the rising sheet instead of shearing against the viewport edge. */
+@media (max-width: 768px) {
+  html[data-sheet-transition='active'],
+  html[data-sheet-transition='active'] body,
+  html[data-sheet-transition='active'] #root {
+    overflow: visible;
+  }
 }
 
 button,
