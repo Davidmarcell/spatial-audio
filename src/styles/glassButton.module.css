@@ -153,6 +153,9 @@
   padding: 0;
   color: var(--text-muted);
   line-height: 0;
+  /* Let the glass drop-shadow paint outside the hit box; ancestors still need
+     overflow:visible (bottom bar / sheet-transition) for it to show on phones. */
+  overflow: visible;
 }
 
 .icon:hover:not(:disabled) {

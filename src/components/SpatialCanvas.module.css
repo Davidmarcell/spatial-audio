@@ -24,8 +24,11 @@
     background-color var(--theme-transition-duration) var(--theme-transition-ease);
 }
 
+/* Playing used to clip overflow so the radar rings stayed inside the canvas —
+   that also sheared sound-tile shadows and edge tiles on phones. Keep rings
+   inset via their own sizing; let tiles paint past the canvas bounds. */
 .canvasPlaying {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .canvasDropTarget {
@@ -120,6 +123,12 @@
   opacity: var(--playing-bar-wave-opacity, 0.4);
 }
 
+/* Soft swell while a tile is dragged — only when drag-reactive is enabled. */
+:root[data-playing-bar-drag-reactive='1'][data-radiance-dragging='1'] .playingBarShader {
+  opacity: max(var(--playing-bar-wave-opacity, 0), 0.34);
+  transition: opacity 0.18s var(--ease-ios);
+}
+
 :root[data-playing-bar-breathe='1'] .playingBarShaderActive {
   animation: playingBarRadianceBreath var(--playing-bar-breath-duration, 9.5s) ease-in-out infinite;
 }
@@ -159,6 +168,7 @@
   animation: radarRingsEnter 820ms var(--ease-ios) both;
 }
 
+/* Straight expand to rest — no overshoot/settle bounce on the rings. */
 @keyframes radarRingsEnter {
   from {
     opacity: 0;
@@ -167,15 +177,6 @@
 
   55% {
     opacity: 1;
-  }
-
-  72% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-
-  86% {
-    transform: scale(0.98);
   }
 
   to {
@@ -195,18 +196,20 @@
 }
 
 .radarRing:nth-child(1) {
-  width: 28cqmin;
-  height: 28cqmin;
+  width: 40cqmin;
+  height: 40cqmin;
 }
 
 .radarRing:nth-child(2) {
-  width: 48cqmin;
-  height: 48cqmin;
+  width: 72cqmin;
+  height: 72cqmin;
 }
 
 .radarRing:nth-child(3) {
-  width: 76cqmin;
-  height: 76cqmin;
+  /* Sit on the shorter viewport edge; 2px inset keeps the dashed stroke
+     visible when the playing canvas clips overflow. */
+  width: calc(100cqmin - 2px);
+  height: calc(100cqmin - 2px);
 }
 
 .radarRingsPlaying .radarRing {
@@ -321,6 +324,25 @@
   z-index: 1;
 }
 
+.listenerSucking {
+  animation: listenerSuckPulse var(--randomize-suck-duration, 420ms)
+    cubic-bezier(0.32, 0, 0.12, 1) both;
+}
+
+@keyframes listenerSuckPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  52% {
+    transform: translate(-50%, -50%) scale(1.14);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 .listenerDot {
   width: 0.75rem;
   height: 0.75rem;
@@ -350,7 +372,8 @@
   .radarRingsBreath .radarRing,
   .radarRingsPulsate .radarRing,
   .radarRingsRipple .radarRing,
-  .radarRingsEntering {
+  .radarRingsEntering,
+  .listenerSucking {
     animation: none;
   }
 }

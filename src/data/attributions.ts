@@ -8,10 +8,17 @@ import { audioAttributionsFromPools } from './soundPools';
 export const uiAudioAttributions: Attribution[] = [
   {
     file: 'public/audio/ui/enter-whoosh.mp3',
-    title: 'Swooshes, whoosh, short, deep (trimmed 38s-41s)',
+    title: 'Swooshes, whoosh, short, deep (extended ~5.8s with soft fade)',
     author: 'susssounds',
     license: 'CC0 1.0',
     sourceUrl: 'https://freesound.org/people/susssounds/sounds/752068/',
+  },
+  {
+    file: 'public/audio/ui/globe-ambient.mp3',
+    title: 'Ethereal globe browse ambient (synthesized soft noise + pad)',
+    author: 'Saudade',
+    license: 'Original (app asset)',
+    sourceUrl: '',
   },
 ];
 

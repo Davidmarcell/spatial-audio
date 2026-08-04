@@ -33,7 +33,23 @@
    through the page during the Enter transition. */
 .gate[data-exiting='true'] {
   pointer-events: none;
-  animation: landingExitLift 0.86s var(--ease-in-out-strong) both;
+  /* Fan tiles + Enter shadow must travel with the lift, not shear at the clip. */
+  overflow: visible;
+  /* Match SHEET_RISE_DURATION_MS (1000). Stronger lift so the homepage push
+     reads under the rising globe instead of a tiny -34px nudge. */
+  animation: landingExitLift 1s var(--ease-in-out-strong) both;
+}
+
+.gate[data-exiting='true'] .inner {
+  overflow: visible;
+}
+
+/* The search row is part of the landing page, so it LIFTS with it: the Enter
+   button rides the gate's own transform and the portalled pill replays the same
+   exit animation (see `data-page-motion` in LocationSearchSpotlight), which
+   keeps the pair welded together on the way out. */
+.gate[data-exiting='true'] .searchSlot {
+  pointer-events: none;
 }
 
 @keyframes landingExitLift {
@@ -41,7 +57,7 @@
     transform: translate3d(0, 0, 0) scale(1);
   }
   to {
-    transform: translate3d(0, -34px, 0) scale(0.986);
+    transform: translate3d(0, -18vh, 0) scale(0.96);
   }
 }
 
@@ -55,6 +71,11 @@
 .gate[data-entering='true'] {
   z-index: 450;
   pointer-events: none;
+  overflow: visible;
+}
+
+.gate[data-entering='true'] .inner {
+  overflow: visible;
 }
 
 /* Soft editorial glow so the frosted page never reads as a flat wash. */
@@ -100,10 +121,10 @@
   line-height: 1.3;
   padding-block: 0.08em;
   color: var(--text);
-  /* The entrance now lives on the per-letter spans (each glyph cascades in on
-     its own beat). The wordmark itself keeps only the search-open dim: no
-     entrance animation here means opacity is never pinned, so the dim below can
-     take the whole wordmark to 0.4 via this transition. */
+  /* The entrance lives on the per-letter spans. The wordmark itself only dims
+     for search-open. Font-size must NOT transition — the preload settle is a
+     single FLIP transform on this same h1; a CSS font-size ease would read as
+     a second hop after the settle lands. */
   transition: opacity 0.32s var(--ease-premium-enter);
 }
 
@@ -181,7 +202,7 @@
   padding: 0 1.7rem;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
-  background-color: var(--search-panel-bg, var(--glass-panel-bg));
+  background-color: var(--search-panel-bg, #fff);
   color: var(--text);
   font: inherit;
   /* Match the landing body/tagline copy exactly, so the Enter label reads at
@@ -196,13 +217,12 @@
   box-shadow:
     0 18px 48px rgba(0, 0, 0, 0.096),
     0 7px 20px rgba(0, 0, 0, 0.056);
-  /* Final beat of the hero sequence: fade + rise in just after the tagline,
-     one stagger step (0.06s, matching the wordmark/fan rhythm) behind the search
-     pill. `backwards` fill holds the hidden start-state from the first paint and,
-     unlike `both`, releases the transform when it ends so the press/active scale
-     still works afterwards. Transform + opacity only, so nothing reflows. */
-  animation: gateRise var(--landing-enter-duration, 0.6s) var(--ease-premium-enter)
-    var(--landing-enter-delay, 0.72s) backwards;
+  /* Final beat of the hero sequence: fade + rise in just after the search
+     pill. Static opacity:0 + `both` prevent a first-frame white-pill flash
+     (same pattern as the portalled search entrance). */
+  opacity: 0;
+  animation: gateRise var(--landing-enter-duration, 0.46s) var(--ease-premium-enter)
+    var(--landing-enter-delay, 0.56s) both;
   transition:
     transform 0.26s var(--ease-premium-enter),
     opacity 0.26s var(--ease-premium-enter),
@@ -247,8 +267,14 @@
 /* When the search expands, the wordmark and fan tiles recede to a soft
    background presence (kept visible, not hidden) so the search is the focus. */
 .inner[data-search-open='true'] .wordmark,
-.inner[data-search-open='true'] .locationRow {
+.inner[data-search-open='true'] .locationRow,
+.inner[data-search-open='true'] .locationStack {
   opacity: 0.4;
+}
+
+.locationStack {
+  width: 100%;
+  transition: opacity 0.32s var(--ease-premium-enter);
 }
 
 .locationRow {
@@ -265,7 +291,7 @@
      fan -> copy gaps both equal the `.inner` gap. */
   gap: 0;
   margin: 0;
-  padding: 0 0 var(--fan-pad-bottom, 3.2rem);
+  padding: var(--fan-pad-top, 0px) 0 var(--fan-pad-bottom, 3.2rem);
   list-style: none;
   transition: opacity 0.32s var(--ease-premium-enter);
 }
@@ -275,19 +301,12 @@
   z-index: 1;
   margin: 0;
   padding: 0;
-  /* Reserve the tile's space but stay invisible until the art has decoded (the
-     row gains `data-tiles-ready`). This keeps late-decoding images from popping
-     in after layout: by the time a tile rises its image is ready to paint. */
-  opacity: 0;
-}
-
-/* Play the staggered fan entrance only once the tile art has decoded, so the
-   whole row rises in cleanly as one beat rather than each image snapping in. */
-.locationRow[data-tiles-ready] .locationItem {
+  /* Fan rises from the entrance clock (fan reveal delay), not after decode, so
+     it can overlap the wordmark cascade. */
   --gate-rise: var(--landing-fan-rise, 12px);
-  animation: gateRise var(--landing-fan-duration, 0.6s) var(--ease-premium-enter) both;
+  animation: gateRise var(--landing-fan-duration, 0.46s) var(--ease-premium-enter) both;
   animation-delay: calc(
-    var(--landing-fan-delay, 0.2s) + var(--landing-index) * var(--landing-fan-stagger, 0.06s)
+    var(--landing-fan-delay, 0.14s) + var(--landing-index) * var(--landing-fan-stagger, 0.045s)
   );
 }
 
@@ -323,13 +342,15 @@
   --magnet-y: 0px;
   --lift: 0px;
   --arc-y: 0px;
+  --scatter-x: 0px;
   --rest-scale: 1;
   --tile-scale: 1;
-  /* Resting transform = fan rotation + arc drop + per-preset edge scale; the
-     magnet nudge, hover lift and press scale all stack on top without disturbing
-     the fan angle (hover/press multiply into --tile-scale). */
+  /* Resting transform = rotation + vertical offset (fan arc, or the scatter's
+     per-plate y) + edge scale; the magnet nudge, hover lift and press scale all
+     stack on top without disturbing the angle (hover/press multiply into
+     --tile-scale). `--scatter-x` shifts a plate sideways off the packed row. */
   transform: translate3d(
-      var(--magnet-x),
+      calc(var(--magnet-x) + var(--scatter-x)),
       calc(var(--magnet-y) + var(--lift) + var(--arc-y)),
       0
     )
@@ -388,15 +409,17 @@
 
 .locationImage {
   display: block;
-  /* Tiles scaled to suit the ~900px hero column. */
-  width: 150px;
-  height: 150px;
+  /* Desktop default; compact overrides via --tile-size on the row. */
+  width: var(--tile-size, 150px);
+  height: var(--tile-size, 150px);
   object-fit: cover;
   object-position: center;
   /* Shared tile radius + shared hairline stroke, matching every other image
      tile across the app. */
   border-radius: var(--tile-radius);
   border: 1px solid var(--glass-border);
+  /* Solid fill so a slow decode never reads as an empty white frame. */
+  background: var(--surface-solid);
   /* Intended subtle drop shadow on the landing images (buttons stay flat). */
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.28s var(--ease-premium-enter);
@@ -419,6 +442,200 @@
   }
 }
 
+/* —— Preloader (all viewports) ——
+   Saudade alone at viewport centre (letter cascade + larger scale) while fan
+   <img>s decode in the still-mounted (but hidden) row. Then one continuous
+   FLIP centre → rest (scale down + push up). Only after that settle do fan /
+   tagline / search+Enter rise together. */
+.gate[data-phase='booting'] .inner {
+  /* Fill the gate so the absolute wordmark's 50% is true viewport centre. */
+  align-self: stretch;
+  justify-self: stretch;
+  max-width: none;
+  min-height: 100%;
+  justify-content: flex-start;
+}
+
+.gate[data-phase='booting'] .wordmark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  margin: 0;
+  /* Larger than rest so the settle reads as a clear scale-down + push-up. */
+  font-size: clamp(3.6rem, 12vw, 7rem);
+  transform: translate(-50%, -50%);
+  /* Avoid wrapping "Saudade" during the centred hold. */
+  white-space: nowrap;
+}
+
+/* Keep fan/tagline/search mounted for decode + resting layout, but invisible
+   until the wordmark has settled (and art is warm for the fan). Search stays
+   in flow so the FLIP end rect == the static hero slot. */
+.gate[data-hero-ready='false'] .locationRow,
+.gate[data-hero-ready='false'] .tagline,
+.gate[data-hero-ready='false'] .searchSlot,
+.gate[data-art-ready='false'] .locationRow,
+.gate[data-art-ready='false'] .tagline {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gate[data-hero-ready='false'] .locationItem,
+.gate[data-hero-ready='false'] .tagline,
+.gate[data-hero-ready='false'] .enterButton,
+.gate[data-art-ready='false'] .locationItem {
+  animation: none;
+}
+
+.gate[data-hero-ready='false'] .enterButton {
+  opacity: 0;
+}
+
+.gate[data-phase='revealed'] .wordmark {
+  position: relative;
+  left: auto;
+  top: auto;
+  /* Transform is owned by the JS FLIP settle; don't fight it with CSS. */
+  transition: opacity 0.32s var(--ease-premium-enter);
+}
+
+/* Freeze letters as the settle starts — no second cascade on the way up. */
+.gate[data-phase='revealed'] .wordmarkLetter {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+/* Assets rise only after the preload settle — short delay so they lift with
+   search+Enter as one beat, never under the moving wordmark. On phones they all
+   run on `--landing-beat`, the same duration as the wordmark settle. */
+.gate[data-hero-ready='true'][data-art-ready='true'] .locationItem {
+  animation: gateRise var(--landing-beat, var(--landing-fan-duration, 0.5s))
+    var(--ease-premium-enter) both;
+  animation-delay: calc(
+    0.06s + var(--landing-index) * var(--landing-fan-stagger, 0.04s)
+  );
+}
+
+.gate[data-hero-ready='true'][data-art-ready='true'] .tagline {
+  animation: gateRise var(--landing-beat, var(--landing-tagline-duration, 0.5s))
+    var(--ease-premium-enter) both;
+  animation-delay: 0.14s;
+}
+
+/* Search mounts only when hero-ready; pair with Enter on a shared short beat. */
+.gate[data-hero-ready='true'] .enterButton {
+  animation-duration: var(--landing-beat, var(--landing-enter-duration, 0.46s));
+  animation-delay: 0.06s;
+}
+
+/* —— Compact / phone landing layout —— */
+@media (max-width: 768px) {
+  /* One tempo for the whole phone entrance: the wordmark's centre → rest settle
+     (PRELOAD_WORDMARK_SETTLE_MS in LandingGate.tsx) and every asset that rises
+     after it share this duration. */
+  .gate {
+    --landing-beat: 0.56s;
+  }
+
+  .gate {
+    /* Extra inline room so search/Enter pill shadows are not sheared. */
+    padding-inline: max(1.1rem, env(safe-area-inset-left, 0px) + 0.85rem);
+    /* Let plate tips and pill shadows breathe past the frame. */
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+
+  .inner {
+    gap: 1.2rem;
+    max-width: min(900px, 100%);
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+
+  .gate[data-phase='booting'] .wordmark {
+    font-size: clamp(3.4rem, 14vw, 4.8rem);
+  }
+
+  .gate[data-phase='revealed'] .wordmark {
+    font-size: clamp(2.35rem, 11vw, 3.1rem);
+  }
+
+  .locationStack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 0.15rem;
+  }
+
+  .locationRow {
+    width: auto;
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  .locationItem + .locationItem {
+    margin-left: calc(var(--overlap, 1.55rem) * -1);
+  }
+
+  .locationButton:active {
+    --lift: -2px;
+    --tile-scale: 0.97;
+  }
+
+  .tagline {
+    max-width: 22rem;
+    padding-inline: 0.35rem;
+  }
+
+  /* Enter drops BELOW the search on phones and runs the full width, and the pair
+     is pushed to the foot of the page rather than sitting under the copy. */
+  .searchSlot {
+    margin-top: auto;
+    width: 100%;
+    box-sizing: border-box;
+    /* Keep pills inset so soft shadows never clip at the viewport edge. */
+    padding-inline: 0.15rem;
+    /* Room for the Enter pill's soft shadow so it is not clipped by the safe area. */
+    padding-bottom: max(1.35rem, calc(env(safe-area-inset-bottom, 0px) + 0.85rem));
+    overflow: visible;
+  }
+
+  .searchRow {
+    width: 100%;
+    max-width: none;
+    flex-direction: column;
+    align-items: stretch;
+    /* Keep search shadow from painting across Enter — same gap as a soft lift. */
+    gap: 0.85rem;
+    overflow: visible;
+  }
+
+  .enterButton {
+    width: 100%;
+    box-sizing: border-box;
+    /* Match the landing search pill height exactly (3.68rem). */
+    height: 3.68rem;
+    min-height: 3.68rem;
+    padding: 0 1.25rem;
+    /* Fully opaque white — matches the search pill. */
+    background-color: #fff;
+    /* Same soft shadow as the search pill — do not inherit a heavier falloff. */
+    box-shadow:
+      0 10px 28px rgba(0, 0, 0, 0.07),
+      0 3px 10px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Bring the brand / plates / copy down into the middle of the frame. */
+  .gate[data-hero-ready='true'] .inner {
+    min-height: 100%;
+    justify-content: flex-start;
+    padding-top: 10vh;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gate,
   .wordmark,
@@ -426,10 +643,24 @@
   .tagline,
   .headphones,
   .searchSlot,
-  .enterButton,
-  .locationItem,
-  .locationRow[data-tiles-ready] .locationItem {
+  .locationItem {
     animation: none;
+  }
+
+  /* Keep Enter delayed with the search pill; don't flash it ahead of the hero. */
+  .enterButton {
+    opacity: 0;
+    animation: landingEnterAppear var(--landing-enter-delay, 0.56s) linear both;
+    transform: none;
+  }
+
+  @keyframes landingEnterAppear {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   /* Skip the lift/dim entirely; the landing simply stays in place until it is
@@ -450,9 +681,16 @@
     transform: none;
   }
 
-  /* No staggered rise, so reveal the tiles the instant their art is ready. */
-  .locationRow[data-tiles-ready] .locationItem {
+  /* No staggered rise — show the fan once the preload hold ends. */
+  .gate[data-hero-ready='true'][data-art-ready='true'] .locationItem {
     opacity: 1;
+  }
+
+  .gate[data-hero-ready='false'] .locationItem,
+  .gate[data-art-ready='false'] .locationItem,
+  .gate[data-hero-ready='false'] .tagline,
+  .gate[data-art-ready='false'] .tagline {
+    opacity: 0;
   }
 
   .locationButton,
@@ -473,5 +711,9 @@
     --tile-scale: 1;
     transform: translateY(var(--arc-y, 0px)) rotate(var(--rest-rot, 0deg))
       scale(var(--rest-scale, 1));
+  }
+
+  .wordmark {
+    transition: none;
   }
 }

@@ -616,8 +616,11 @@ export const environments: Environment[] = [
             id: 'bangkok-traffic',
             name: 'City Traffic',
             category: 'ambient',
-            type: 'city-hum',
-            src: '/audio/costa-rica/stream-distant.mp3',
+            type: 'traffic',
+            // Manila jeepney ride — closest openly-licensed SE-Asian street bed
+            // (tuk-tuk / scooter texture) until a Bangkok-specific clip lands.
+            fixedClipId: 'traffic-manila-jeepney',
+            src: '',
             loop: true,
             description: 'Tuk-tuks and traffic humming through the city',
             keywords: ['traffic', 'city', 'tuk-tuk', 'urban', 'street'],

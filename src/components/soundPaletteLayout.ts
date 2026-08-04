@@ -6,7 +6,41 @@ export const DOCK_SLOT_GAP = 0;
 export const DOCK_LIST_PAD_Y = 0.6;
 export const DOCK_PAD_X = 5.3;
 export const CANVAS_TILE_SIZE = 84;
+/** Compact canvas tile edge (~20% up from 50 so faces stay readable on phones). */
+export const MOBILE_CANVAS_TILE_SIZE = 60;
+/** Compact dock face — 48px tiles with a tight stride so the tray stays dense. */
+export const MOBILE_DOCK_TILE_SIZE = 48;
+/** Horizontal pad inside the compact dock before the first tile. */
+export const MOBILE_DOCK_PAD_X = 4;
+/** Gap between compact dock tile boxes (tile size + gap = slot stride). */
+export const MOBILE_DOCK_GAP = 2;
 export const DRAG_THRESHOLD = 6;
+
+const COMPACT_MQ = '(max-width: 768px)';
+
+export function isCompactViewport(): boolean {
+  return (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(COMPACT_MQ).matches
+  );
+}
+
+/** Drag-ghost / hit-target size for the current viewport. */
+export function getCanvasTileSize(): number {
+  return isCompactViewport() ? MOBILE_CANVAS_TILE_SIZE : CANVAS_TILE_SIZE;
+}
+
+/** Dock tile face size for the current viewport. */
+export function getDockTileSize(horizontal = isCompactViewport()): number {
+  return horizontal ? MOBILE_DOCK_TILE_SIZE : DOCK_BASE_SIZE;
+}
+
+/** Centre-to-centre stride along the dock axis. */
+export function getDockSlotStride(horizontal = isCompactViewport()): number {
+  if (horizontal) return MOBILE_DOCK_TILE_SIZE + MOBILE_DOCK_GAP;
+  return DOCK_SLOT_HEIGHT + DOCK_SLOT_GAP;
+}
 
 /**
  * Floor for how many tiles the dock will always allow. The dock is no longer
@@ -26,6 +60,13 @@ export const MAX_DOCK_SOUNDS = 5;
  */
 export function getMaxDockSounds(): number {
   if (typeof window === 'undefined') return 12;
+  // Mobile dock scrolls horizontally — allow a fuller tray of tiles.
+  if (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(max-width: 768px)').matches
+  ) {
+    return 24;
+  }
   const reserved = DOCK_SLOT_HEIGHT + 200;
   const available = window.innerHeight - reserved;
   const fit = Math.floor(available / (DOCK_SLOT_HEIGHT + DOCK_SLOT_GAP));
@@ -43,8 +84,14 @@ export const DOCK_HOVER_INFLUENCE = 60;
 export const DOCK_ACTIVATION_PAD = 40;
 /** Gap opened between dock icons when an external tile approaches (px). */
 export const DOCK_INSERTION_GAP = 58;
+/** Tighter parting gap for the compact horizontal tray. */
+export const MOBILE_DOCK_INSERTION_GAP = 36;
 /** Max icon size during external canvas→dock drag (px). */
 export const DOCK_DRAG_MAX_SIZE = 82;
+
+export function getDockInsertionGap(horizontal = isCompactViewport()): number {
+  return horizontal ? MOBILE_DOCK_INSERTION_GAP : DOCK_INSERTION_GAP;
+}
 
 /**
  * Picks the sidebar dock palette tiles from the randomized dock defaults.
@@ -93,18 +140,29 @@ export function getDockSlotCenter(
   activeSoundIds: string[],
   dockDefaultIds: string[],
   returningSoundId?: string | null,
-): { x: number; y: number } | null {
+  horizontal = false,
+): { x: number; y: number; size: number } | null {
   const dockSounds = getDockSounds(allSounds, activeSoundIds, dockDefaultIds, returningSoundId);
   const index = dockSounds.findIndex((sound) => sound.id === soundId);
   if (index < 0) return null;
 
+  const tileSize = getDockTileSize(horizontal);
+  const slotStride = getDockSlotStride(horizontal);
+
+  if (horizontal) {
+    // Bottom tray: tiles sit in a row, vertically centred in the dock chrome.
+    const x = dockRect.left + MOBILE_DOCK_PAD_X + index * slotStride + tileSize / 2;
+    const y = dockRect.top + dockRect.height / 2;
+    return { x, y, size: tileSize };
+  }
+
   const y =
     dockRect.top +
     DOCK_LIST_PAD_Y +
-    index * (DOCK_SLOT_HEIGHT + DOCK_SLOT_GAP) +
+    index * slotStride +
     DOCK_SLOT_HEIGHT / 2;
-  const x = dockRect.left + DOCK_PAD_X + DOCK_BASE_SIZE / 2;
-  return { x, y };
+  const x = dockRect.left + DOCK_PAD_X + tileSize / 2;
+  return { x, y, size: tileSize };
 }
 
 /** Stable slot centres along the dock axis (ignores live spread transforms). */
@@ -114,29 +172,65 @@ export function getDockSlotCenters(
   horizontal: boolean,
 ): number[] {
   const centers: number[] = [];
-  const slotStride = DOCK_SLOT_HEIGHT + DOCK_SLOT_GAP;
+  const tileSize = getDockTileSize(horizontal);
+  const slotStride = getDockSlotStride(horizontal);
+  const pad = horizontal ? MOBILE_DOCK_PAD_X : DOCK_LIST_PAD_Y;
 
   for (let i = 0; i < dockSoundCount; i += 1) {
     if (horizontal) {
-      const x = dockRect.left + 6 + i * slotStride + DOCK_BASE_SIZE / 2;
-      centers.push(x);
+      centers.push(dockRect.left + pad + i * slotStride + tileSize / 2);
     } else {
-      const y = dockRect.top + DOCK_LIST_PAD_Y + i * slotStride + DOCK_SLOT_HEIGHT / 2;
-      centers.push(y);
+      centers.push(dockRect.top + pad + i * slotStride + DOCK_SLOT_HEIGHT / 2);
     }
   }
 
   const addIndex = dockSoundCount;
   if (horizontal) {
-    const x = dockRect.left + 6 + addIndex * slotStride + DOCK_BASE_SIZE / 2;
-    centers.push(x);
+    centers.push(dockRect.left + pad + addIndex * slotStride + tileSize / 2);
   } else {
-    const y =
-      dockRect.top + DOCK_LIST_PAD_Y + addIndex * slotStride + DOCK_SLOT_HEIGHT / 2;
-    centers.push(y);
+    centers.push(dockRect.top + pad + addIndex * slotStride + DOCK_SLOT_HEIGHT / 2);
   }
 
   return centers;
+}
+
+/**
+ * When the resting capture is one slot short (the returning tile is not in the
+ * DOM yet), predict its landing centre from the captured neighbours so the
+ * flight does not fall back to a wrong edge of the screen.
+ */
+export function predictInsertedSlotCenter(
+  captured: readonly { x: number; y: number }[],
+  finalIndex: number,
+  horizontal: boolean,
+): { x: number; y: number; size: number } | null {
+  if (captured.length === 0 || finalIndex < 0) return null;
+  const tileSize = getDockTileSize(horizontal);
+  const stride = getDockSlotStride(horizontal);
+
+  if (horizontal) {
+    const rowY = captured[0].y;
+    let x: number;
+    if (finalIndex <= 0) {
+      x = captured[0].x - stride;
+    } else if (finalIndex >= captured.length) {
+      x = captured[captured.length - 1].x + stride;
+    } else {
+      x = (captured[finalIndex - 1].x + captured[finalIndex].x) / 2;
+    }
+    return { x, y: rowY, size: tileSize };
+  }
+
+  const colX = captured[0].x;
+  let y: number;
+  if (finalIndex <= 0) {
+    y = captured[0].y - stride;
+  } else if (finalIndex >= captured.length) {
+    y = captured[captured.length - 1].y + stride;
+  } else {
+    y = (captured[finalIndex - 1].y + captured[finalIndex].y) / 2;
+  }
+  return { x: colX, y, size: tileSize };
 }
 
 /** Index at which a returning tile would slot in (0 = before first icon). */

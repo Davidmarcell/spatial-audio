@@ -600,6 +600,23 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Higurashi 20180728 1902.ogg"
   },
   {
+    "id": "insects-higurashi-cicada",
+    "type": "insects",
+    "tags": [
+      "asian",
+      "temperate",
+      "forest",
+      "summer",
+      "night"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/insects/insects-higurashi-cicada.ogg",
+    "title": "Tanna japonensis",
+    "author": "Σ64",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tanna_japonensis_v01.ogg"
+  },
+  {
     "id": "insects-nocturnal",
     "type": "insects",
     "tags": [
@@ -732,6 +749,22 @@ export const soundClips: SoundClip[] = [
     "author": "Kuco (Wikimedia Commons)",
     "license": "Public domain",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:LaughingKookaburra.ogg"
+  },
+  {
+    "id": "elephant-trumpet-1",
+    "type": "elephant",
+    "tags": [
+      "african",
+      "savanna",
+      "arid"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/elephant/elephant-trumpet-1.mp3",
+    "title": "Elephant voice — trumpeting (padded loop for distant savanna call)",
+    "author": "தகவலுழவன் (Wikimedia Commons)",
+    "license": "CC0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Elephant_voice_-_trumpeting.ogg",
+    "pinnedOnly": true
   },
   {
     "id": "lion-roar-1",
@@ -1276,7 +1309,7 @@ export const soundClips: SoundClip[] = [
       "cold"
     ],
     "sustained": true,
-    "src": "/audio/pool/seabird/arctic-tern-2.wav",
+    "src": "/audio/pool/seabird/arctic-tern-2.mp3",
     "title": "Holm of Papa Sterna paradisaea",
     "author": "Gunther Tschuch",
     "license": "CC BY-SA 4.0",
@@ -2235,7 +2268,7 @@ export const soundClips: SoundClip[] = [
       "forest"
     ],
     "sustained": false,
-    "src": "/audio/pool/tropical-bird/tropical-bird-great-hornbill.wav",
+    "src": "/audio/pool/tropical-bird/tropical-bird-great-hornbill.mp3",
     "title": "Great hornbill , Buceros bicornis,call",
     "author": "Shino jacob koottanad",
     "license": "CC BY-SA 4.0",

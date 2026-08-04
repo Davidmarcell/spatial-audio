@@ -13,7 +13,6 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
-    // Cloud/tunnel previews hit Vite via random public hostnames.
     allowedHosts: true,
     open: false,
   },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import type { AddSoundTab, Season, SoundDef } from '../data/types';
 import {
@@ -81,6 +81,45 @@ export function AddSoundSheet({
     ? `No sounds match "${searchQuery.trim()}".`
     : 'No sounds in this category for the current season.';
 
+  // Track the results' natural height so the sheet can ease between sizes as the
+  // list is filtered. The first measurement is committed WITHOUT the transition
+  // (there is no previous height to travel from), and it is armed from the next
+  // change onwards so opening the sheet never animates from zero.
+  const lastResultsHeightRef = useRef<number | null>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const [resultsHeight, setResultsHeight] = useState<number | null>(null);
+  const [animateHeight, setAnimateHeight] = useState(false);
+
+  // A callback ref rather than an effect: the overlay mounts its body after the
+  // sheet's own effects have run, so an effect reading a plain ref found null and
+  // never observed anything. This attaches the moment the node exists.
+  const attachResultsRef = useCallback((node: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+    if (!node || typeof ResizeObserver === 'undefined') {
+      lastResultsHeightRef.current = null;
+      setResultsHeight(null);
+      setAnimateHeight(false);
+      return;
+    }
+    // ResizeObserver reports the current size as soon as it starts observing, so
+    // the first measurement lands without measuring by hand.
+    const observer = new ResizeObserver(() => {
+      const next = node.getBoundingClientRect().height;
+      const previous = lastResultsHeightRef.current;
+      if (previous != null && Math.abs(previous - next) < 0.5) return;
+      // Arm the transition only once a height is already committed, so opening
+      // the sheet does not animate up from nothing.
+      if (previous != null) setAnimateHeight(true);
+      lastResultsHeightRef.current = next;
+      setResultsHeight(next);
+    });
+    observer.observe(node);
+    observerRef.current = observer;
+  }, []);
+
+  useEffect(() => () => observerRef.current?.disconnect(), []);
+
   return (
     <ScaleBlurOverlay
       open={open}
@@ -162,6 +201,14 @@ export function AddSoundSheet({
       </div>
 
       <div className={styles.scroll} role="tabpanel">
+        {/* Height is measured from the content and eased, so filtering the list
+            grows/shrinks the sheet instead of snapping to the new size. */}
+        <div
+          className={styles.sizer}
+          style={resultsHeight != null ? { height: `${resultsHeight}px` } : undefined}
+          data-animate={animateHeight ? 'true' : undefined}
+        >
+        <div ref={attachResultsRef}>
         {listedSounds.length === 0 ? (
           <div className={styles.empty}>
             <p>{emptyMessage}</p>
@@ -237,6 +284,8 @@ export function AddSoundSheet({
             </ul>
           </div>
         )}
+        </div>
+        </div>
       </div>
     </ScaleBlurOverlay>
   );

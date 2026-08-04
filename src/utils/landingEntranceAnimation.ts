@@ -1,8 +1,9 @@
 /**
  * Live-tunable timing for the landing gate's entrance / loading animation. The
  * hero stack cascades in on mount as one choreographed beat: the wordmark
- * cascades letter by letter, the fan of tiles rises once its art has decoded,
- * then the tagline, the search pill and finally the Enter button. Every delay,
+ * cascades letter by letter, the fan of tiles rises on its own reveal delay
+ * (overlapping the wordmark — not gated on image decode), then the tagline,
+ * the search pill and finally the Enter button. Every delay,
  * duration and rise distance below is written onto the document root as a CSS
  * custom property (see `applyLandingEntranceAnimation`) and consumed by the
  * `gateRise` / `landingSearchRise` keyframes in `LandingGate.module.css` and
@@ -29,7 +30,7 @@ export type LandingEntranceConfig = {
   /** Wordmark: rise distance each letter travels up into place, in px. */
   wordmarkRisePx: number;
 
-  /** Fan tiles: delay after the art is decode-ready before the row rises, in ms. */
+  /** Fan tiles: delay from mount before the row rises, in ms (overlaps wordmark). */
   fanRevealDelayMs: number;
   /** Fan tiles: stagger step between neighbouring tiles, in ms. */
   fanStaggerMs: number;
@@ -57,35 +58,35 @@ export type LandingEntranceConfig = {
 };
 
 /**
- * Code defaults — a 1:1 transcription of the existing hand-authored timings, so
- * the entrance is visually unchanged when the config is at defaults:
- *   • wordmark letters: `gateRise 0.62s … backwards; delay calc(0.05s + i*0.06s)`
- *   • fan tiles:        `gateRise 0.6s … both;       delay calc(0.2s + i*0.06s)`
- *   • tagline:          `gateRise 0.62s … both;      delay 0.6s`
- *   • search pill:      `landingSearchRise 0.55s … 0.66s backwards`
- *   • Enter button:     `gateRise 0.6s … 0.72s backwards`
+ * Code defaults — snappier than the original hand-authored timings while keeping
+ * the same order (wordmark → fan → tagline → search → Enter):
+ *   • wordmark letters: ~480ms, 45ms stagger
+ *   • fan tiles:        ~460ms after 140ms reveal
+ *   • tagline:          ~480ms at 420ms
+ *   • search pill:      ~460ms at 560ms
+ *   • Enter button:     ~460ms at 560ms
  * The `gateRise` / `landingSearchRise` keyframes rise from `translateY(12px)`.
  */
 export const DEFAULT_LANDING_ENTRANCE_CONFIG: LandingEntranceConfig = {
-  wordmarkStartDelayMs: 50,
-  wordmarkStaggerMs: 60,
-  wordmarkDurationMs: 620,
+  wordmarkStartDelayMs: 40,
+  wordmarkStaggerMs: 45,
+  wordmarkDurationMs: 480,
   wordmarkRisePx: 12,
 
-  fanRevealDelayMs: 200,
-  fanStaggerMs: 60,
-  fanDurationMs: 600,
+  fanRevealDelayMs: 140,
+  fanStaggerMs: 45,
+  fanDurationMs: 460,
   fanRisePx: 12,
 
-  taglineDelayMs: 600,
-  taglineDurationMs: 620,
+  taglineDelayMs: 420,
+  taglineDurationMs: 480,
 
-  searchDelayMs: 660,
-  searchDurationMs: 550,
+  searchDelayMs: 560,
+  searchDurationMs: 460,
   searchRisePx: 12,
 
-  enterDelayMs: 720,
-  enterDurationMs: 600,
+  enterDelayMs: 560,
+  enterDurationMs: 460,
 };
 
 export const LANDING_ENTRANCE_STORAGE_KEY = 'saudade:landing-entrance:saved-default';
@@ -120,7 +121,7 @@ export const LANDING_ENTRANCE_GROUPS: LandingEntranceGroup[] = [
   {
     title: 'Fan tiles',
     fields: [
-      { key: 'fanRevealDelayMs', label: 'Reveal delay (after decode)', min: 0, max: 1000, step: 10, unit: 'ms' },
+      { key: 'fanRevealDelayMs', label: 'Reveal delay', min: 0, max: 1000, step: 10, unit: 'ms' },
       { key: 'fanStaggerMs', label: 'Stagger between tiles', min: 0, max: 200, step: 5, unit: 'ms' },
       { key: 'fanDurationMs', label: 'Duration', min: 100, max: 1200, step: 10, unit: 'ms' },
       { key: 'fanRisePx', label: 'Rise distance', min: 0, max: 48, step: 1, unit: 'px' },
@@ -182,12 +183,16 @@ export function applyLandingEntranceAnimation(config: LandingEntranceConfig): vo
   set('--landing-tagline-delay', msToCss(config.taglineDelayMs));
   set('--landing-tagline-duration', msToCss(config.taglineDurationMs));
 
-  set('--landing-search-delay', msToCss(config.searchDelayMs));
-  set('--landing-search-duration', msToCss(config.searchDurationMs));
+  // Search + Enter are one beat — always publish identical delay/duration so a
+  // stale saved config cannot resurface the search pill ahead of Enter.
+  const pairDelayMs = config.enterDelayMs;
+  const pairDurationMs = config.enterDurationMs;
+  set('--landing-search-delay', msToCss(pairDelayMs));
+  set('--landing-search-duration', msToCss(pairDurationMs));
   set('--landing-search-rise', pxToCss(config.searchRisePx));
 
-  set('--landing-enter-delay', msToCss(config.enterDelayMs));
-  set('--landing-enter-duration', msToCss(config.enterDurationMs));
+  set('--landing-enter-delay', msToCss(pairDelayMs));
+  set('--landing-enter-duration', msToCss(pairDurationMs));
 }
 
 function parseConfig(raw: string): LandingEntranceConfig | null {
@@ -205,7 +210,14 @@ export function loadLandingEntranceConfig(): LandingEntranceConfig {
   const raw = window.localStorage.getItem(LANDING_ENTRANCE_STORAGE_KEY);
   if (raw) {
     const parsed = parseConfig(raw);
-    if (parsed) return parsed;
+    if (parsed) {
+      // Keep search locked to Enter even if an older saved default desynced them.
+      return {
+        ...parsed,
+        searchDelayMs: parsed.enterDelayMs,
+        searchDurationMs: parsed.enterDurationMs,
+      };
+    }
   }
   return DEFAULT_LANDING_ENTRANCE_CONFIG;
 }
@@ -226,17 +238,17 @@ export function saveLandingEntranceConfigDefault(config: LandingEntranceConfig):
 export function isLandingEntranceTunerEnabled(): boolean {
   if (!import.meta.env.DEV || typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
+  if (params.get('entranceDebug') === '0') return false;
   if (params.get('entranceDebug') === '1') return true;
-  return window.localStorage.getItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY) === '1';
+  const stored = window.localStorage.getItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY);
+  // Default ON in DEV so the landing timing panel is findable; set '0' to hide.
+  if (stored === '0') return false;
+  return true;
 }
 
 export function persistLandingEntranceTunerVisible(visible: boolean): void {
   if (typeof window === 'undefined') return;
-  if (visible) {
-    window.localStorage.setItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY, '1');
-  } else {
-    window.localStorage.removeItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY);
-  }
+  window.localStorage.setItem(LANDING_ENTRANCE_TUNER_VISIBLE_KEY, visible ? '1' : '0');
 }
 
 export function landingEntranceSummary(config: LandingEntranceConfig): string {

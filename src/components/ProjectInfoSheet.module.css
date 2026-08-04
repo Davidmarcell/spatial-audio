@@ -8,14 +8,14 @@
      switching segments. The tallest segment scrolls internally (see .panel);
      shorter segments simply leave slack at the bottom. Capped in dvh so it
      stays within the overlay's max-height on short viewports. */
-  height: min(32rem, 62dvh);
+  height: min(34rem, 72dvh);
 }
 
 .tabs {
-  display: inline-flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.35rem;
-  max-width: 100%;
+  width: 100%;
   padding: 0.2rem;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -29,6 +29,10 @@
 
 .tab,
 .tabActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
@@ -73,6 +77,9 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   border-radius: calc(var(--radius-lg) - 0.2rem);
+  /* Breathing room at the end of the scroll so the last line of copy is never
+     sliced against the clip edge. */
+  padding-bottom: 1.1rem;
   /* Real horizontal breathing room so section text is never flush against the
      `overflow-x: hidden` clip edge. Without it, bold heading glyphs (with the
      negative letter-spacing) get shaved on the left/right. */
@@ -99,6 +106,10 @@
   color: var(--text-muted);
   font-size: 0.88rem;
   line-height: 1.55;
+}
+
+.copy + .copy {
+  margin-top: 0.85rem;
 }
 
 /* Static diagram explaining the spatial canvas. Purely illustrative (not wired

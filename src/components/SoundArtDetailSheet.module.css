@@ -28,3 +28,37 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Soft white card chrome matching the sound-tile design spin. */
+.panel {
+  /* Prefer the design token; fall back to the requested 600px card. */
+  --scale-blur-panel-width: var(--sound-tile-panel-width, 600px);
+  width: min(var(--scale-blur-panel-width, 600px), calc(100% - 2rem));
+  border-radius: var(--sound-tile-card-radius, 36px);
+  border: none;
+  background-color: #fff;
+  color: #121212;
+  box-shadow: none;
+  filter: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.panel::after {
+  display: none;
+}
+
+/* Close control lives inside SoundArtDetailContent; hide the overlay header. */
+.headerHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
