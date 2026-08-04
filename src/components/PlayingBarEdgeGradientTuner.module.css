@@ -16,14 +16,33 @@
   overflow: hidden;
 }
 
+/*
+ * Bottom-left used to collide with real app chrome on phones (the centred
+ * play/search pills and the bottom action row sit close to that edge), so
+ * this launcher lives in a top corner instead:
+ *   - Desktop: top-left, which nothing else claims (the top FAB group —
+ *     theme + about — sits top-right, matching this component's own
+ *     expanded `.panel`).
+ *   - Phones (<=768px, same breakpoint the app shell uses): the top-left
+ *     corner is taken by the burger `MobileControlsMenu`, so the dock moves
+ *     to top-right instead, the same corner `.panel` already uses safely
+ *     since the two are never shown at the same time.
+ */
 .launcherDock {
   position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
   left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
   z-index: 900;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+@media (max-width: 768px) {
+  .launcherDock {
+    left: auto;
+    right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+  }
 }
 
 .launcher {
