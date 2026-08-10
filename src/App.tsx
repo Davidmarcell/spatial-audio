@@ -129,7 +129,8 @@ const canvasSpread = () =>
 
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
 /** Extended ~5.8s whoosh — soft enough to sit under sheet rise without cutting. */
-const ENTER_WHOOSH_VOLUME = 0.34;
+/** ~30% of the previous level — the whoosh was reading much too loud. */
+const ENTER_WHOOSH_VOLUME = 0.1;
 /** Soft ethereal bed while browsing the world map (not a place soundscape). */
 const GLOBE_AMBIENT_SRC = '/audio/ui/globe-ambient.mp3';
 const GLOBE_AMBIENT_ID = 'ui:globe-ambient';
@@ -1368,7 +1369,12 @@ export default function App() {
       return;
     }
     // Closing the map: the outgoing globe lifts up (parallax) and stays visible
-    // beneath the incoming page rising over it.
+    // beneath the incoming page rising over it. Play the same whoosh used on
+    // the way in so the transition reads symmetrically in both directions,
+    // instead of only announcing itself when heading into a place.
+    if (!prefersReducedMotion()) {
+      void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+    }
     setWorkspaceGlobeOpening(false);
     setShowGlobe(false);
     setGlobeExiting(true);
@@ -1414,6 +1420,9 @@ export default function App() {
   // landing gate (enabling it if the DEV toggle had it off), with the outgoing
   // page pushing up in parallax while landing rises over it.
   const handleGoHome = useCallback(() => {
+    if (!prefersReducedMotion()) {
+      void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+    }
     setWorkspaceGlobeOpening(false);
     setGlobeOverWorkspace(false);
     if (showGlobe) setGlobeExiting(true);
@@ -1436,7 +1445,7 @@ export default function App() {
     setHasEntered(false);
     setLandingEntering(true);
     setLandingReplayKey((key) => key + 1);
-  }, [hasEntered, landingEnabled, pause, showGlobe]);
+  }, [hasEntered, landingEnabled, pause, playOneShot, showGlobe]);
 
   // The incoming landing has finished rising home over the outgoing page, so
   // settle the rise (drop the raised stacking) and unmount the lifted globe
