@@ -199,7 +199,31 @@ function option(key: PresetKey, opts?: { id?: string; name?: string; vol?: numbe
 type Recipe = { extraTags?: VariantTag[]; layers: LayerSpec[] };
 
 function slugifyPlace(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+/**
+ * Curated recipes are keyed on the bare place name (`kyoto`), but search hands
+ * the generator a full label — "Kyoto, Kyoto Prefecture, Japan" — which
+ * slugifies to `kyotokyotoprefecturejapan` and matches nothing. Every
+ * hand-authored recipe was therefore unreachable from the search box: typing
+ * "Paris" and pressing Enter returned City Hum + Church Bells + Market while the
+ * hand-built Paris sat unused.
+ *
+ * Try the whole label first (so an exact curated key still wins), then the
+ * leading comma-segment, which is the place's own name in every label the
+ * search builds.
+ */
+function curatedRecipeFor(name: string): Recipe | undefined {
+  const direct = CURATED_PLACES[slugifyPlace(name)];
+  if (direct) return direct;
+  const head = name.split(',')[0];
+  if (!head || head === name) return undefined;
+  return CURATED_PLACES[slugifyPlace(head)];
 }
 
 /**
@@ -560,7 +584,7 @@ export function buildProceduralRegion(info: ProceduralLocationInfo): Region {
   if (culture.tags) habitatTags.push(...culture.tags);
   if (city?.tags) habitatTags.push(...city.tags);
 
-  const recipe = CURATED_PLACES[slugifyPlace(info.name)];
+  const recipe = curatedRecipeFor(info.name);
   const layers = recipe
     ? recipe.layers
     : buildLayeredRecipe({ traits, culture, city, tod, urban, tropical, warm, nearWater, coastal });
