@@ -256,7 +256,7 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // Canopy + drip layers use bespoke ids so they keep Bierstadt / Mønsted
     // plates instead of the generic Met forest/stream pool draws.
     bed('forest', { id: 'redwoods-canopy', name: 'Redwood Canopy' }),
-    bed('songbird', { name: 'Pacific Wren & Varied Thrush' }),
+    bed('songbird', { name: 'Pacific Wren & Varied Thrush', clip: 'songbird-white-throated-sparrow' }),
     bed('corvid', { id: 'redwoods-raven', name: 'Common Raven', vol: 0.4, clip: 'corvid-common-raven' }),
     bed('corvid', { id: 'redwoods-jay', name: "Steller's Jay", vol: 0.42, clip: 'corvid-stellers-jay' }),
     bed('stream', { id: 'redwoods-drip', name: 'Dripping Canopy', vol: 0.42 }),
@@ -286,9 +286,9 @@ const CURATED_PLACES: Record<string, Recipe> = {
     option('stream', { id: 'paris-seine', name: 'Seine Quay', vol: 0.3, clip: 'stream-flow' }),
   ] },
   swissalps: { extraTags: ['alpine', 'mountain'], layers: [
-    bed('stream', { name: 'Snowmelt Stream', vol: 0.46 }), bed('wind', { name: 'Alpine Wind' }),
+    bed('stream', { name: 'Snowmelt Stream', vol: 0.46 }), bed('wind', { name: 'Alpine Wind', clip: 'wind-in-tree' }),
     bed('bells', { name: 'Cowbells', vol: 0.32 }), bed('songbird', { name: 'Meadow Birds' }),
-    bed('forest', { name: 'Pine Slopes' }),
+    bed('forest', { name: 'Pine Slopes', clip: 'forest-1' }),
   ] },
   lisbon: { extraTags: ['european', 'mediterranean', 'coastal', 'urban', 'garden'], layers: [
     // Tram 28 rattle+bell, a fado guitar bed, summer swifts pinned to the Apus
@@ -329,8 +329,8 @@ const CURATED_PLACES: Record<string, Recipe> = {
   ] },
   capetown: { extraTags: ['coastal', 'savanna'], layers: [
     bed('seabird', { name: 'Cape Gulls' }), bed('songbird', { name: 'Robin-Chats' }),
-    bed('surf', { name: 'Atlantic Surf', vol: 0.38 }), bed('wind', { name: 'Cape Wind' }),
-    bed('insects', { name: 'Fynbos Insects' }),
+    bed('surf', { name: 'Atlantic Surf', vol: 0.38 }), bed('wind', { name: 'Cape Wind', clip: 'wind-tall-grass' }),
+    bed('insects', { name: 'Fynbos Insects', clip: 'insects-singing-1' }),
   ] },
   // ---- Asia / Pacific ----
   // Kyoto: every layer is pinned to a Japanese-native clip + a bespoke plate
@@ -348,14 +348,14 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // Pin the NZ Bellbird so the new Pacific-tagged Australian Magpie (added to
     // the shared songbird pool for Sydney) can't disperse onto this NZ pin.
     bed('wind', { name: 'Southern Alps Wind' }), bed('songbird', { name: 'Rifleman & Rock Wren', clip: 'legacy-bellbird' }),
-    bed('stream', { name: 'Lakeshore Lapping', vol: 0.44 }), bed('forest', { name: 'Beech Forest' }),
+    bed('stream', { name: 'Lakeshore Lapping', vol: 0.44 }), bed('forest', { name: 'Beech Forest', clip: 'legacy-forest-ambience' }),
     // Pin the genuine ruru/morepork call (Ninox) so it can't resolve to an
     // unrelated pygmy-owl clip.
     option('owl', { name: 'Morepork', clip: 'owl-morepork-ruru' }),
   ] },
   bariloche: { extraTags: ['neotropical', 'mountain'], layers: [
     bed('stream', { name: 'Mountain Stream', vol: 0.46 }), bed('wind', { name: 'Patagonian Wind' }),
-    bed('songbird', { name: 'Andean Birds', clip: 'songbird-rufous-collared-sparrow' }), bed('forest', { name: 'Andean Forest' }),
+    bed('songbird', { name: 'Andean Birds', clip: 'songbird-rufous-collared-sparrow' }), bed('forest', { name: 'Andean Forest', clip: 'forest-3' }),
     option('corvid', { name: 'Corvids' }),
   ] },
   himalayas: { extraTags: ['mountain', 'cold'], layers: [
@@ -383,11 +383,11 @@ const CURATED_PLACES: Record<string, Recipe> = {
   ] },
   bali: { extraTags: ['tropical', 'coastal', 'rainforest'], layers: [
     bed('tropicalBird', { name: 'Rice-Field Birds' }), bed('frogs', { name: 'Paddy Frogs' }),
-    bed('insects', { name: 'Jungle Insects' }), bed('surf', { name: 'Reef Surf', vol: 0.36 }),
+    bed('insects', { name: 'Jungle Insects', clip: 'legacy-insect-chorus' }), bed('surf', { name: 'Reef Surf', vol: 0.36 }),
     bed('primates', { name: 'Macaques', vol: 0.28 }),
   ] },
   lapland: { extraTags: ['boreal', 'cold'], layers: [
-    bed('wind', { name: 'Arctic Wind' }), bed('forest', { name: 'Taiga Forest' }),
+    bed('wind', { name: 'Arctic Wind', clip: 'wind-fir-forest' }), bed('forest', { name: 'Taiga Forest', clip: 'forest-night-rain' }),
     bed('stream', { name: 'Snowmelt Brook', vol: 0.44 }), bed('corvid', { name: 'Ravens' }),
     bed('songbird', { name: 'Boreal Birds' }),
   ] },

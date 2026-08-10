@@ -56,7 +56,7 @@
       "global-forest": "legacy-forest-ambience",
       "global-frogs": "frogs-kajika",
       "global-gull": "seabird-gulls-harbour",
-      "global-insects": "insects-cicadas",
+      "global-insects": "legacy-insect-chorus",
       "global-jazz": "jazz-sleepless",
       "global-jungle-primates": "primates-siamang",
       "global-night-owl": "owl-collared-scops-owl",
@@ -134,7 +134,7 @@
   "bariloche": {
     "audio": {
       "global-corvid": "legacy-blue-jay",
-      "global-forest": "forest-night-rain",
+      "global-forest": "forest-3",
       "global-gull": "seabird-waves-gulls",
       "global-insects": "insects-cicadas",
       "global-jazz": "jazz-kinda-sorta",
@@ -215,7 +215,7 @@
     "audio": {
       "global-forest": "forest-night-rain",
       "global-gull": "seabird-waves-gulls",
-      "global-insects": "insects-cicadas",
+      "global-insects": "insects-singing-1",
       "global-jazz": "jazz-what-can-i-say",
       "global-night-owl": "owl-pearl-spotted-owlet",
       "global-rain": "thunder-2",
@@ -553,7 +553,7 @@
   },
   "queenstown": {
     "audio": {
-      "global-forest": "forest-night-rain",
+      "global-forest": "legacy-forest-ambience",
       "global-gull": "seabird-gulls-harbour",
       "global-jazz": "jazz-sleepless",
       "global-night-owl": "owl-morepork-ruru",
@@ -585,7 +585,7 @@
       "global-jazz": "jazz-park",
       "global-night-owl": "legacy-morepork",
       "global-rain": "thunder-1",
-      "global-songbird": "songbird-rufous-collared-sparrow",
+      "global-songbird": "songbird-white-throated-sparrow",
       "global-stream": "stream-small-1",
       "global-surf": "waves-pebble",
       "global-traffic": "city-latam-aguascalientes",
@@ -708,7 +708,7 @@
   "swiss-alps": {
     "audio": {
       "global-bells": "bells-4-church",
-      "global-forest": "forest-night-rain",
+      "global-forest": "forest-1",
       "global-gull": "herring-gull-2",
       "global-insects": "insects-nocturnal",
       "global-jazz": "jazz-kinda-sorta",
@@ -718,7 +718,7 @@
       "global-stream": "stream-flow",
       "global-surf": "waves-crashing",
       "global-traffic": "city-pedestrian",
-      "global-wind": "wind-tall-grass"
+      "global-wind": "wind-in-tree"
     },
     "image": {
       "global-bells": "/icons/pool/bells-belfry.jpg",
