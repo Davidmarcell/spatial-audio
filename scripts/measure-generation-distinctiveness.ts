@@ -15,7 +15,15 @@
  *
  * Usage: npx tsx scripts/measure-generation-distinctiveness.ts
  */
+import { getCultureProfile } from '../src/data/cultureProfiles';
+import { matchMajorCity } from '../src/data/majorCities';
 import { buildProceduralRegion } from '../src/utils/proceduralSoundscape';
+import {
+  composeScene,
+  latitudeBandFor,
+  seasonFor,
+  type PlaceSignals,
+} from '../src/utils/sceneComposer';
 import { regionSeed, selectSceneVariants } from '../src/utils/soundscapeSelection';
 import { enrichSounds } from '../src/utils/soundTypeInference';
 
@@ -174,4 +182,98 @@ if (clipCollisions.length > 0) {
 console.log('── Per-place beds ──');
 for (const scene of scenes) {
   console.log(`  ${scene.name.padEnd(16)} ${scene.beds.map((b) => b.replace(/^global-/, '')).join(', ')}`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Prototype comparison: the scored composer from docs/SOUNDSCAPE_GENERATION_PLAN.md
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Same crude keyword traits the shipped generator uses, so the comparison
+ *  isolates the *composer* rather than smuggling in better signals. */
+function keywordTraits(sample: Sample) {
+  const haystack = sample.name.toLowerCase();
+  return {
+    coastal: /coast|beach|bay|harbour|harbor|port|island|sea|ocean|cape|gulf|shore/.test(haystack),
+    riverine: /river|lake|delta|loch|canal|creek|stream/.test(haystack),
+    mountain: /mountain|peak|alp|ridge|summit|valley|highland|mont|mount|massif/.test(haystack),
+    forest: /forest|wood|jungle|rainforest|park|reserve|nature|bush|grove/.test(haystack),
+    arid: /desert|dune|sahara|outback|arid|steppe/.test(haystack),
+  };
+}
+
+const REGION_OF: Record<string, string> = {
+  us: 'americas', ca: 'americas', mx: 'americas', cu: 'americas', br: 'americas',
+  ar: 'americas', pe: 'americas', is: 'european', no: 'european', gb: 'european',
+  ie: 'european', fr: 'european', de: 'european', it: 'european', es: 'european',
+  gr: 'european', ma: 'mena', eg: 'mena', tr: 'mena', ae: 'mena', ng: 'african',
+  ke: 'african', za: 'african', tz: 'african', in: 'asian', np: 'asian',
+  th: 'asian', vn: 'asian', sg: 'asian', jp: 'asian', kr: 'asian', cn: 'asian',
+  au: 'pacific', nz: 'nz',
+};
+
+/** Fixed date so the snapshot is reproducible; season is a real input now. */
+const REFERENCE_DATE = new Date('2026-07-15T12:00:00Z');
+
+function signalsFor(sample: Sample): PlaceSignals {
+  const traits = keywordTraits(sample);
+  const regionTag = (REGION_OF[sample.cc] ?? 'european') as PlaceSignals['regionTag'];
+  const city = matchMajorCity(sample.name, sample.lat, sample.lng, sample.cc, sample.type);
+  const utcHours = REFERENCE_DATE.getUTCHours() + REFERENCE_DATE.getUTCMinutes() / 60;
+  const localHour = ((utcHours + sample.lng / 15) % 24 + 24) % 24;
+  const timeOfDay =
+    localHour >= 5 && localHour < 8 ? 'dawn'
+    : localHour >= 8 && localHour < 17 ? 'day'
+    : localHour >= 17 && localHour < 20 ? 'dusk'
+    : 'night';
+
+  return {
+    name: sample.name,
+    lat: sample.lat,
+    lng: sample.lng,
+    countryCode: sample.cc,
+    regionTag,
+    culture: getCultureProfile(sample.cc, regionTag),
+    band: latitudeBandFor(sample.lat),
+    season: seasonFor(sample.lat, REFERENCE_DATE),
+    timeOfDay,
+    // Matches the shipped generator's deliberate choice: only city-scale places
+    // are urban, so mountain/forest towns keep a nature-leaning scene.
+    urban: /city|borough|suburb|district/.test(sample.type) || Boolean(city),
+    majorCity: Boolean(city),
+    coastal: traits.coastal || Boolean(city?.coastal),
+    riverine: traits.riverine || Boolean(city?.water),
+    mountain: traits.mountain || Boolean(city?.tags?.includes('mountain')),
+    forest: traits.forest,
+    arid: traits.arid || Boolean(city?.tags?.includes('arid')),
+  };
+}
+
+const v2Scenes: SceneShape[] = SAMPLE.map((sample) => {
+  const layers = composeScene(signalsFor(sample));
+  return {
+    name: sample.name,
+    beds: layers.filter((l) => l.bed).map((l) => l.preset).sort(),
+    clips: [],
+  };
+});
+
+const v2Layer = meanPairwiseDistance(v2Scenes, (s) => s.beds);
+const v2Unique = new Set(v2Scenes.map((s) => s.beds.join('|'))).size;
+const v2Collisions = collisionGroups(v2Scenes, (s) => s.beds);
+
+console.log('\n════════ PROTOTYPE: scored composer (src/utils/sceneComposer.ts) ════════');
+console.log('Same crude input signals as the shipped generator — only the composition');
+console.log(`differs. Reference date ${REFERENCE_DATE.toISOString().slice(0, 10)} (season is an input).\n`);
+console.log(`  layer distinctiveness : ${v2Layer.toFixed(3)}   (shipped: ${layerScore.toFixed(3)})`);
+console.log(`  distinct bed shapes   : ${v2Unique} of ${v2Scenes.length}   (shipped: ${uniqueShapes})\n`);
+
+if (v2Collisions.length > 0) {
+  console.log('── Remaining identical skeletons ──');
+  for (const group of v2Collisions) console.log(`  ${group.length}x  ${group.join(', ')}`);
+  console.log();
+}
+
+console.log('── Per-place beds (prototype) ──');
+for (const scene of v2Scenes) {
+  console.log(`  ${scene.name.padEnd(16)} ${scene.beds.join(', ')}`);
 }
