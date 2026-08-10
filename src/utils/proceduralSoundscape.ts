@@ -296,7 +296,7 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // Pinned: the tram pool gained a generic "passing tram", and without a pin
     // the seeded picker handed Lisbon that instead of its own Bica funicular.
     bed('tram', { name: 'Tram 28', clip: 'tram-lisboa-bica' }),
-    bed('fado', { name: 'Fado' }),
+    bed('fado', { name: 'Fado', clip: 'fado-tic-tac' }),
     bed('songbird', { name: 'Summer Swifts', vol: 0.42, clip: 'songbird-common-swift' }),
     bed('bells', { name: 'Sé Cathedral Bells', vol: 0.3 }),
   ] },
@@ -304,13 +304,13 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // ~6 layers: a quiet, respectful adhan; Bosphorus gulls (pinned to a distinct
     // European gull); the Grand Bazaar; ubiquitous courtyard laughing doves; a
     // drifting Turkish taksim; Bosphorus water.
-    bed('adhan', { name: 'Adhan' }),
+    bed('adhan', { name: 'Adhan', clip: 'adhan-1' }),
     bed('seabird', { name: 'Bosphorus Gulls', vol: 0.4, clip: 'herring-gull-2' }),
     // Pin the covered-market bed so the SE-Asian Cebu night market (now eligible
     // because this recipe carries an `asian` tag) can't disperse onto the Bazaar.
     bed('market', { name: 'Grand Bazaar', vol: 0.3, clip: 'market-covered-1' }),
     bed('songbird', { name: 'Courtyard Doves', vol: 0.4, clip: 'laughing-dove-1' }),
-    bed('ney', { name: 'Turkish Taksim' }),
+    bed('ney', { name: 'Turkish Taksim', clip: 'ney-taksim-hicaz' }),
     bed('surf', { name: 'Bosphorus Waterside', vol: 0.32 }),
   ] },
   // ---- Africa ----
@@ -324,7 +324,7 @@ const CURATED_PLACES: Record<string, Recipe> = {
     bed('insects', { name: 'Grassland Insects', clip: 'insects-field-cricket' }),
     bed('wind', { name: 'Savanna Wind', clip: 'wind-tall-grass' }),
     bed('primates', { name: 'Vervets', vol: 0.28 }),
-    option('lion', { name: 'Distant Lion Roar', vol: 0.22 }),
+    option('lion', { name: 'Distant Lion Roar', vol: 0.22, clip: 'lion-roar-1' }),
     option('owl', { name: 'Pearl-spotted Owlet', clip: 'owl-pearl-spotted-owlet' }),
   ] },
   capetown: { extraTags: ['coastal', 'savanna'], layers: [
@@ -364,7 +364,7 @@ const CURATED_PLACES: Record<string, Recipe> = {
     bed('songbird', { name: 'Mountain Birds' }),
   ] },
   sydney: { extraTags: ['australia', 'coastal', 'garden'], layers: [
-    bed('kookaburra', { name: 'Kookaburra', vol: 0.5 }),
+    bed('kookaburra', { name: 'Kookaburra', vol: 0.5, clip: 'kookaburra-1' }),
     // Australian Magpie carol, pinned to the sourced Pacific/Australia clip
     // (routed through the deep songbird pool). Replaces the generic "Bush Birds".
     bed('songbird', { name: 'Australian Magpie', vol: 0.42, clip: 'songbird-australian-magpie' }),
