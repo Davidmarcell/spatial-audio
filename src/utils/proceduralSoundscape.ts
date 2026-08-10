@@ -535,7 +535,13 @@ export function buildProceduralRegion(info: ProceduralLocationInfo): Region {
   // Phase 1 signals: the country -> culture profile and the major-city table.
   const cc = info.geocode?.countryCode;
   const culture = getCultureProfile(cc, traits.regionTag);
-  const city = matchMajorCity(info.name, info.lat, info.lng, cc);
+  const city = matchMajorCity(
+    info.name,
+    info.lat,
+    info.lng,
+    cc,
+    info.geocode?.type ?? info.geocode?.addresstype,
+  );
   const tod = timeOfDayFor(info.lng, new Date());
 
   const urban = traits.urban || !!city;

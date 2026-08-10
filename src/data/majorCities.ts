@@ -253,17 +253,43 @@ const CITY_INDEX: Array<{ key: string; city: MajorCity }> = majorCities.map((cit
 }));
 
 /**
- * Match a searched place to a bundled major city. Requires the city name to
- * appear as a leading token of the searched name (so "Hanoi" and "Hanoi,
- * Vietnam" both match, but "New Hanoi Springs" does not) AND the coordinates to
- * fall within ~1.2 degrees, which disambiguates same-named cities on different
- * continents. Returns the closest qualifying city.
+ * OSM place types that mean "a named part of a larger city" rather than a
+ * settlement in its own right. For these, a search should inherit the parent
+ * city's profile — Manhattan is New York, Shibuya is Tokyo, Camden is London.
+ */
+const CITY_SUBDIVISION_TYPES = new Set([
+  'borough',
+  'suburb',
+  'quarter',
+  'neighbourhood',
+  'city_district',
+  'district',
+]);
+
+/** ~35km. Tight enough that only genuine subdivisions of a city qualify. */
+const SUBDIVISION_RADIUS_DEG = 0.35;
+
+/**
+ * Match a searched place to a bundled major city.
+ *
+ * Primary path: the city name appears as a leading token of the searched name
+ * (so "Hanoi" and "Hanoi, Vietnam" both match, but "New Hanoi Springs" does
+ * not) AND the coordinates fall within ~1.2 degrees, which disambiguates
+ * same-named cities on different continents.
+ *
+ * Fallback path: a named *part* of a city (`borough`/`suburb`/`quarter`/…)
+ * never shares its parent's name, so name matching alone left every one of them
+ * profile-less — Manhattan, an island between two tidal rivers, was being
+ * generated as a landlocked inland city because "manhattan" !== "new york".
+ * When the place type says subdivision, fall back to the nearest bundled city
+ * within ~35km and inherit its water/coastal/flavour hints.
  */
 export function matchMajorCity(
   name: string,
   lat: number,
   lng: number,
   countryCode?: string,
+  placeType?: string,
 ): MajorCity | undefined {
   const searched = normaliseCityName(name);
   if (!searched) return undefined;
@@ -280,6 +306,20 @@ export function matchMajorCity(
     // same-named city sneaking in on a loose coordinate.
     if (cc && city.cc !== cc && dist > 1.2) continue;
     if (dist > 1.2) continue;
+    if (dist < bestDist) {
+      best = city;
+      bestDist = dist;
+    }
+  }
+  if (best) return best;
+
+  if (!placeType || !CITY_SUBDIVISION_TYPES.has(placeType.toLowerCase())) return undefined;
+  for (const { city } of CITY_INDEX) {
+    if (cc && city.cc !== cc) continue;
+    const dLat = city.lat - lat;
+    const dLng = city.lng - lng;
+    const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+    if (dist > SUBDIVISION_RADIUS_DEG) continue;
     if (dist < bestDist) {
       best = city;
       bestDist = dist;
