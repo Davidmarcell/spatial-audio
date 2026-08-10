@@ -28,35 +28,11 @@ const GENERIC_TYPE_LABELS: Partial<Record<SoundType, string>> = {
   kookaburra: 'Kookaburra',
 };
 
-/**
- * Layer names that say nothing the type label doesn't already say. These are the
- * bare preset defaults from the procedural generator, and collapsing them to a
- * short consistent caption is the point of `GENERIC_TYPE_LABELS`.
- *
- * Anything NOT in this set was authored for its place — "Higurashi Cicadas",
- * "Malecón Surf", "Boulevard Hum", "Bosphorus Waterside" — and must survive to
- * the tile. Until now the generic label was applied unconditionally, so every
- * one of those hand-written names was thrown away at render time: Kyoto's tile
- * pinned a Hiroshige plate and a recording of *Tanna japonensis* and captioned
- * it "Insects".
- */
-const UNINFORMATIVE_NAMES = new Set(
-  [
-    'rain', 'wind', 'surf', 'waves', 'stream', 'forest', 'woodland', 'insects',
-    'crickets', 'thunder', 'city hum', 'traffic', 'street traffic', 'jazz',
-    'live jazz', 'bossa nova', 'kookaburra',
-  ],
-);
-
-function isUninformativeName(name: string, label: string): boolean {
-  const normalised = name.trim().toLowerCase();
-  return normalised === label.toLowerCase() || UNINFORMATIVE_NAMES.has(normalised);
-}
-
 export function displaySoundName(sound: SoundDef): string {
   const type = sound.type ?? inferSoundType(sound);
-  const label = type ? GENERIC_TYPE_LABELS[type] : undefined;
-  if (label && isUninformativeName(sound.name, label)) return label;
+  if (type && GENERIC_TYPE_LABELS[type]) {
+    return GENERIC_TYPE_LABELS[type]!;
+  }
   return sound.name;
 }
 

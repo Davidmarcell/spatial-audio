@@ -622,19 +622,19 @@ against it.
 - Derive **season** from hemisphere + date and let it gate insects/dawn chorus.
   `seasonFor` already exists in the composer prototype.
 
-### Phase 2 — The two standalone wins
+### Phase 2 — Live weather + true local time
 
-Both pay off *without* the composer rewrite, because neither depends on having
-more layers to choose between. Ship them next, independently, in either order.
+**Place-prefixed naming is explicitly out of scope.** An earlier pass already
+tried it and it was rejected — the tile captions should stay short, and
+`GENERIC_TYPE_LABELS` in `soundCatalog.ts` exists precisely to strip location
+prefixes ("Short display labels for generic ambience types (no location
+prefix)"). "Central Park Songbirds" is the wrong direction; "Songbirds" is
+correct. Scratch stage 4 of §3 and the naming column of the worked example — the
+specificity has to come from *which sounds play*, not from longer labels.
 
-**2a. Naming.** Re-describes the layers we already pick rather than picking
-different ones. Partly done already: the UI had been discarding every
-hand-authored name (fixed above), which recovered "Higurashi Cicadas" and
-"Malecón Surf" for free. Next: name templates driven by whatever evidence exists,
-geocode-only at first, sharpening automatically once Overpass lands (it returns
-feature `name` tags in the same query that yields the counts).
+That leaves one standalone win before the composer work.
 
-**2b. Live weather + true local time — one Open-Meteo call.** The research ranks
+**One Open-Meteo call.** The research ranks
 this highest by impact ÷ effort in the whole programme, and I agree: 800 bytes,
 0.70 s, no key, CORS already open, roughly a day of plumbing. One request returns
 the IANA timezone (replacing the `lng / 15` guess that is ~3 hours wrong in
