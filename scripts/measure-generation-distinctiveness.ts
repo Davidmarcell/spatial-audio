@@ -34,6 +34,8 @@ type Sample = {
   cc: string;
   /** OSM place type, as Photon would return it. */
   type: string;
+  /** Region/country suffix, so the sample uses the label search really passes. */
+  region?: string;
 };
 
 /**
@@ -42,53 +44,64 @@ type Sample = {
  * canals, Reykjavík's wind, Varanasi's ghats).
  */
 const SAMPLE: Sample[] = [
-  { name: 'Manhattan', lat: 40.7831, lng: -73.9712, cc: 'us', type: 'borough' },
-  { name: 'New Orleans', lat: 29.9511, lng: -90.0715, cc: 'us', type: 'city' },
-  { name: 'Denver', lat: 39.7392, lng: -104.9903, cc: 'us', type: 'city' },
-  { name: 'San Francisco', lat: 37.7749, lng: -122.4194, cc: 'us', type: 'city' },
-  { name: 'Toronto', lat: 43.6532, lng: -79.3832, cc: 'ca', type: 'city' },
-  { name: 'Mexico City', lat: 19.4326, lng: -99.1332, cc: 'mx', type: 'city' },
-  { name: 'Havana', lat: 23.1136, lng: -82.3666, cc: 'cu', type: 'city' },
-  { name: 'Rio de Janeiro', lat: -22.9068, lng: -43.1729, cc: 'br', type: 'city' },
-  { name: 'Buenos Aires', lat: -34.6037, lng: -58.3816, cc: 'ar', type: 'city' },
-  { name: 'Cusco', lat: -13.5319, lng: -71.9675, cc: 'pe', type: 'city' },
-  { name: 'Ushuaia', lat: -54.8019, lng: -68.3029, cc: 'ar', type: 'city' },
-  { name: 'Reykjavik', lat: 64.1466, lng: -21.9426, cc: 'is', type: 'city' },
-  { name: 'Bergen', lat: 60.3913, lng: 5.3221, cc: 'no', type: 'city' },
-  { name: 'Edinburgh', lat: 55.9533, lng: -3.1883, cc: 'gb', type: 'city' },
-  { name: 'Dublin', lat: 53.3498, lng: -6.2603, cc: 'ie', type: 'city' },
-  { name: 'Paris', lat: 48.8566, lng: 2.3522, cc: 'fr', type: 'city' },
-  { name: 'Berlin', lat: 52.52, lng: 13.405, cc: 'de', type: 'city' },
-  { name: 'Venice', lat: 45.4408, lng: 12.3155, cc: 'it', type: 'city' },
-  { name: 'Madrid', lat: 40.4168, lng: -3.7038, cc: 'es', type: 'city' },
-  { name: 'Athens', lat: 37.9838, lng: 23.7275, cc: 'gr', type: 'city' },
-  { name: 'Chamonix', lat: 45.9237, lng: 6.8694, cc: 'fr', type: 'village' },
-  { name: 'Marrakech', lat: 31.6295, lng: -7.9811, cc: 'ma', type: 'city' },
-  { name: 'Cairo', lat: 30.0444, lng: 31.2357, cc: 'eg', type: 'city' },
-  { name: 'Istanbul', lat: 41.0082, lng: 28.9784, cc: 'tr', type: 'city' },
-  { name: 'Dubai', lat: 25.2048, lng: 55.2708, cc: 'ae', type: 'city' },
-  { name: 'Lagos', lat: 6.5244, lng: 3.3792, cc: 'ng', type: 'city' },
-  { name: 'Nairobi', lat: -1.2921, lng: 36.8219, cc: 'ke', type: 'city' },
-  { name: 'Cape Town', lat: -33.9249, lng: 18.4241, cc: 'za', type: 'city' },
-  { name: 'Zanzibar City', lat: -6.1659, lng: 39.2026, cc: 'tz', type: 'city' },
-  { name: 'Varanasi', lat: 25.3176, lng: 82.9739, cc: 'in', type: 'city' },
-  { name: 'Mumbai', lat: 19.076, lng: 72.8777, cc: 'in', type: 'city' },
-  { name: 'Kathmandu', lat: 27.7172, lng: 85.324, cc: 'np', type: 'city' },
-  { name: 'Bangkok', lat: 13.7563, lng: 100.5018, cc: 'th', type: 'city' },
-  { name: 'Hanoi', lat: 21.0278, lng: 105.8342, cc: 'vn', type: 'city' },
-  { name: 'Singapore', lat: 1.3521, lng: 103.8198, cc: 'sg', type: 'city' },
-  { name: 'Kyoto', lat: 35.0116, lng: 135.7681, cc: 'jp', type: 'city' },
-  { name: 'Seoul', lat: 37.5665, lng: 126.978, cc: 'kr', type: 'city' },
-  { name: 'Beijing', lat: 39.9042, lng: 116.4074, cc: 'cn', type: 'city' },
-  { name: 'Melbourne', lat: -37.8136, lng: 144.9631, cc: 'au', type: 'city' },
-  { name: 'Queenstown', lat: -45.0312, lng: 168.6626, cc: 'nz', type: 'town' },
+  { name: 'Manhattan', lat: 40.7831, lng: -73.9712, cc: 'us', type: 'borough', region: 'New York, United States' },
+  { name: 'New Orleans', lat: 29.9511, lng: -90.0715, cc: 'us', type: 'city', region: 'Louisiana, United States' },
+  { name: 'Denver', lat: 39.7392, lng: -104.9903, cc: 'us', type: 'city', region: 'Colorado, United States' },
+  { name: 'San Francisco', lat: 37.7749, lng: -122.4194, cc: 'us', type: 'city', region: 'California, United States' },
+  { name: 'Toronto', lat: 43.6532, lng: -79.3832, cc: 'ca', type: 'city', region: 'Ontario, Canada' },
+  { name: 'Mexico City', lat: 19.4326, lng: -99.1332, cc: 'mx', type: 'city', region: 'Mexico' },
+  { name: 'Havana', lat: 23.1136, lng: -82.3666, cc: 'cu', type: 'city', region: 'Cuba' },
+  { name: 'Rio de Janeiro', lat: -22.9068, lng: -43.1729, cc: 'br', type: 'city', region: 'Brazil' },
+  { name: 'Buenos Aires', lat: -34.6037, lng: -58.3816, cc: 'ar', type: 'city', region: 'Argentina' },
+  { name: 'Cusco', lat: -13.5319, lng: -71.9675, cc: 'pe', type: 'city', region: 'Peru' },
+  { name: 'Ushuaia', lat: -54.8019, lng: -68.3029, cc: 'ar', type: 'city', region: 'Tierra del Fuego, Argentina' },
+  { name: 'Reykjavik', lat: 64.1466, lng: -21.9426, cc: 'is', type: 'city', region: 'Capital Region, Iceland' },
+  { name: 'Bergen', lat: 60.3913, lng: 5.3221, cc: 'no', type: 'city', region: 'Vestland, Norway' },
+  { name: 'Edinburgh', lat: 55.9533, lng: -3.1883, cc: 'gb', type: 'city', region: 'Scotland, UK' },
+  { name: 'Dublin', lat: 53.3498, lng: -6.2603, cc: 'ie', type: 'city', region: 'Ireland' },
+  { name: 'Paris', lat: 48.8566, lng: 2.3522, cc: 'fr', type: 'city', region: 'Ile-de-France, France' },
+  { name: 'Berlin', lat: 52.52, lng: 13.405, cc: 'de', type: 'city', region: 'Germany' },
+  { name: 'Venice', lat: 45.4408, lng: 12.3155, cc: 'it', type: 'city', region: 'Veneto, Italy' },
+  { name: 'Madrid', lat: 40.4168, lng: -3.7038, cc: 'es', type: 'city', region: 'Spain' },
+  { name: 'Athens', lat: 37.9838, lng: 23.7275, cc: 'gr', type: 'city', region: 'Greece' },
+  { name: 'Chamonix', lat: 45.9237, lng: 6.8694, cc: 'fr', type: 'village', region: 'Haute-Savoie, France' },
+  { name: 'Marrakech', lat: 31.6295, lng: -7.9811, cc: 'ma', type: 'city', region: 'Morocco' },
+  { name: 'Cairo', lat: 30.0444, lng: 31.2357, cc: 'eg', type: 'city', region: 'Cairo Governorate, Egypt' },
+  { name: 'Istanbul', lat: 41.0082, lng: 28.9784, cc: 'tr', type: 'city', region: 'Turkey' },
+  { name: 'Dubai', lat: 25.2048, lng: 55.2708, cc: 'ae', type: 'city', region: 'United Arab Emirates' },
+  { name: 'Lagos', lat: 6.5244, lng: 3.3792, cc: 'ng', type: 'city', region: 'Nigeria' },
+  { name: 'Nairobi', lat: -1.2921, lng: 36.8219, cc: 'ke', type: 'city', region: 'Nairobi County, Kenya' },
+  { name: 'Cape Town', lat: -33.9249, lng: 18.4241, cc: 'za', type: 'city', region: 'Western Cape, South Africa' },
+  { name: 'Zanzibar City', lat: -6.1659, lng: 39.2026, cc: 'tz', type: 'city', region: 'Tanzania' },
+  { name: 'Varanasi', lat: 25.3176, lng: 82.9739, cc: 'in', type: 'city', region: 'Uttar Pradesh, India' },
+  { name: 'Mumbai', lat: 19.076, lng: 72.8777, cc: 'in', type: 'city', region: 'Maharashtra, India' },
+  { name: 'Kathmandu', lat: 27.7172, lng: 85.324, cc: 'np', type: 'city', region: 'Nepal' },
+  { name: 'Bangkok', lat: 13.7563, lng: 100.5018, cc: 'th', type: 'city', region: 'Thailand' },
+  { name: 'Hanoi', lat: 21.0278, lng: 105.8342, cc: 'vn', type: 'city', region: 'Vietnam' },
+  { name: 'Singapore', lat: 1.3521, lng: 103.8198, cc: 'sg', type: 'city', region: 'Singapore' },
+  { name: 'Kyoto', lat: 35.0116, lng: 135.7681, cc: 'jp', type: 'city', region: 'Kyoto Prefecture, Japan' },
+  { name: 'Seoul', lat: 37.5665, lng: 126.978, cc: 'kr', type: 'city', region: 'South Korea' },
+  { name: 'Beijing', lat: 39.9042, lng: 116.4074, cc: 'cn', type: 'city', region: 'China' },
+  { name: 'Melbourne', lat: -37.8136, lng: 144.9631, cc: 'au', type: 'city', region: 'Victoria, Australia' },
+  { name: 'Queenstown', lat: -45.0312, lng: 168.6626, cc: 'nz', type: 'town', region: 'Otago, New Zealand' },
 ];
 
 type SceneShape = { name: string; beds: string[]; clips: string[] };
 
+/**
+ * Search never hands the generator a bare name — it passes the formatted label
+ * ("Kyoto, Kyoto Prefecture, Japan"). Measuring with bare names flattered the
+ * result, because curated recipes matched in the sample in a way they never did
+ * for a real search. Approximate the real label so the metric reflects what
+ * someone actually hears.
+ */
+function searchLabelFor(sample: Sample): string {
+  return sample.region ? `${sample.name}, ${sample.region}` : sample.name;
+}
+
 function buildScene(sample: Sample): SceneShape {
   const region = buildProceduralRegion({
-    name: sample.name,
+    name: searchLabelFor(sample),
     lat: sample.lat,
     lng: sample.lng,
     geocode: {

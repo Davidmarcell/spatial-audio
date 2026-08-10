@@ -194,6 +194,79 @@ The one intervention that *does* pay off standalone is naming (§3, stage 4),
 because it does not depend on having more layers to choose between — it depends
 only on knowing what the layers we already chose are actually near.
 
+### The structural ceiling
+
+A brute-force sweep of 8,250 synthetic places (15 countries × 10 trait payloads ×
+5 OSM classes × 11 latitudes) bounds what the current composer can *ever* emit:
+
+```
+distinct full layer sets : 91
+distinct bed sets        : 50
+distinct displayed names : 149
+```
+
+**Fifty possible default palettes for the entire planet.** `buildLayeredRecipe`
+is a linear cascade of independent binary branches, so its output cardinality is
+the product of a few small factors. Against ~10⁵ searchable settlements the
+collision rate is effectively 100%. No amount of tuning moves this; only
+replacing the cascade does.
+
+### Three bugs the audit found (two now fixed)
+
+- ✅ **Curated recipes were unreachable from search.** Recipes are keyed on the
+  bare name (`kyoto`), but search passes the formatted label — "Kyoto, Kyoto
+  Prefecture, Japan" — which slugified to `kyotokyotoprefecturejapan` and matched
+  nothing. Typing "Paris" and pressing Enter returned City Hum + Church Bells +
+  Market while the hand-built Paris sat unused. Now falls back to the leading
+  comma-segment. *(Note: Enter with nothing highlighted still takes
+  `geocodeResults[0]`, the worldwide result, rather than a curated pin sitting
+  above it — worth a look separately.)*
+- ✅ **The UI discarded every hand-authored layer name.** `displaySoundName`
+  unconditionally replaced the name with a generic type label for 12 of 30
+  types, so "Higurashi Cicadas" rendered as "Insects", "Malecón Surf" as "Surf",
+  "Boulevard Hum" as "City hum". Someone pinned a Hiroshige plate and a recording
+  of *Tanna japonensis* to a tile captioned "Insects". Now only names that add
+  nothing over the type label are collapsed.
+- ⬜ **`mena` is a hole with a wall around it.** It is in `REGION_TAGS` with no
+  `REGION_COMPAT` entry and **zero clips carry it**, so a MENA scene excludes
+  European, Asian and African clips and then has nothing of its own — which is
+  why Cairo's corvid is a Himalayan large-billed crow. Four of the five
+  sub-region tags the culture table emits (`southasian`, `eastasian`, `latam`,
+  `mena`) are attached to zero clips and cannot influence casting at all.
+
+### Casting failures worth naming
+
+The audit traced where specific clips land. A sample:
+
+- Kyoto's market is Carbon Market, **Cebu City**; Beijing's too.
+- Johannesburg's street bed and market are both **Lagos** recordings; Nairobi
+  gets the Lagos market as well — three African cities, two Lagos tapes.
+- Malé — a 100% Muslim country — gets a **"Temple Bell"**, because `mv` is in no
+  continent set, falls through the longitude fallback to `asian`, and the Asian
+  default worship style is `temple`.
+- Ushuaia's songbird is a **Northern Cardinal**, ~11,000 km out of range.
+- Berlin's songbird is a **laughing dove recorded in Tehran**.
+- Kathmandu's street bed is a **Manila jeepney**.
+- `subway-metro-arrival` — a Paris metro — plays in all 19 scenes that offer a
+  subway, including Tokyo.
+
+Two structural causes: **108 of 280 ISO country codes** are in none of the six
+continent sets and fall through a longitude guess (Russia, Pakistan, Hong Kong,
+Greenland, the Maldives, most island states); and `pickDispersed` has a silent
+escape hatch where, if no clip is in-region or neutral, *all* candidates come
+back eligible rather than the scene admitting it has no material.
+
+### Signals discarded at the type boundary
+
+Photon returns `extent` (a bounding box) for every result and the app drops it
+at `GeocodeResult`. That is **physical size for free** — Manhattan's bbox is
+~0.14° × 0.20°, Cairo's ~0.69° × 0.57° — which separates a megacity from a market
+town with no population data at all. Nominatim's reverse call already runs but
+omits `extratags=1`; adding it returns **population, elevation and a Wikidata
+id** for one query parameter. `place=island` / `place=archipelago` are already
+parsed for search ranking but never consulted for coastality, which is why Malé
+is not coastal.
+
 ## 2. Design principles
 
 1. **Evidence over inference.** Prefer "there are 34 subway entrances within 1km"
