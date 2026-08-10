@@ -6,7 +6,6 @@ import {
   depthZIndex,
   distanceFromListener,
   normalizedToPercent,
-  normalizedToPercentValues,
   scaleFromDistance,
 } from '../audio/spatialMath';
 import type { SpatialPoint } from '../data/types';
@@ -75,12 +74,6 @@ export function SoundIcon({
   // listener instead of bunching around it; spatial coordinates are untouched.
   const spread = compact ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
   const { left, top } = normalizedToPercent(position, spread);
-  // Vector from the tile's resting spot back to the listener centre (50%, 50%),
-  // expressed in container-query units so the entrance offset tracks the canvas
-  // size. The tile animates from this offset (at centre) to zero (at rest).
-  const { leftPercent, topPercent } = normalizedToPercentValues(position, spread);
-  const entranceDx = 50 - leftPercent;
-  const entranceDy = 50 - topPercent;
   const swayDeg = (sway * 180) / Math.PI;
   const distance = distanceFromListener(position);
   const proximityScale = scaleFromDistance(distance);
@@ -117,11 +110,7 @@ export function SoundIcon({
         zIndex: isDragging ? 470 : depthZIndex(distance),
         visibility: hiddenForGhost || hiddenForDetailExpand ? 'hidden' : undefined,
         ...(entering || sucking
-          ? ({
-              '--entrance-dx': `${entranceDx}cqw`,
-              '--entrance-dy': `${entranceDy}cqh`,
-              '--entrance-delay': `${entranceDelayMs}ms`,
-            } as CSSProperties)
+          ? ({ '--entrance-delay': `${entranceDelayMs}ms` } as CSSProperties)
           : {}),
       }}
       data-instance-id={instanceId}
