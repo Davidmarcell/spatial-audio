@@ -65,6 +65,9 @@ type SourceNode = {
   crossfadeIndex: number;
 };
 
+/** Soft swell as a scene starts, so nothing snaps on at full level. */
+const SCENE_FADE_IN_S = 0.3;
+
 const CROSSFADE_MIN_S = 28;
 const CROSSFADE_MAX_S = 48;
 /** Fraction of each crossfade cycle spent ramping between layers. */
@@ -75,6 +78,8 @@ const LOOP_END_SAFETY_S = 0.02;
 export class AudioEngine {
   private context: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  /** Sub-bus carrying only the spatial scene (see `ensureGraph`). */
+  private sceneGain: GainNode | null = null;
   // Headroom ceiling: the gain applied when master volume is at 100%.
   private readonly baseMasterLevel = 0.9;
   // User-controlled master volume (0–1). Ducking multiplies on top of this.
@@ -112,6 +117,12 @@ export class AudioEngine {
     this.masterGain = this.context.createGain();
     this.masterGain.gain.value = this.effectiveMasterGain();
     this.masterGain.connect(this.context.destination);
+    // Scene bus: every spatial layer runs through this, UI one-shots do not.
+    // It exists so the whole soundscape can be faded as one thing on play
+    // without ducking the transition whoosh that plays over the top of it.
+    this.sceneGain = this.context.createGain();
+    this.sceneGain.gain.value = 1;
+    this.sceneGain.connect(this.masterGain);
   }
 
   async unlock(): Promise<void> {
@@ -326,7 +337,7 @@ export class AudioEngine {
     panner.coneOuterAngle = 360;
 
     panner.connect(gain);
-    gain.connect(this.masterGain!);
+    gain.connect(this.sceneGain ?? this.masterGain!);
 
     const layerSrcs = wantCrossfade ? [primarySrc, recipe!.secondarySrc!] : [primarySrc];
     const buffers = await Promise.all(layerSrcs.map((src) => this.loadBuffer(src)));
@@ -469,6 +480,17 @@ export class AudioEngine {
     await this.unlock();
     if (this.playing) return;
     this.playing = true;
+    // Bring the whole scene up as one gesture rather than snapping every layer
+    // on at full level. Ramping the shared scene bus (not the individual source
+    // gains) keeps this independent of the spatial distance/volume system, which
+    // is continuously retargeting those.
+    const sceneGain = this.sceneGain;
+    if (sceneGain && this.context) {
+      const now = this.context.currentTime;
+      sceneGain.gain.cancelScheduledValues(now);
+      sceneGain.gain.setValueAtTime(0, now);
+      sceneGain.gain.linearRampToValueAtTime(1, now + SCENE_FADE_IN_S);
+    }
     for (const instanceId of this.sources.keys()) {
       this.startSource(instanceId);
     }
