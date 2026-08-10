@@ -375,6 +375,34 @@ counts, so this is nearly zero marginal cost once stage 1 exists. It should ship
 
 ---
 
+## 3b. Worked example: what Manhattan should produce
+
+Evidence available for `40.7831, -73.9712` once Phase 3 lands, and the layer each
+piece of evidence earns. This is the concrete target to build against.
+
+| Evidence | Source | Layer earned | Generated name |
+|---|---|---|---|
+| 30+ subway entrances within 1km | Overpass `railway=subway_entrance` | **subway** (signature) | "Lexington Ave Subway" |
+| coastline 1.1km; harbour polygon | Overpass `natural=coastline`, `harbour` | water: harbour | "Upper Bay" |
+| named waterway "East River" 900m | Overpass `waterway=river` | water alt / dock option | "East River Tide" |
+| Central Park polygon, 3.4 km² | Overpass `leisure=park` + `name` | wildlife: songbird | "Central Park Songbirds" |
+| eBird: Blue Jay, N. Cardinal, House Sparrow | eBird occurrence | casts *those* clips | "Blue Jay" |
+| `worship`: christian 40, jewish 12 | Overpass `amenity=place_of_worship` | human: bells (low mix) | "Midtown Bells" |
+| motorways present, `street: calm` | Overpass + culture | base bed | "Midtown Hum" |
+| July, northern hemisphere | date + lat | wildlife: cicadas | "Summer Cicadas" |
+| 08:00 local | lng | biases casting to morning takes | — |
+| no marketplace within 1km | Overpass | market **suppressed** | — |
+
+Result: `subway, harbour, Central Park songbirds, Midtown hum, cicadas` with
+`East River, blue jay, bells, rain` in the dock. Nothing in that list is
+reachable today, and only two of the five need audio the library doesn't already
+have.
+
+Contrast Venice at the same date: no motorways → traffic **vetoed**; canals and
+ferry terminals present → boat/canal signature; `worship: church` with the
+Basilica nearby → bells; lagoon rather than open coast → gulls but no surf.
+Currently Venice and Melbourne are byte-identical.
+
 ## 4. Library expansion
 
 The composer can only cast what exists. Priorities, in order:
