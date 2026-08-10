@@ -476,6 +476,65 @@ ferry terminals present → boat/canal signature; `worship: church` with the
 Basilica nearby → bells; lagoon rather than open coast → gulls but no surf.
 Currently Venice and Melbourne are byte-identical.
 
+## 3c. Signal sources — measured, not assumed
+
+Every figure below was measured by running the API live, not read off a doc page.
+
+| Source | Gives us | Auth | CORS | Latency | Licence | Verdict |
+|---|---|---|---|---|---|---|
+| **Open-Meteo** `/v1/forecast` | IANA timezone, true local time, `is_day`, precipitation, snowfall, wind, cloud, **elevation**, sunrise/sunset — all in one 800-byte call | none | yes | **0.70 s** | CC BY 4.0 | **live fetch, do first** |
+| **Overpass** `/api/interpreter` | counts of real features within N metres | none | yes | 3–19 s, **~1 in 3 returns 504** | ODbL | live + cache, never blocking |
+| **GBIF** `/v1/occurrence/search` | species actually observed at a coordinate | none | yes | ~1 s | 98.6% **CC BY 4.0** (eBird dataset) | live fetch, cached |
+| **Nominatim** `/lookup?extratags=1` | population, elevation, Wikidata QID | none | — | — | ODbL | 1 req/s cap; precompute |
+| **Wikidata** `wbgetclaims` | Köppen code, population, elevation, languages | none | yes | 184 ms (by QID) | **CC0** | live, via QID from OSM |
+| **Radio Aporee** `/api/maps/*` | 78,148 geolocated field recordings | none (needs `Referer`) | **no** | 2.4 s for the full 8.4 MB index | 31% PD/BY, 49% BY-SA, 19% NC/ND | build-time, after asking |
+| Köppen 0.5° raster | a real climate code per point | — | — | offline | CC BY 4.0 | **bundle (~tens of KB)** |
+| Distance-to-coast 0.25° grid | actual coast distance | — | — | offline | derived from Natural Earth (PD) | **bundle (~100–150 KB)** |
+| eBird direct | same data as GBIF | key | yes | — | forbids key sharing + redistribution | **avoid — use GBIF** |
+
+### Overpass genuinely discriminates
+
+The measured signatures are the recipe, written out:
+
+| feature (1.5 km) | Times Square | Kyoto | Timbuktu | Reine, Lofoten |
+|---|---|---|---|---|
+| subway entrances | **243** | 43 | 0 | 0 |
+| places of worship | 51 | **173** | 8 | 0 |
+| bars/pubs/clubs | 228 | 263 | 0 | 0 |
+| major roads | **435** | 98 | 14 | **0** |
+| coastline ways (3 km) | 48 | 0 | 0 | **10** |
+| national park | 0 | 0 | 0 | **1** |
+
+Reine is *nothing but coastline inside a national park*. Kyoto is 173 shrines and
+35 river ways. Those columns are more place-specific than anything the current
+generator can represent.
+
+A second query returns `religion=*` tags rather than counts — Timbuktu comes back
+`{muslim: 8, christian: 1}`, Kyoto splits buddhist/shinto. That is a
+**data-driven basis for adhan vs church bells vs temple gong**, replacing the
+country-code guess that currently hands Malé a Tibetan singing bowl.
+
+**The operational catch:** roughly one Overpass request in three returned
+`504 Dispatcher_Client::request_read_and_idx::timeout` during testing, and the
+public instance allows two concurrent slots per IP. It cannot sit on the
+synchronous path of a search. Precompute the top ~300 cities at build time, fetch
+live-with-cache for the rest, and always degrade to today's inference.
+
+### GBIF answers "which birds actually live here"
+
+Keyless, CORS-open, ~1 s, and 98.6% of records near Manhattan are the eBird
+dataset under **CC BY 4.0** — the licence-clean route to eBird's coverage without
+eBird's key-sharing and redistribution restrictions.
+
+- Times Square → House Sparrow, American Robin, Rock Pigeon, European Starling,
+  Blue Jay
+- Reine, Lofoten → Common Eider, Black Guillemot, European Shag, Razorbill
+
+Adding `&month=8` reorders by season. Phase one is cheap and delivers most of the
+gain: fetch the top ten species, match against the clips already in the library,
+and use the match to **rank the existing pool and name the layer**. "Songbirds"
+becomes "Blue Jay" without sourcing a single new recording.
+
 ## 4. Library expansion
 
 The composer can only cast what exists. Priorities, in order:
@@ -508,14 +567,33 @@ The same place in July and January should differ. Aim for summer/winter and
 day/night variants of the highest-traffic beds (city hum, forest, insects,
 songbird chorus) rather than more one-off exotica.
 
-### 4.4 Sourcing
-Existing, proven pipeline: `scripts/download-audio-variants.mjs` (BigSoundBank
-CC0 by numeric id; Wikimedia Commons by filename) + `scripts/optimize-audio.mjs`
-for bitrate. Expanding is mechanical — the constraint is discovery and curation,
-not tooling. Candidate sources and their licensing verdicts are in the companion
-research notes; the short version is BigSoundBank (CC0, safest, bulk-friendly),
-Wikimedia Commons (mixed CC-BY-SA, attribution already handled), Xeno-canto via
-Commons for species-accurate birds, and Freesound (CC0 filter) for urban gaps.
+### 4.4 Sourcing — audited
+
+| Source | Scale | How to enumerate | Licence | Verdict |
+|---|---|---|---|---|
+| **BigSoundBank** | 3,567 sounds | `sitemap_bsb.xml` (1.24 MB) → schema.org JSON-LD on each page carries name, description, duration, keywords, and **`.ogg` as well as `.mp3`** URLs | CC0 | **Automate.** Replaces the hand-maintained `BSB` array |
+| **Radio Aporee** | **78,148 geolocated recordings, 67,388 places** | undocumented `/api/maps/getAllLocations` — the whole index in one 8.4 MB fetch | 31% PD/BY, 49% BY-SA, 19% NC/ND | **Highest impact. Email first.** |
+| **Freesound** | large | `search/text/?filter={!geofilt sfield=geotag pt=lat,lng d=10}` — sounds *recorded near* a place | filter to CC0 + Attribution | build-time, server-side key |
+| **Wikimedia Commons** | 146 country subcategories | `Category:Audio files of <country>` via `list=categorymembers` | mostly CC BY-SA | build-time |
+| **Xeno-canto** | huge, species-indexed | v3 API, `box:` bbox (no radius operator) | filter `lc:` to cc0/cc-by/cc-by-sa | **v2 is dead; v3 needs a free key** |
+| **NPS Natural Sounds** | hundreds | per-park libraries | **US public domain** | best free nature audio, US-only |
+| **Europeana** | large | `TYPE:SOUND&reusability=open` | PD/CC0/BY/BY-SA | build-time |
+
+**Excluded on licence:** BBC Sound Effects (RemArc forbids non-profit and
+commercial use), Cities and Memory (per-artist permission), Macaulay Library (all
+rights reserved), eBird raw data, Tierstimmenarchiv (NC).
+
+**Two findings that save wasted effort.** Commons geo-search for audio is a dead
+end — `nearcoord` returns 1 file within 20 km of Rome and 0 within 30 km of
+Tokyo. And BigSoundBank, despite being the backbone of the library, is
+structurally Franco-European (paris 23 slugs, london 8, japan 3; **mosque 0,
+muezzin 0, airport 0, traffic 0**). It can supply generic beds and European
+texture; it **cannot** supply the regional diversity §4.1 needs. That has to come
+from Aporee, Freesound and Commons.
+
+**Watch the ND clause specifically.** `optimize-audio.mjs` trims, loops and
+re-encodes — that is a derivative work, so no-derivatives audio is unusable even
+for a free app. ND is a stricter bar than NC here.
 
 **Guardrail:** every added clip must carry title/author/license/sourceUrl in the
 manifest, which `npm run validate:audio` already enforces.
@@ -544,13 +622,35 @@ against it.
 - Derive **season** from hemisphere + date and let it gate insects/dawn chorus.
   `seasonFor` already exists in the composer prototype.
 
-### Phase 2 — Naming (small, and the only standalone win)
-Ship this next, on its own, ahead of the composer work. It is the one
-intervention the experiments show pays off without new layer variety, because it
-re-describes the layers we already pick rather than picking different ones.
-- Name templates driven by whatever evidence exists, geocode-only at first.
-- Names sharpen automatically once Phase 3 lands (Overpass returns feature
-  `name` tags in the same query that yields the counts).
+### Phase 2 — The two standalone wins
+
+Both pay off *without* the composer rewrite, because neither depends on having
+more layers to choose between. Ship them next, independently, in either order.
+
+**2a. Naming.** Re-describes the layers we already pick rather than picking
+different ones. Partly done already: the UI had been discarding every
+hand-authored name (fixed above), which recovered "Higurashi Cicadas" and
+"Malecón Surf" for free. Next: name templates driven by whatever evidence exists,
+geocode-only at first, sharpening automatically once Overpass lands (it returns
+feature `name` tags in the same query that yields the counts).
+
+**2b. Live weather + true local time — one Open-Meteo call.** The research ranks
+this highest by impact ÷ effort in the whole programme, and I agree: 800 bytes,
+0.70 s, no key, CORS already open, roughly a day of plumbing. One request returns
+the IANA timezone (replacing the `lng / 15` guess that is ~3 hours wrong in
+China, Spain and India), `is_day`, current precipitation and snowfall, wind
+speed, elevation, and sunrise/sunset.
+
+It is the fastest route to the effect a user actually notices: **Manhattan in a
+February snowstorm at 3 a.m. should not sound like Manhattan at noon in August.**
+And unlike everything else here it makes *every* place time-varying, including
+the ones we never curate. It also deletes the dedicated elevation call — the
+forecast response already carries it.
+
+Caveat to respect: keep the *structural* layer set deterministic and let live
+weather bias casting and optional layers only, or a shared scene link renders
+differently for the recipient than for the sender. (That bug already exists today
+via the owl option — see `timeOfDayFor`.)
 
 ### Phase 3+4 — OSM features **and** the scored composer, together
 The experiments above show these cannot be sequenced apart: signals with no
@@ -572,9 +672,27 @@ converges harder than the code it replaces. Treat as one deliverable.
 - Work the table in §4.1 region by region, urban types first.
 - Each batch: source → optimise → manifest → validate → snapshot.
 
-### Phase 6 — Species and weather (highest specificity, most effort)
-- eBird/GBIF occurrence → cast the birds that actually live there.
-- Live weather → the rain layer plays because it is *actually* raining there.
+### Phase 6 — Species casting
+- **GBIF** occurrence → cast the birds that actually live there. Keyless, CORS,
+  CC BY 4.0. Phase one is cheap: fetch the top ten species, match against clips
+  already in the library, use the match to rank the pool and name the layer.
+  "Songbirds" becomes "Blue Jay" with no new audio at all.
+- Phase two: go out to **Xeno-canto** (v3, free key, `box:` bbox queries) for
+  species the library lacks.
+
+### Phase 7 — Recorded-near-here (the transformative one)
+Radio Aporee has 78,148 geolocated field recordings — one 30 metres from Times
+Square, "nishiki market" 250 m from central Kyoto, Emeka Ogboh's "Yaba Bus Park"
+1.8 km from central Lagos. Nothing else in this report can put a recording *of
+the actual place* into the app.
+
+Ship a build-time filtered index (PD + CC-BY is 31% of the corpus, still ~24,000
+sounds) as a "recorded near here" layer crediting the recordist by name. Ranked
+last only because it needs a permission conversation — the API is undocumented,
+`robots.txt` discourages crawling `/maps*`, and Udo Noll has run this as a
+public-good art project since the 1990s. **Email radio@aporee.org before any bulk
+use.** On pure impact it is the strongest item in the plan, and the one that
+would make the app a document of real places rather than a synthesiser.
 
 ---
 
