@@ -661,7 +661,7 @@
 .rowThumbFallback {
   width: 2.1rem;
   height: 2.1rem;
-  border-radius: 0.5rem;
+  border-radius: 4px;
   flex-shrink: 0;
   display: block;
   overflow: hidden;
