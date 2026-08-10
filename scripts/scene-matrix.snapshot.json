@@ -62,7 +62,7 @@
       "global-night-owl": "owl-collared-scops-owl",
       "global-rain": "thunder-6",
       "global-songbird": "songbird-brown-eared-bulbul",
-      "global-stream": "legacy-stream-distant",
+      "global-stream": "stream-flow",
       "global-surf": "waves-small-beach",
       "global-traffic": "city-night-murmur",
       "global-tropical-bird": "tropical-bird-racket-tailed-drongo",
@@ -91,7 +91,7 @@
       "bangkok-koel": "tropical-bird-racket-tailed-drongo",
       "bangkok-market": "market-cebu-night",
       "bangkok-monsoon-rain": "rain-terrace",
-      "bangkok-river": "stream-flow",
+      "bangkok-river": "stream-waterfall",
       "bangkok-temple-bells": "bells-bronze",
       "bangkok-traffic": "traffic-manila-jeepney",
       "global-forest": "legacy-forest-ambience",
@@ -184,7 +184,7 @@
       "park-rustle": "forest-night-rain",
       "park-stream": "stream-small-1",
       "street-bird": "songbird-breeze-birds",
-      "urban-breeze": "city-latam-aguascalientes"
+      "urban-breeze": "city-london-street"
     },
     "image": {
       "blue-jay": "/icons/blue-jay.jpg",
@@ -315,9 +315,9 @@
       "global-night-owl": "tawny-owl-xc-1",
       "global-rain": "thunder-6",
       "global-songbird": "laughing-dove-1",
-      "global-stream": "legacy-stream-distant",
+      "global-stream": "stream-brooklet",
       "global-surf": "waves-sea",
-      "global-traffic": "city-pedestrian",
+      "global-traffic": "city-london-soundscape",
       "global-wind": "wind-fir-forest"
     },
     "image": {
@@ -346,7 +346,7 @@
       "global-night-owl": "owl-collared-scops-owl",
       "global-rain": "thunder-2",
       "global-songbird": "songbird-brown-eared-bulbul",
-      "global-stream": "stream-brooklet",
+      "global-stream": "stream-small-1",
       "global-surf": "legacy-surf",
       "global-traffic": "city-night-murmur",
       "global-wind": "wind-fir-forest",
@@ -388,7 +388,7 @@
       "global-songbird": "song-thrush-1",
       "global-stream": "legacy-stream-distant",
       "global-surf": "waves-agitated",
-      "global-traffic": "city-cheerful-street",
+      "global-traffic": "city-night-murmur",
       "global-wind": "wind-fir-forest"
     },
     "image": {
@@ -416,9 +416,9 @@
       "global-night-owl": "tawny-owl-xc-1",
       "global-rain": "thunder-6",
       "global-songbird": "songbird-common-swift",
-      "global-stream": "stream-small-1",
+      "global-stream": "stream-paris-square-fountain",
       "global-surf": "waves-crashing",
-      "global-traffic": "city-pedestrian",
+      "global-traffic": "city-london-soundscape",
       "global-tram": "tram-lisboa-bica",
       "global-wind": "wind-tall-grass"
     },
@@ -520,9 +520,9 @@
       "global-night-owl": "tawny-owl-xc-1",
       "global-rain": "thunder-6",
       "global-songbird": "legacy-blackbird",
-      "global-stream": "stream-brooklet",
+      "global-stream": "stream-small-1",
       "global-surf": "waves-sea",
-      "global-traffic": "city-cheerful-street",
+      "global-traffic": "city-london-soundscape",
       "global-wind": "wind-tall-grass",
       "paris-bells": "bells-4-church",
       "paris-cafe": "market-crowd",
@@ -628,7 +628,7 @@
       "global-songbird": "songbird-southern-lapwing",
       "global-stream": "stream-small-1",
       "global-surf": "waves-pebble",
-      "global-traffic": "city-pedestrian",
+      "global-traffic": "city-village-centre",
       "global-tropical-bird": "legacy-quetzal",
       "global-wind": "wind-in-tree",
       "jungle-primates": "primates-siamang",
@@ -717,7 +717,7 @@
       "global-songbird": "goldfinch-1",
       "global-stream": "stream-flow",
       "global-surf": "waves-crashing",
-      "global-traffic": "city-cheerful-street",
+      "global-traffic": "city-pedestrian",
       "global-wind": "wind-tall-grass"
     },
     "image": {

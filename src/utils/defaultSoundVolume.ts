@@ -44,6 +44,7 @@ const TYPE_SPAWN_VOLUME: Partial<Record<SoundType, number>> = {
   tram: 0.32,
   adhan: 0.28,
   subway: 0.28,
+  cafe: 0.26,
   // Distant savanna calls — low, occasional, far across the plains.
   lion: 0.22,
   elephant: 0.2,

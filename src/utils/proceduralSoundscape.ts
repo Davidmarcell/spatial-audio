@@ -183,6 +183,7 @@ const P = {
   elephant: { id: 'global-elephant', name: 'Distant Elephant', category: 'ambient', type: 'elephant', keywords: ['elephant', 'trumpet', 'savanna', 'herd'], vol: 0.2 },
   musette: { id: 'global-musette', name: 'Musette Accordion', category: 'ambient', type: 'musette', keywords: ['musette', 'accordion', 'accordeon', 'french', 'cafe', 'paris', 'music', 'valse'], vol: 0.36 },
   subway: { id: 'global-subway', name: 'Subway', category: 'ambient', type: 'subway', keywords: ['subway', 'metro', 'underground', 'train', 'platform', 'transit'], vol: 0.28 },
+  cafe: { id: 'global-cafe', name: 'Café', category: 'ambient', type: 'cafe', keywords: ['cafe', 'restaurant', 'terrace', 'conversation', 'chatter', 'bistro'], vol: 0.26 },
 } satisfies Record<string, Preset>;
 
 type PresetKey = keyof typeof P;
@@ -292,7 +293,9 @@ const CURATED_PLACES: Record<string, Recipe> = {
   lisbon: { extraTags: ['european', 'mediterranean', 'coastal', 'urban', 'garden'], layers: [
     // Tram 28 rattle+bell, a fado guitar bed, summer swifts pinned to the Apus
     // apus recording, and the Sé cathedral bells drifting over the Alfama.
-    bed('tram', { name: 'Tram 28' }),
+    // Pinned: the tram pool gained a generic "passing tram", and without a pin
+    // the seeded picker handed Lisbon that instead of its own Bica funicular.
+    bed('tram', { name: 'Tram 28', clip: 'tram-lisboa-bica' }),
     bed('fado', { name: 'Fado' }),
     bed('songbird', { name: 'Summer Swifts', vol: 0.42, clip: 'songbird-common-swift' }),
     bed('bells', { name: 'Sé Cathedral Bells', vol: 0.3 }),
@@ -522,6 +525,9 @@ function buildLayeredRecipe(ctx: RecipeContext): LayerSpec[] {
     // under the default mix reads as noisy) so places like Manhattan, London
     // or Tokyo can drag in a metro platform as their own choice.
     layers.push(option('subway'));
+    // The murmur of a room full of people. Offered rather than defaulted: it
+    // overlaps the market bed's texture, so having both playing muddies a mix.
+    layers.push(option('cafe'));
   }
 
   // 6. WEATHER + OWL, offered in the library, off by default.

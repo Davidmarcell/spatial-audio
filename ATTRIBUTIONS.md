@@ -57,6 +57,21 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 | `public/audio/pool/bells/bells-gong-temple.mp3` | Gong, sweet | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1482](https://bigsoundbank.com/gong-sweet-s1482.html) |
 | `public/audio/pool/traffic/traffic-highway.mp3` | Highway | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0122](https://bigsoundbank.com/highway-s0122.html) |
 | `public/audio/pool/subway/subway-metro-arrival.mp3` | Metro: Stopping and starting #2 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3041](https://bigsoundbank.com/metro-stopping-and-starting-2-s3041.html) |
+| `public/audio/pool/subway/subway-metro-rolling.mp3` | Metro, Paris #2 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0092](https://bigsoundbank.com/metro-paris-2-s0092.html) |
+| `public/audio/pool/subway/subway-corridor.mp3` | Metro corridor, Paris #1 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0093](https://bigsoundbank.com/metro-corridor-paris-1-s0093.html) |
+| `public/audio/pool/subway/subway-london-kings-cross.mp3` | King's Cross St. Pancras station, London | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0639](https://bigsoundbank.com/king-s-cross-st-pancras-station-london-s0639.html) |
+| `public/audio/pool/tram/tram-passing.mp3` | Passing tram | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0278](https://bigsoundbank.com/passing-tram-s0278.html) |
+| `public/audio/pool/city-hum/city-london-street.mp3` | London street | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0641](https://bigsoundbank.com/london-street-s0641.html) |
+| `public/audio/pool/city-hum/city-london-soundscape.mp3` | London street #2 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0643](https://bigsoundbank.com/london-street-2-s0643.html) |
+| `public/audio/pool/city-hum/city-paris-small-street.mp3` | Little Parisian street | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1713](https://bigsoundbank.com/little-parisian-street-s1713.html) |
+| `public/audio/pool/city-hum/city-village-centre.mp3` | Village town centre, Manou (Perche) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1346](https://bigsoundbank.com/village-city-center-1-s1346.html) |
+| `public/audio/pool/cafe/cafe-pizzeria.mp3` | Restaurant (pizzeria) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0624](https://bigsoundbank.com/restaurant-s0624.html) |
+| `public/audio/pool/cafe/cafe-small-restaurant.mp3` | Small restaurant conversations | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3542](https://bigsoundbank.com/small-restaurant-conversations-s3542.html) |
+| `public/audio/pool/cafe/cafe-brunch.mp3` | Restaurant #2 (brunch) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3376](https://bigsoundbank.com/restaurant-2-s3376.html) |
+| `public/audio/pool/market/market-outdoor-french.mp3` | Outdoor market #2, Neuilly-sur-Seine | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3378](https://bigsoundbank.com/outdoor-market-2-s3378.html) |
+| `public/audio/pool/market/market-covered-2.mp3` | Covered market #2, Levallois-Perret | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3347](https://bigsoundbank.com/covered-market-2-s3347.html) |
+| `public/audio/pool/stream/stream-japanese-temple-fountain.mp3` | Fountain of a Japanese temple | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0913](https://bigsoundbank.com/fountain-of-a-japanese-temple-s0913.html) |
+| `public/audio/pool/stream/stream-paris-square-fountain.mp3` | Parisian paved square fountain | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1081](https://bigsoundbank.com/parisian-paved-square-fountain-s1081.html) |
 
 ## UI transitions
 

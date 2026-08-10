@@ -381,6 +381,7 @@ const SEMANTIC_POOL_RULES: Array<{ test: (soundId: string) => boolean; pool: str
   { test: (id) => /rain|monsoon|shower|drizzle|storm/.test(id), pool: 'rain' },
   { test: (id) => /tram|streetcar|eletrico|trolley/.test(id), pool: 'tram' },
   { test: (id) => /subway|metro/.test(id), pool: 'tram' },
+  { test: (id) => /cafe|restaurant|terrace|bistro/.test(id), pool: 'market' },
   { test: (id) => /traffic|city-hum|motorway|highway/.test(id), pool: 'traffic' },
   // Human / cultural ambiences. `bell` is matched only as a whole word so it
   // never swallows `bellbird` (a songbird handled earlier).

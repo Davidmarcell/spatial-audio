@@ -277,6 +277,11 @@ export const environments: Environment[] = [
             id: 'rio-traffic',
             name: 'City Traffic',
             category: 'ambient',
+            // Pinned to the Latin American street recording: this SoundDef
+            // carries no region tags, so the picker sees an empty scene region
+            // and treats every European city clip as eligible. Widening the
+            // city-hum pool then handed Rio a Parisian side street.
+            fixedClipId: 'city-latam-aguascalientes',
             src: '/audio/costa-rica/stream-distant.mp3',
             loop: true,
             description: 'Traffic from Rio streets inland',
