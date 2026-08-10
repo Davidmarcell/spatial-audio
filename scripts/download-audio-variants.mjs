@@ -98,6 +98,12 @@ const BSB = [
   // Region-neutral motorway wash that adds depth to the traffic pool so cities
   // without a region-specific street clip get varied road texture, not silence.
   ['traffic-highway', 'traffic', ['urban'], true, '0122', 'highway-s0122', 'Highway'],
+  // ---- subway / metro (train arrives, stops, leaves — platform recording) ----
+  // Not a spoken announcement (no clean CC0/reusable source found for one),
+  // but the train-arrival/departure rumble is the single most recognisable
+  // "subway" sound and reads correctly under any big-city scene (Manhattan,
+  // London, Paris, Tokyo…) via the generic `urban` tag.
+  ['subway-metro-arrival', 'subway', ['urban', 'european'], false, '3041', 'metro-stopping-and-starting-2-s3041', 'Metro: Stopping and starting #2'],
   // ---- market / crowd ----
   ['market-covered-1', 'market', ['urban', 'european'], true, '3346', 'covered-market-1-s3346', 'Covered market #1'],
   ['market-crowd', 'market', ['urban'], true, '3515', 'crowd-of-50-60-people-1-s3515', 'Crowd of 50-60 people #1'],

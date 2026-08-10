@@ -32,6 +32,7 @@ const FALLBACK_TYPES: Partial<Record<SoundType, SoundType[]>> = {
   fado: ['jazz', 'bossa-nova'],
   adhan: ['bells', 'city-hum'],
   ney: ['jazz', 'bossa-nova'],
+  subway: ['city-hum', 'traffic'],
   // Distant lion / elephant (savanna signatures) — fall back to the primate
   // beds if a single-clip pool ever fails to populate.
   lion: ['primates'],

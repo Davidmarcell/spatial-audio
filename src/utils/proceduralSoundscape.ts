@@ -182,6 +182,7 @@ const P = {
   lion: { id: 'global-lion', name: 'Distant Lion Roar', category: 'ambient', type: 'lion', keywords: ['lion', 'roar', 'savanna', 'predator'], vol: 0.22 },
   elephant: { id: 'global-elephant', name: 'Distant Elephant', category: 'ambient', type: 'elephant', keywords: ['elephant', 'trumpet', 'savanna', 'herd'], vol: 0.2 },
   musette: { id: 'global-musette', name: 'Musette Accordion', category: 'ambient', type: 'musette', keywords: ['musette', 'accordion', 'accordeon', 'french', 'cafe', 'paris', 'music', 'valse'], vol: 0.36 },
+  subway: { id: 'global-subway', name: 'Subway', category: 'ambient', type: 'subway', keywords: ['subway', 'metro', 'underground', 'train', 'platform', 'transit'], vol: 0.28 },
 } satisfies Record<string, Preset>;
 
 type PresetKey = keyof typeof P;
@@ -493,6 +494,10 @@ function buildLayeredRecipe(ctx: RecipeContext): LayerSpec[] {
       layers.push(bed('bells', { name: 'Church Bells', vol: 0.3 }));
     }
     layers.push(bed('market', { vol: 0.26 }));
+    // Available in every big-city library (not auto-played — a subway rumble
+    // under the default mix reads as noisy) so places like Manhattan, London
+    // or Tokyo can drag in a metro platform as their own choice.
+    layers.push(option('subway'));
   }
 
   // 6. WEATHER + OWL, offered in the library, off by default.

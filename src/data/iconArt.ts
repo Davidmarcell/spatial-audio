@@ -111,6 +111,9 @@ const extendedFixedIcons: Record<string, string> = {
   'global-insects': '/icons/cricket-field-ensifera.jpg',
   'summer-cicadas': '/icons/insect-jardine-plate.jpg',
   'sydney-cicadas': '/icons/cicada-maculata.jpg',
+  // Subway (available in every big-city library) — a genre painting of the
+  // sound's own subject (subway-car riders), not a generic street/traffic plate.
+  'global-subway': '/icons/pool/subway-riders-mora.jpg',
 };
 
 /** Attributions for the extended fixed plates above (kept out of the generated file). */
@@ -327,6 +330,13 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
       'https://commons.wikimedia.org/wiki/File:Kawanabe_Kyosai_-_Full_Moon_with_Crow_on_Plum_Branch_-_1930.203_-_Cleveland_Museum_of_Art.tif',
   },
   {
+    file: '/icons/pool/subway-riders-mora.jpg',
+    title: 'Subway Riders in New York City (Evening News)',
+    author: 'Francis Luis Mora (1914) — Oil on canvas',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Francis_Luis_Mora_-_Subway_riders_in_NYC.jpg',
+  },
+  {
     file: '/icons/kyoto-kajika-frog.jpg',
     title: 'Hyla bürgeri (Kajika frog, Buergeria buergeri) — Fauna Japonica, Batrachii Tab. III',
     author: 'Iconographia Zoologica / Fauna Japonica (Temminck & Schlegel); Special Collections, University of Amsterdam',
@@ -370,6 +380,7 @@ const SEMANTIC_POOL_RULES: Array<{ test: (soundId: string) => boolean; pool: str
   { test: (id) => /(?:^|-)(?:wind|breeze|gust)(?:$|-)/.test(id), pool: 'wind' },
   { test: (id) => /rain|monsoon|shower|drizzle|storm/.test(id), pool: 'rain' },
   { test: (id) => /tram|streetcar|eletrico|trolley/.test(id), pool: 'tram' },
+  { test: (id) => /subway|metro/.test(id), pool: 'tram' },
   { test: (id) => /traffic|city-hum|motorway|highway/.test(id), pool: 'traffic' },
   // Human / cultural ambiences. `bell` is matched only as a whole word so it
   // never swallows `bellbird` (a songbird handled earlier).

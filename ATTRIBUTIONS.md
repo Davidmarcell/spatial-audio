@@ -56,6 +56,7 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 | `public/audio/pool/songbird/songbird-tree-sparrow.mp3` | Passer montanus - Eurasian Tree Sparrow XC347806 | Derek Paulo (xeno-canto) | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Passer_montanus_-_Eurasian_Tree_Sparrow_XC347806.mp3) |
 | `public/audio/pool/bells/bells-gong-temple.mp3` | Gong, sweet | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1482](https://bigsoundbank.com/gong-sweet-s1482.html) |
 | `public/audio/pool/traffic/traffic-highway.mp3` | Highway | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0122](https://bigsoundbank.com/highway-s0122.html) |
+| `public/audio/pool/subway/subway-metro-arrival.mp3` | Metro: Stopping and starting #2 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3041](https://bigsoundbank.com/metro-stopping-and-starting-2-s3041.html) |
 
 ## UI transitions
 

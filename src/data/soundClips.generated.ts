@@ -2434,6 +2434,20 @@ export const soundClips: SoundClip[] = [
     "weight": 1.5
   },
   {
+    "id": "subway-metro-arrival",
+    "type": "subway",
+    "tags": [
+      "urban",
+      "european"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/subway/subway-metro-arrival.mp3",
+    "title": "Metro: Stopping and starting #2",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/metro-stopping-and-starting-2-s3041.html"
+  },
+  {
     "id": "wind-tall-grass",
     "type": "wind",
     "tags": [

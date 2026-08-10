@@ -36,7 +36,8 @@ export type SoundType =
   | 'ney'
   | 'lion'
   | 'elephant'
-  | 'musette';
+  | 'musette'
+  | 'subway';
 
 /**
  * Flavour tags used to bias variant selection toward a location's context
