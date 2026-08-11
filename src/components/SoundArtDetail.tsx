@@ -1,6 +1,10 @@
 import type { CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
-import { detailArtBox, PORTRAIT_ART_MAX_HEIGHT_PX } from '../utils/detailArtLayout';
+import {
+  clampDetailCardWidth,
+  detailArtBox,
+  portraitArtMaxHeightPx,
+} from '../utils/detailArtLayout';
 import { SoundIconImage } from './SoundIconImage';
 import {
   loadSoundTileDesign,
@@ -61,17 +65,17 @@ export function SoundArtDetailContent({
   const percent = Math.round(target.volume * 100);
   const sourceLabel = shortArtworkSourceLabel(artwork.sourceUrl);
   const design = designConfig ?? loadSoundTileDesign();
-  // On short viewports a full 420px-tall portrait plate (plus title/meta/
-  // volume below it) can exceed the screen entirely, so tighten the cap to
-  // the available height rather than always allowing the fixed max.
-  const viewportMaxHeightPx =
-    typeof window !== 'undefined' ? Math.max(200, window.innerHeight * 0.42) : undefined;
-  const maxHeightPx =
-    viewportMaxHeightPx != null
-      ? Math.min(PORTRAIT_ART_MAX_HEIGHT_PX, viewportMaxHeightPx)
-      : PORTRAIT_ART_MAX_HEIGHT_PX;
+  // Same box the flight estimate targets — shared helper, shared caps, shared
+  // available width. If these two ever diverge the card resizes after landing.
   const artBox =
-    artworkMode === 'shared' ? detailArtBox(artAspect, design.imageSizePx, maxHeightPx) : null;
+    artworkMode === 'shared'
+      ? detailArtBox(
+          artAspect,
+          design.imageSizePx,
+          portraitArtMaxHeightPx(),
+          Math.max(120, clampDetailCardWidth(design.panelWidthPx) - design.paddingPx * 2),
+        )
+      : null;
   const designStyle = {
     ...soundTileDesignToCssVars(design),
     ...(artBox
