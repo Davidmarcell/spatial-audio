@@ -2437,8 +2437,7 @@ export const soundClips: SoundClip[] = [
     "id": "subway-metro-arrival",
     "type": "subway",
     "tags": [
-      "urban",
-      "european"
+      "urban"
     ],
     "sustained": false,
     "src": "/audio/pool/subway/subway-metro-arrival.mp3",
@@ -2467,8 +2466,7 @@ export const soundClips: SoundClip[] = [
     "id": "subway-metro-rolling",
     "type": "subway",
     "tags": [
-      "urban",
-      "european"
+      "urban"
     ],
     "sustained": true,
     "src": "/audio/pool/subway/subway-metro-rolling.mp3",
@@ -2481,8 +2479,7 @@ export const soundClips: SoundClip[] = [
     "id": "subway-corridor",
     "type": "subway",
     "tags": [
-      "urban",
-      "european"
+      "urban"
     ],
     "sustained": true,
     "src": "/audio/pool/subway/subway-corridor.mp3",
