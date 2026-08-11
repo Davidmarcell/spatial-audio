@@ -339,22 +339,29 @@ export default function App() {
   // pushed away (wordmark home), its chrome must stay mounted and lift with it
   // rather than vanishing the instant `hasEntered` flips.
   const showWorkspaceChrome = (hasEntered || workspaceLeaving) && !landingExiting;
-  // The canvas is pushed up under a rising cover (parallax under the sheet).
-  const workspacePageLifting =
-    (coverActive || landingEntering || workspaceGlobeOpening) && !globeExiting;
   /**
-   * The BAR lifts only when the workspace is genuinely the outgoing page — the
+   * The workspace lifts only when it is genuinely the OUTGOING page — the
    * landing rising home over it, or the globe rising over it.
    *
    * It deliberately excludes `coverActive`. A cover is also used for ARRIVALS
    * (landing → place, globe → workspace), and `coverActive` stays true through
-   * the cover's cross-fade — which is exactly when the bar's chrome mounts. The
-   * bar was therefore mounting with the outgoing lift applied: held at -18vh and
-   * scale(0.96), so the portalled pill measured its anchor off a scaled box
-   * (244px read as 234px) and then corrected once the lift cleared. That is the
-   * pill appearing in the wrong place, jumping, and visibly widening on entry.
+   * the cover's cross-fade — which is exactly when the arriving chrome mounts.
+   *
+   * The bar was fixed for this once: it had been mounting with the outgoing
+   * lift applied, held at -18vh and scale(0.96), so the portalled pill measured
+   * its anchor off a scaled box (244px read as 234px) and corrected once the
+   * lift cleared — the pill appearing in the wrong place and visibly widening.
+   *
+   * The canvas still had the bug. Because `main` is the same DOM node for the
+   * outgoing and incoming scene, an arrival ran `pageExitLift` toward -18vh
+   * while the JS scene-rise was easing an inline transform down from +44px.
+   * Measured on a Kyoto entry, the two handed over mid-flight and the page
+   * snapped from -2.8px to +9.8px in a single frame, which is the tile jump.
+   * One condition now drives both, so nothing arrives wearing a departure.
    */
-  const workspaceBarLifting = (landingEntering || workspaceGlobeOpening) && !globeExiting;
+  const workspaceOutgoing = (landingEntering || workspaceGlobeOpening) && !globeExiting;
+  const workspacePageLifting = workspaceOutgoing;
+  const workspaceBarLifting = workspaceOutgoing;
   // While any stacked-sheet move is in flight, lift the root overflow clip so
   // outgoing pages / side tiles / button shadows are not sheared off at the
   // viewport edge (especially visible on phones).
@@ -1229,15 +1236,20 @@ export default function App() {
       if (!cancelled) setSceneRising(false);
     };
 
+    // Take the offset NOW, at entry — the cover is opaque at this point, so the
+    // snap to +44px is never seen. It used to be applied inside the timer below,
+    // which fires exactly as the cover reveals: measured, that put a 44px
+    // single-frame jump on every tile at the first visible frame. Only the ease
+    // should be visible; the step into it must happen behind the cover.
+    targets.forEach((el) => {
+      el.style.willChange = 'transform';
+    });
+    writeRise(SCENE_ASSET_RISE_PX);
+
     const delayTimer = window.setTimeout(() => {
       if (cancelled) return;
-      // Jump to the offset in this turn (still under the cover), then ease up
-      // on the next frames so pill + bar share one clock from the first paint
+      // Ease up from here so pill + bar share one clock from the first paint
       // of the reveal.
-      targets.forEach((el) => {
-        el.style.willChange = 'transform';
-      });
-      writeRise(SCENE_ASSET_RISE_PX);
       start = performance.now();
       raf = window.requestAnimationFrame(tick);
     }, SHEET_SCENE_REVEAL_MS);
