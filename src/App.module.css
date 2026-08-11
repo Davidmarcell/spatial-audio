@@ -94,16 +94,7 @@
 .pageExitLift {
   pointer-events: none;
   overflow: visible;
-  animation: pageExitLift 1s var(--ease-in-out-strong) both;
-}
-
-@keyframes pageExitLift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(0, -18vh, 0) scale(0.96);
-  }
+  transform: translate3d(0, -18vh, 0) scale(0.96);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -126,6 +117,11 @@
   width: 100%;
   min-height: 0;
   min-width: 0;
+  /* The page lift is a transition, not a keyframe animation, so releasing it
+     eases back to rest. As an animation with `both` it hard-held at -18vh and
+     snapped to 0 the instant the class came off — which is the content jumping
+     down when the workspace is revealed from under the globe. */
+  transition: transform 1s var(--ease-in-out-strong);
 }
 
 .workspace {

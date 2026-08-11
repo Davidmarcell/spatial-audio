@@ -1197,7 +1197,12 @@ export default function App() {
       setSceneRising(false);
       return undefined;
     }
-    const targets = [mainRef.current, bottomBarRef.current].filter(
+    // Deliberately NOT `main`. The page lift owns main's transform via CSS, and
+    // when both wrote to it the reveal handed over mid-flight — measured, the
+    // content snapped 160px in one frame as the lift released and this rise took
+    // its +44px offset. The bar (and the pill, via the CSS var) keep the nudge;
+    // the canvas is carried by the lift's own transition instead.
+    const targets = [bottomBarRef.current].filter(
       (el): el is HTMLElement => el !== null,
     );
     if (targets.length === 0) {
