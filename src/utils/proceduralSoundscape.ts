@@ -521,10 +521,16 @@ function buildLayeredRecipe(ctx: RecipeContext): LayerSpec[] {
       layers.push(bed('bells', { name: 'Church Bells', vol: 0.3 }));
     }
     layers.push(bed('market', { vol: 0.26 }));
-    // Available in every big-city library (not auto-played — a subway rumble
-    // under the default mix reads as noisy) so places like Manhattan, London
-    // or Tokyo can drag in a metro platform as their own choice.
-    layers.push(option('subway'));
+    // A metro is one of the few things that genuinely tells cities apart, so in
+    // a city that actually has one it PLAYS rather than waiting in the dock.
+    // Manhattan should open with trains under it; a market town should not hear
+    // any. `metro` is a bundled fact on the city table, so this stays
+    // deterministic and snapshot-testable.
+    if (ctx.city?.metro) {
+      layers.push(bed('subway', { name: 'Subway', vol: 0.24 }));
+    } else {
+      layers.push(option('subway'));
+    }
     // The murmur of a room full of people. Offered rather than defaulted: it
     // overlaps the market bed's texture, so having both playing muddies a mix.
     layers.push(option('cafe'));
