@@ -328,18 +328,37 @@ function geocodeResultLabel(result: GeocodeResult): string {
 function TrendingRow({
   items,
   onSelect,
+  resetToken,
 }: {
   items: SearchItem[];
   onSelect: (item: SearchItem) => void;
+  /** Changes when the panel opens; rewinds the row to its start. */
+  resetToken: number;
 }) {
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  // Trending is a horizontal scroller, so anything that focuses a chip makes the
+  // browser scroll it into view — which left the row opening mid-list with the
+  // first chip clipped off the left edge. Rewind on every open so it always
+  // starts flush left, whatever had focus last time.
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (el) el.scrollLeft = 0;
+  }, [resetToken, items]);
+
   return (
-    <div className={styles.trendingScroller}>
+    <div className={styles.trendingScroller} ref={scrollerRef}>
       {items.map((item) => (
         <button
           key={item.key}
           type="button"
           className={styles.trendChip}
           onClick={() => onSelect(item)}
+          // Keeps the row from being scrolled by focus when the panel opens or
+          // when tabbing past it; the chips stay reachable by click and the
+          // results list below is the keyboard path.
+          tabIndex={-1}
+          onMouseDown={(event) => event.preventDefault()}
         >
           <LocationThumbnail item={item} />
           <span className={styles.trendChipLabel}>{searchItemLabel(item)}</span>
@@ -1353,7 +1372,11 @@ export function LocationSearchSpotlight({
                     <>
                       <section className={`${styles.section} ${styles.searchCascadeTrending}`}>
                         <p className={styles.sectionTitle}>Trending</p>
-                        <TrendingRow items={trending} onSelect={selectLocal} />
+                        <TrendingRow
+                          items={trending}
+                          onSelect={selectLocal}
+                          resetToken={trendingToken}
+                        />
                       </section>
 
                       {recommended.length > 0 && (
