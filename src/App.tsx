@@ -1754,9 +1754,6 @@ export default function App() {
         ref={mainRef}
       >
         <section className={styles.workspace} aria-label="Soundscape">
-          {region.discovery && (
-            <p className={styles.discoveryNotice} role="status">{region.discovery.message}</p>
-          )}
           <div className={styles.dockOverlay}>
             <SoundPalette
               ref={paletteRef}

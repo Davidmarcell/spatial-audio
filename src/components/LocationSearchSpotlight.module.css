@@ -649,6 +649,23 @@
   pointer-events: none;
 }
 
+/* The selected-place label should stay optically centred in the closed pill.
+   Take the icon out of the flex flow so it does not shift the label right. */
+.searchPairClosed {
+  justify-content: center;
+}
+
+.searchPairClosed .searchIcon {
+  position: absolute;
+  left: 0;
+}
+
+.searchPairClosed .searchTextLabel {
+  flex: 0 1 auto;
+  max-width: calc(100% - 2.25rem);
+  text-align: center;
+}
+
 /* Closed label stays absolutely positioned like the prompt overlay so it
    never competes with the input shell for flex width (which caused premature
    ellipsis in the collapsed pill and a centred caret when open). */
