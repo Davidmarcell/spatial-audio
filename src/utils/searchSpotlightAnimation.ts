@@ -74,26 +74,27 @@ export const SEARCH_SPOTLIGHT_EASING_PRESETS: ReadonlyArray<{
  * shrink phase, morphing to pill only in the final ~38%.
  */
 export const DEFAULT_SEARCH_SPOTLIGHT_ANIMATION: SearchSpotlightAnimationConfig = {
-  openWidthDurationMs: 420,
-  openRiseDurationMs: 460,
-  riseOverlapMs: 460,
-  contentRevealDelayMs: 175,
+  // ~2× snappier open so typing into search feels immediate.
+  openWidthDurationMs: 210,
+  openRiseDurationMs: 230,
+  riseOverlapMs: 230,
+  contentRevealDelayMs: 80,
   widthStiffness: 280,
   widthDamping: 38,
   widthOvershoot: 0,
   riseStiffness: 300,
   riseDamping: 32,
   riseOvershoot: 0,
-  riseBounceDurationMs: 460,
+  riseBounceDurationMs: 230,
   widthEasing: 'premium-exit',
   riseEasing: 'premium-exit',
   contentEasing: 'premium-exit',
   closeDropEasing: 'premium-exit',
   closeShrinkEasing: 'premium-exit',
-  closeDropDurationMs: 280,
-  closeWidthDurationMs: 280,
-  closeOverlapMs: 280,
-  closeShrinkDurationMs: 280,
+  closeDropDurationMs: 200,
+  closeWidthDurationMs: 200,
+  closeOverlapMs: 200,
+  closeShrinkDurationMs: 200,
 };
 
 /**

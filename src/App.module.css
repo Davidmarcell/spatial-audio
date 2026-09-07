@@ -8,6 +8,12 @@
   padding: 0;
 }
 
+/* Escape the resting overflow clip for the duration of a page lift / cover rise
+   so chrome shadows and side tiles are not cut mid-transition. */
+.appTransitioning {
+  overflow: visible;
+}
+
 .header {
   position: absolute;
   top: 0;
@@ -19,6 +25,11 @@
   justify-content: center;
   padding: max(0.65rem, env(safe-area-inset-top, 0px)) 1rem 0.45rem;
   pointer-events: none;
+}
+
+/* Keep Saudade clickable above the full-screen globe (z-index 400). */
+.headerAboveGlobe {
+  z-index: 410;
 }
 
 .brand {
@@ -79,6 +90,19 @@
   border-radius: 4px;
 }
 
+/* Outgoing workspace push (parallax) while a cover panel or landing rises over it. */
+.pageExitLift {
+  pointer-events: none;
+  overflow: visible;
+  transform: translate3d(0, -18vh, 0) scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageExitLift {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brandHome {
     transition: none;
@@ -93,6 +117,11 @@
   width: 100%;
   min-height: 0;
   min-width: 0;
+  /* The page lift is a transition, not a keyframe animation, so releasing it
+     eases back to rest. As an animation with `both` it hard-held at -18vh and
+     snapped to 0 the instant the class came off — which is the content jumping
+     down when the workspace is revealed from under the globe. */
+  transition: transform 1s var(--ease-in-out-strong);
 }
 
 .workspace {
@@ -134,14 +163,6 @@
   pointer-events: auto;
 }
 
-.leftActionGroup,
-.rightActionGroup {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-shrink: 0;
-}
-
 .topFabGroup {
   position: fixed;
   top: max(0.65rem, env(safe-area-inset-top, 0px));
@@ -162,10 +183,14 @@
      bottom flush against the inset boundary where it gets visually clipped. */
   bottom: calc(env(safe-area-inset-bottom, 0px) + 0.55rem);
   z-index: 30;
-  display: flex;
-  flex-direction: column;
+  /* Desktop: play on its own row, then geo/shuffle | search | map/share as a
+     five-column grid so the pill stays on the true viewport centre. */
+  display: grid;
+  grid-template-columns: auto auto auto auto auto;
+  justify-content: center;
   align-items: center;
-  gap: 0.75rem;
+  column-gap: 0.35rem;
+  row-gap: 0.75rem;
   min-width: min(100%, 22rem);
   pointer-events: none;
   transform-origin: center bottom;
@@ -178,29 +203,65 @@
     opacity var(--bottom-nav-transition-duration) var(--bottom-nav-transition-ease);
 }
 
-.bottomBarPlay,
-.bottomBarRow {
+.bottomBarPlay {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: center;
+  pointer-events: auto;
+  transform-origin: center center;
+  transition:
+    opacity var(--search-side-shift-duration) var(--search-rise-ease),
+    transform var(--search-side-shift-duration) var(--search-rise-ease);
+  transition-delay: 0ms;
+}
+
+.bottomBarSearchRow {
+  grid-column: 3;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  min-width: 0;
   pointer-events: auto;
 }
 
-/* Compact, centred cluster: the location buttons, search pill and map/share
-   buttons hug together with even gaps and sit centred on the viewport. The
-   left and right groups carry the same two 3rem buttons, so the pill lands on
-   the true viewport centre and the screen-centred expanded portal lines up
-   with no jump. */
-.bottomBarRow {
+.bottomBarSearch {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  max-width: 100%;
   min-width: 0;
-  overflow: visible;
 }
 
-.bottomBarPlay,
-.leftActionGroup,
-.rightActionGroup {
+/* Desktop keeps add-sound in the side dock. */
+.bottomBarAdd {
+  display: none;
+}
+
+/* Slots become grid items so geo/shuffle flank left and map/share right. */
+.bottomBarActions {
+  display: contents;
+}
+
+.actionSlot:nth-child(1) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.actionSlot:nth-child(2) {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.actionSlot:nth-child(3) {
+  grid-column: 4;
+  grid-row: 2;
+}
+
+.actionSlot:nth-child(4) {
+  grid-column: 5;
+  grid-row: 2;
+}
+
+.actionSlot {
+  pointer-events: auto;
   transform-origin: center center;
   transition:
     opacity var(--search-side-shift-duration) var(--search-rise-ease),
@@ -223,24 +284,36 @@
   pointer-events: none;
 }
 
-.bottomBarSearchOpen .bottomBarPlay {
+/* Sound tile open: push the whole bottom chrome behind the overlay so the
+   search pill and action buttons do not sit at the same visual level. */
+.bottomBarRecessed {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.bottomBarSearchOpen .bottomBarPlay,
+.bottomBarSearchOpen .bottomBarAdd {
   opacity: 0;
   transform: translateY(6px) scale(0.96);
   pointer-events: none;
 }
 
-.bottomBarSearchOpen .leftActionGroup,
-.bottomBarSearchOpen .rightActionGroup {
+.bottomBarSearchOpen .actionSlot:nth-child(1),
+.bottomBarSearchOpen .actionSlot:nth-child(2),
+.bottomBarSearchOpen .actionSlot:nth-child(3),
+.bottomBarSearchOpen .actionSlot:nth-child(4) {
   opacity: 0;
   pointer-events: none;
   transition-delay: var(--search-side-shift-delay);
 }
 
-.bottomBarSearchOpen .leftActionGroup {
+.bottomBarSearchOpen .actionSlot:nth-child(1),
+.bottomBarSearchOpen .actionSlot:nth-child(2) {
   transform: translate3d(calc(-1 * var(--search-side-shift-distance)), 0, 0);
 }
 
-.bottomBarSearchOpen .rightActionGroup {
+.bottomBarSearchOpen .actionSlot:nth-child(3),
+.bottomBarSearchOpen .actionSlot:nth-child(4) {
   transform: translate3d(var(--search-side-shift-distance), 0, 0);
 }
 
@@ -342,11 +415,11 @@
   }
 
   .bottomBarSearchOpen .bottomBarPlay,
-  .bottomBarSearchOpen .leftActionGroup,
-  .bottomBarSearchOpen .rightActionGroup,
+  .bottomBarSearchOpen .bottomBarAdd,
+  .bottomBarSearchOpen .actionSlot,
   .bottomBarPlay,
-  .leftActionGroup,
-  .rightActionGroup {
+  .bottomBarAdd,
+  .actionSlot {
     transition: none;
     transition-delay: 0ms;
     transform: none;
@@ -362,21 +435,148 @@
   }
 }
 
+.mobileTopLeft {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .header {
-    padding-inline: 0.85rem;
+    padding-inline: 3.6rem;
   }
 
+  .topFabGroup {
+    display: none;
+  }
+
+  .mobileTopLeft {
+    position: fixed;
+    top: max(0.65rem, env(safe-area-inset-top, 0px));
+    left: max(0.65rem, env(safe-area-inset-left, 0px));
+    z-index: 421;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Three rows on phones:
+       row 1  [ play + volume — centred ]
+       row 2  [ location search — fills width ][ + ]
+       row 3  [ geo | shuffle | map | share — equal widths ] */
   .bottomBar {
     left: 0;
     right: 0;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
+    /* Extra inset so glass drop-shadows (~32px blur) aren't sheared at the
+       viewport edges; keep overflow visible so row children can paint them. */
+    padding-inline: max(16px, 1.35rem);
+    padding-bottom: 0.55rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+    min-width: 0;
+    overflow: visible;
   }
 
+  .bottomBarPlay {
+    grid-column: auto;
+    grid-row: auto;
+    align-self: center;
+    width: auto;
+    pointer-events: auto;
+    overflow: visible;
+  }
+
+  .bottomBarSearchRow {
+    grid-column: auto;
+    grid-row: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-width: 0;
+    pointer-events: auto;
+    overflow: visible;
+  }
+
+  .bottomBarSearch {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .bottomBarAdd {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    pointer-events: auto;
+    overflow: visible;
+    transform-origin: center center;
+    transition:
+      opacity var(--search-side-shift-duration) var(--search-rise-ease),
+      transform var(--search-side-shift-duration) var(--search-rise-ease);
+  }
+
+  .bottomBarAdd :global(button) {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+  }
+
+  .bottomBarActions {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .actionSlot {
+    grid-column: auto;
+    grid-row: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 3rem;
+    display: flex;
+    align-items: stretch;
+    overflow: visible;
+  }
+
+  .actionSlot > * {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+  }
+
+  .actionSlot :global(button) {
+    flex: 1 1 auto;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none;
+    height: 3rem;
+  }
+
+  /* Dock tray moves into the chrome + control on phones. Keep the palette
+     mounted (and laid out) so return-to-dock still has real slot geometry,
+     but hide it from hit-testing and view. */
   .dockOverlay {
-    left: 50%;
+    left: 0;
+    right: 0;
     top: auto;
-    bottom: calc(12.05rem + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
+    bottom: calc(7.6rem + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    max-width: 100%;
+    transform: none;
+    display: flex;
+    justify-content: center;
+    padding-inline: 16px;
+    box-sizing: border-box;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .unlockBanner {
+    display: none;
   }
 }

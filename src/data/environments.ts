@@ -277,6 +277,11 @@ export const environments: Environment[] = [
             id: 'rio-traffic',
             name: 'City Traffic',
             category: 'ambient',
+            // Pinned to the Latin American street recording: this SoundDef
+            // carries no region tags, so the picker sees an empty scene region
+            // and treats every European city clip as eligible. Widening the
+            // city-hum pool then handed Rio a Parisian side street.
+            fixedClipId: 'city-latam-aguascalientes',
             src: '/audio/costa-rica/stream-distant.mp3',
             loop: true,
             description: 'Traffic from Rio streets inland',
@@ -616,8 +621,11 @@ export const environments: Environment[] = [
             id: 'bangkok-traffic',
             name: 'City Traffic',
             category: 'ambient',
-            type: 'city-hum',
-            src: '/audio/costa-rica/stream-distant.mp3',
+            type: 'traffic',
+            // Manila jeepney ride — closest openly-licensed SE-Asian street bed
+            // (tuk-tuk / scooter texture) until a Bangkok-specific clip lands.
+            fixedClipId: 'traffic-manila-jeepney',
+            src: '',
             loop: true,
             description: 'Tuk-tuks and traffic humming through the city',
             keywords: ['traffic', 'city', 'tuk-tuk', 'urban', 'street'],

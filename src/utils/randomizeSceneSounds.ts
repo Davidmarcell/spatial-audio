@@ -26,6 +26,7 @@ const GENERIC_UNIQUE_TYPES = new Set<SoundType>([
  * named species coexist but two identical generic tiles never do.
  */
 function dedupKey(sound: SoundDef): string {
+  if (sound.recording) return sound.id;
   const type = inferSoundType(sound);
   if (type && GENERIC_UNIQUE_TYPES.has(type)) return `type:${type}`;
   return `name:${displaySoundName(sound)}`;
@@ -94,4 +95,31 @@ export function randomizeSceneSounds(
   }
 
   return { canvasBedSounds, dockSoundIds };
+}
+
+/**
+ * Dock fill for a shared / restored scene: remaining region sounds that are not
+ * already on the canvas, de-duped the same way as the default composer.
+ */
+export function dockSoundIdsForActive(
+  regionSounds: SoundDef[],
+  activeSoundIds: ReadonlySet<string>,
+): string[] {
+  const soundById = new Map(regionSounds.map((sound) => [sound.id, sound]));
+  const usedKeys = new Set<string>();
+  for (const soundId of activeSoundIds) {
+    const sound = soundById.get(soundId);
+    if (sound) usedKeys.add(dedupKey(sound));
+  }
+
+  const dockSoundIds: string[] = [];
+  for (const sound of regionSounds) {
+    if (dockSoundIds.length >= DOCK_SOUND_MAX) break;
+    if (activeSoundIds.has(sound.id)) continue;
+    const key = dedupKey(sound);
+    if (usedKeys.has(key)) continue;
+    usedKeys.add(key);
+    dockSoundIds.push(sound.id);
+  }
+  return dockSoundIds;
 }

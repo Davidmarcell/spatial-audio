@@ -43,8 +43,11 @@ const TYPE_SPAWN_VOLUME: Partial<Record<SoundType, number>> = {
   // City signatures — sit behind the wildlife/music.
   tram: 0.32,
   adhan: 0.28,
-  // Distant apex-predator call — a low, occasional roar far across the plains.
+  subway: 0.28,
+  cafe: 0.26,
+  // Distant savanna calls — low, occasional, far across the plains.
   lion: 0.22,
+  elephant: 0.2,
   // Wildlife voices.
   primates: 0.28, // was far too loud
   frogs: 0.3,

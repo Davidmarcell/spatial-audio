@@ -9,6 +9,7 @@ import {
   type GeocodeResult,
 } from '../utils/geocode';
 import { getLocationArtForItem } from '../data/locationArt';
+import { getGeocodePlaceholderArt } from '../utils/geocodePlaceholderArt';
 import { publicUrl } from '../utils/publicUrl';
 import { getResolvedTheme, type ResolvedTheme } from '../utils/theme';
 import styles from './GlobeExplorer.module.css';
@@ -41,6 +42,11 @@ const SCALE_MIN = 0.85;
 const SCALE_MAX = 1.22;
 const SCALE_DEFAULT = 1;
 const WHEEL_ZOOM_SENSITIVITY = 0.0022;
+/** Pixels of horizontal / vertical drag per radian of rotation (pointer). */
+const DRAG_PHI_DIVISOR = 300;
+const DRAG_THETA_DIVISOR = 500;
+/** Touch drags rotate twice as far per pixel as a mouse drag. */
+const TOUCH_DRAG_GAIN = 2;
 const MARKER_SIZE = 0.015;
 const MARKER_SIZE_ACTIVE = 0.024;
 const FOCUS_HOLD_MS = 4000;
@@ -358,6 +364,16 @@ export function GlobeExplorer({
     () => locations.filter((location) => matchesSearch(location, searchQuery)),
     [locations, searchQuery],
   );
+  const curatedLocationCount = useMemo(
+    () => locations.filter((location) => !location.custom).length,
+    [locations],
+  );
+  const globeHeaderCopy = useMemo(() => {
+    if (curatedLocationCount <= 0) {
+      return 'Pick from places around the world to listen to different sounds and memories.';
+    }
+    return `Pick from ${curatedLocationCount} ${curatedLocationCount === 1 ? 'place' : 'places'} around the world to listen to different sounds and memories.`;
+  }, [curatedLocationCount]);
 
   // The Places list always shows the full curated set; searching now happens in
   // the spotlight below the globe rather than filtering this column.
@@ -774,8 +790,15 @@ export function GlobeExplorer({
       if (!pointer.moved && Math.hypot(dx, dy) > 3) pointer.moved = true;
       pointer.x = event.clientX;
       pointer.y = event.clientY;
-      target.phi += dx / 300;
-      target.theta = clamp(target.theta + dy / 500, -THETA_LIMIT, THETA_LIMIT);
+      // A finger drags a much shorter distance than a mouse, so touch spins the
+      // globe twice as far per pixel.
+      const gain = event.pointerType === 'touch' ? TOUCH_DRAG_GAIN : 1;
+      target.phi += (dx * gain) / DRAG_PHI_DIVISOR;
+      target.theta = clamp(
+        target.theta + (dy * gain) / DRAG_THETA_DIVISOR,
+        -THETA_LIMIT,
+        THETA_LIMIT,
+      );
       focusUntil = performance.now() + FOCUS_HOLD_MS;
     };
 
@@ -1224,11 +1247,22 @@ export function GlobeExplorer({
 
   return (
     <div className={styles.root} aria-labelledby="globe-explorer-title">
-      <h2 id="globe-explorer-title" className={styles.srOnly}>
-        Explore the world
-      </h2>
-
+      {/* Page-level, so the close sits in the sheet's own top-right corner on the
+          same inset as the header content rather than beside the globe. */}
+      {showCloseButton && (
+        <div className={styles.topControls}>
+          <button type="button" className={styles.close} aria-label="Close map" onClick={onClose}>
+            <UiIcon icon="xmark" size="md" className={styles.controlIcon} />
+          </button>
+        </div>
+      )}
       <div className={styles.body}>
+        <header className={styles.pageHeader}>
+          <h2 id="globe-explorer-title" className={styles.pageTitle}>
+            Globe
+          </h2>
+          <p className={styles.pageCopy}>{globeHeaderCopy}</p>
+        </header>
         <div className={styles.globeColumn}>
           <div className={styles.globeHost}>
             <div ref={zoomLayerRef} className={styles.zoomLayer}>
@@ -1274,13 +1308,6 @@ export function GlobeExplorer({
                 />
               ))}
             </div>
-            {showCloseButton && (
-              <div className={styles.topControls}>
-                <button type="button" className={styles.close} aria-label="Close map" onClick={onClose}>
-                  <UiIcon icon="xmark" size="sm" className={styles.controlIcon} />
-                </button>
-              </div>
-            )}
           </div>
 
           <div className={styles.searchHost} ref={searchHostRef}>
@@ -1294,8 +1321,11 @@ export function GlobeExplorer({
                     </p>
                   ) : (
                     <ul className={styles.spotlightResults}>
-                      {filteredLocations.map((location) => (
-                        <li key={location.id}>
+                      {filteredLocations.map((location, index) => (
+                        <li
+                          key={location.id}
+                          style={{ '--row-index': index } as CSSProperties}
+                        >
                           <button
                             type="button"
                             className={styles.spotlightRow}
@@ -1330,17 +1360,27 @@ export function GlobeExplorer({
                     )}
                     {geocodeResults.length > 0 && (
                       <ul className={styles.spotlightResults}>
-                        {geocodeResults.map((result) => (
-                          <li key={result.placeId}>
+                        {geocodeResults.map((result, index) => (
+                          <li
+                            key={result.placeId}
+                            style={{ '--row-index': index } as CSSProperties}
+                          >
                             <button
                               type="button"
                               className={styles.spotlightRow}
                               onClick={() => handleSpotlightGeocode(result)}
                             >
-                              <span
-                                className={`${styles.rowThumbFallback} ${styles.geocodeThumb}`}
-                                aria-hidden
-                              />
+                              <span className={styles.rowThumbWrap}>
+                                <img
+                                  className={styles.rowThumb}
+                                  src={publicUrl(getGeocodePlaceholderArt(result))}
+                                  alt=""
+                                  width={34}
+                                  height={34}
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              </span>
                               <span className={styles.locationText}>
                                 <span className={styles.locationName}>
                                   {formatWorldLocationLabel({

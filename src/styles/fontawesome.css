@@ -1,12 +1,21 @@
 /*
- * Font Awesome 6 Pro — Regular (400)
+ * Font Awesome 6 — Regular (400)
  *
- * Licensed Font Awesome Pro — not for redistribution.
- * Copy fa-regular-400.otf from your local FA Pro install to:
+ * Pro is preferred but NOT redistributable, so `public/fonts/fontawesome/` is
+ * gitignored: copy fa-regular-400.otf from your local FA Pro install to
  *   public/fonts/fontawesome/fa-regular-400.otf
+ * (Desktop kit path: fontawesome-pro-6.4.2-desktop/otfs/. OTF works in modern
+ * browsers; the desktop kit ships no webfonts folder.)
  *
- * Desktop kit path (OTF): fontawesome-pro-6.4.2-desktop/otfs/
- * No webfonts folder in the desktop kit; OTF works in modern browsers.
+ * Because that file is absent everywhere except a machine with the Pro install,
+ * relying on it alone left every icon blank on phones and on any deploy. The
+ * bundled Font Awesome FREE webfonts below are appended to the same family
+ * stack as fallbacks. FA uses the same codepoint for an icon across styles, so
+ * the glyphs are the SAME icons — only the stroke weight differs when a Pro-only
+ * Regular cut is missing. Font fallback is per-glyph, so with Pro present
+ * nothing changes; without it every icon still renders.
+ *
+ * Order: Pro Regular → Free Regular (light, ~163 icons) → Free Solid (complete).
  */
 
 @font-face {
@@ -17,8 +26,28 @@
   src: url('/fonts/fontawesome/fa-regular-400.otf') format('opentype');
 }
 
+/* Declared at weight 400 so it is selected by the same `.fa-regular` rule. */
+@font-face {
+  font-family: 'Font Awesome 6 Free Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Free Solid';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2') format('woff2');
+}
+
 .fa-regular {
-  font-family: 'Font Awesome 6 Pro';
+  font-family:
+    'Font Awesome 6 Pro',
+    'Font Awesome 6 Free Regular',
+    'Font Awesome 6 Free Solid';
   font-weight: 400;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;

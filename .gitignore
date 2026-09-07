@@ -35,3 +35,6 @@ public/fonts/fontawesome/
 .cursor/
 .agents/
 skills-lock.json
+
+# Local discovery caches (scripts/discover-*.mjs)
+.cache/

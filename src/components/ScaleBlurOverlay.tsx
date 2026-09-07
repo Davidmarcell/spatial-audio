@@ -49,6 +49,8 @@ type Props = {
   headerContent?: ReactNode;
   /** Extra class on the header element. */
   headerClassName?: string;
+  /** Extra inline styles merged onto the panel (e.g. design CSS variables). */
+  panelStyle?: CSSProperties;
 };
 
 export function ScaleBlurOverlay({
@@ -70,6 +72,7 @@ export function ScaleBlurOverlay({
   hideTitle = false,
   headerContent,
   headerClassName,
+  panelStyle: extraPanelStyle,
 }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -239,6 +242,7 @@ export function ScaleBlurOverlay({
   const panelStyle = {
     '--origin-enter-x': `${enterOffset.x}px`,
     '--origin-enter-y': `${enterOffset.y}px`,
+    ...extraPanelStyle,
   } as CSSProperties;
 
   return createPortal(

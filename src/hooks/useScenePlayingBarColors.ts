@@ -51,8 +51,22 @@ export function useScenePlayingBarColors(
     const urls = getActiveSceneImageUrls(activeSounds, regionArt);
 
     if (urls.length === 0) {
-      setVars(undefined);
-      return undefined;
+      // Region switches briefly pass through zero resolvable art URLs before
+      // the new scene's sounds/art are known. Clearing `vars` synchronously
+      // here used to drop the colour override for that one frame, snapping
+      // the radiance to its generic CSS fallback colour and then snapping
+      // again to the real colour once the debounced computation below
+      // landed — a visible double "jump" on every scene load. Debouncing the
+      // clear the same way the set is debounced means a same-tick reappearing
+      // scene cancels it before it ever fires, so the previous colour just
+      // holds through the gap instead of flashing to the fallback.
+      const clearTimer = window.setTimeout(() => {
+        if (!cancelled) setVars(undefined);
+      }, DEBOUNCE_MS);
+      return () => {
+        cancelled = true;
+        window.clearTimeout(clearTimer);
+      };
     }
 
     const timer = window.setTimeout(() => {

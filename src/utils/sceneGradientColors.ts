@@ -16,14 +16,14 @@ const colorCache = new Map<string, Rgb | null>();
 
 const FALLBACK: Record<ResolvedTheme, PlayingBarCssVars> = {
   light: {
-    '--playing-bar-warm': 'rgba(225, 200, 160, 0.28)',
-    '--playing-bar-accent': 'rgba(76, 175, 120, 0.38)',
+    '--playing-bar-warm': 'rgba(225, 200, 160, 0.5)',
+    '--playing-bar-accent': 'rgba(76, 175, 120, 0.56)',
     '--playing-bar-mid': 'rgba(76, 175, 120, 0.16)',
     '--playing-bar-line': 'rgba(76, 175, 120, 0.40)',
   },
   dark: {
-    '--playing-bar-warm': 'rgba(40, 72, 58, 0.36)',
-    '--playing-bar-accent': 'rgba(76, 175, 120, 0.44)',
+    '--playing-bar-warm': 'rgba(40, 72, 58, 0.56)',
+    '--playing-bar-accent': 'rgba(76, 175, 120, 0.58)',
     '--playing-bar-mid': 'rgba(76, 175, 120, 0.18)',
     '--playing-bar-line': 'rgba(76, 175, 120, 0.40)',
   },
@@ -262,10 +262,14 @@ export function buildPlayingBarVars(
   const midBase = blendColor(soften(colors[2] ?? accentBase), locationPalette.mid, 0.46);
   const lineBase = blendColor(accentBase, locationPalette.line, 0.42);
 
+  // Warm/accent feed the playing radiance, and their alpha is what caps how
+  // strong it can ever look — the shader's own opacity just scales whatever
+  // these carry, so at ~0.3 it stayed a faint tint no matter the setting. Mid
+  // and line drive other chrome and are unchanged.
   const alpha =
     theme === 'dark'
-      ? { warm: 0.36, accent: 0.38, mid: 0.18, line: 0.4 }
-      : { warm: 0.30, accent: 0.34, mid: 0.16, line: 0.4 };
+      ? { warm: 0.56, accent: 0.58, mid: 0.18, line: 0.4 }
+      : { warm: 0.52, accent: 0.56, mid: 0.16, line: 0.4 };
 
   return {
     '--playing-bar-warm': toRgba(warmBase, alpha.warm),

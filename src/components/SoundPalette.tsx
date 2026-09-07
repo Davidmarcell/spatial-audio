@@ -17,18 +17,20 @@ import {
   DOCK_ACTIVATION_PAD,
   DOCK_BASE_SIZE,
   DOCK_HOVER_INFLUENCE,
-  DOCK_INSERTION_GAP,
+  getDockInsertionGap,
   getDockInsertionIndex,
   getDockSlotCenter,
   getDockSlotCenters,
+  getDockSlotStride,
   getDockSounds,
+  getDockTileSize,
+  predictInsertedSlotCenter,
 } from './soundPaletteLayout';
 import { AddSoundButton } from './AddSoundButton';
 import { SoundIconImage } from './SoundIconImage';
 import styles from './SoundPalette.module.css';
 
-const MAX_SIZE = 82;
-const HOVER_MAX_SIZE = DOCK_BASE_SIZE + (MAX_SIZE - DOCK_BASE_SIZE) * 0.25;
+const DESKTOP_HOVER_MAX_SIZE = 82;
 const ADD_BUTTON_ID = '__dock-add-sound__';
 
 export type DockMagnetDrag = {
@@ -43,7 +45,7 @@ export type SoundPaletteHandle = {
     activeSoundIds: string[],
     dockDefaultIds?: string[],
     returningSoundId?: string | null,
-  ) => { x: number; y: number } | null;
+  ) => { x: number; y: number; size: number } | null;
   getInsertionIndex: (clientX: number, clientY: number) => number;
   hitTest: (clientX: number, clientY: number) => boolean;
 };
@@ -59,6 +61,7 @@ type Props = {
   regionArt: RegionArtContext;
   onDragStart: (sound: SoundDef, event: React.PointerEvent<HTMLButtonElement>) => void;
   onAddClick: (originRect: DOMRect) => void;
+  onAddSound: (sound: SoundDef) => void;
 };
 
 export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function SoundPalette(
@@ -73,6 +76,7 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
     regionArt,
     onDragStart,
     onAddClick,
+    onAddSound,
   },
   ref,
 ) {
@@ -194,19 +198,47 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
         if (!dock) return null;
         const nextDockDefaults = dockDefaultIdsOverride ?? dockDefaultIds;
         const nextReturning = returningSoundIdOverride ?? returningSoundId;
+        const tileSize = getDockTileSize(horizontal);
+        // Prefer the live placeholder/button once the dock has opened the slot —
+        // the tray is vertically centred, so predicting from a pre-grow resting
+        // rect lands a half-slot too high and causes the post-release snap.
+        const live = itemRefs.current.get(soundId);
+        if (live && (nextReturning === soundId || returningSoundId === soundId)) {
+          const liveRect = live.getBoundingClientRect();
+          if (liveRect.width > 1 && liveRect.height > 1) {
+            return {
+              x: liveRect.left + liveRect.width / 2,
+              y: liveRect.top + liveRect.height / 2,
+              size: tileSize,
+            };
+          }
+        }
         // Resolve the tile's final index in the *post-drop* resting dock and,
         // when the slot count is unchanged, land it on the real resting centre
-        // captured at rest. This avoids reading the grown/spread tray (which is
-        // ~half a slot taller mid-drag) and so removes the post-settle jump.
+        // captured at rest.
         const finalDock = getDockSounds(sounds, nextActiveIds, nextDockDefaults, nextReturning);
         const finalIndex = finalDock.findIndex((entry) => entry.id === soundId);
         const captured = restingSlotCentersRef.current;
         if (finalIndex >= 0 && captured.length === finalDock.length && captured[finalIndex]) {
-          return captured[finalIndex];
+          return { ...captured[finalIndex], size: tileSize };
         }
-        // Fallback (e.g. the slot count changed): compute against the resting
-        // rect rather than the live grown one.
-        const rect = restingRectRef.current ?? dock.getBoundingClientRect();
+        // Returning tile is not in the resting capture yet (slot count +1):
+        // predict from neighbours. The helper assumes a top-anchored list; the
+        // desktop tray is vertically centred, so convert: growth splits up/down.
+        if (finalIndex >= 0 && captured.length === finalDock.length - 1) {
+          const predicted = predictInsertedSlotCenter(captured, finalIndex, horizontal);
+          if (predicted) {
+            if (!horizontal) {
+              const halfStride = getDockSlotStride(false) / 2;
+              const y =
+                finalIndex <= 0 ? predicted.y + halfStride : predicted.y - halfStride;
+              return { ...predicted, y };
+            }
+            return predicted;
+          }
+        }
+        // Fallback: axis-aware geometry against the live dock rect (post-grow).
+        const rect = dock.getBoundingClientRect();
         return getDockSlotCenter(
           rect,
           soundId,
@@ -214,6 +246,7 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
           nextActiveIds,
           nextDockDefaults,
           nextReturning,
+          horizontal,
         );
       },
       getInsertionIndex(clientX, clientY) {
@@ -244,6 +277,11 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
     return () => media.removeEventListener('change', sync);
   }, []);
 
+  const baseSize = getDockTileSize(horizontal);
+  const hoverMaxSize = horizontal
+    ? baseSize + 6
+    : DOCK_BASE_SIZE + (DESKTOP_HOVER_MAX_SIZE - DOCK_BASE_SIZE) * 0.25;
+
   const updateScales = useCallback(
     (point: { x: number; y: number } | null, externalMagnet: boolean) => {
       // During a canvas→dock drag the tray parts to make space (the gap) but the
@@ -252,41 +290,41 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
       // reserved for plain mouse hover over the dock.
       if (externalMagnet) {
         const base = new Map<string, number>();
-        for (const sound of dockSounds) base.set(sound.id, DOCK_BASE_SIZE);
-        base.set(ADD_BUTTON_ID, DOCK_BASE_SIZE);
+        for (const sound of dockSounds) base.set(sound.id, baseSize);
+        base.set(ADD_BUTTON_ID, baseSize);
         setScales(base);
         return;
       }
       const influence = DOCK_HOVER_INFLUENCE;
-      const maxSize = HOVER_MAX_SIZE;
+      const maxSize = hoverMaxSize;
       const next = new Map<string, number>();
       for (const sound of dockSounds) {
         const el = itemRefs.current.get(sound.id);
         if (!el || point === null) {
-          next.set(sound.id, DOCK_BASE_SIZE);
+          next.set(sound.id, baseSize);
           continue;
         }
         const rect = el.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         const distance = Math.hypot(point.x - centerX, point.y - centerY);
-        const size = dockMagnification(distance, DOCK_BASE_SIZE, maxSize, influence);
+        const size = dockMagnification(distance, baseSize, maxSize, influence);
         next.set(sound.id, size);
       }
       const addButtonEl = addButtonRef.current;
       if (!addButtonEl || point === null) {
-        next.set(ADD_BUTTON_ID, DOCK_BASE_SIZE);
+        next.set(ADD_BUTTON_ID, baseSize);
       } else {
         const rect = addButtonEl.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         const distance = Math.hypot(point.x - centerX, point.y - centerY);
-        const size = dockMagnification(distance, DOCK_BASE_SIZE, maxSize, influence);
+        const size = dockMagnification(distance, baseSize, maxSize, influence);
         next.set(ADD_BUTTON_ID, size);
       }
       setScales(next);
     },
-    [dockSounds],
+    [baseSize, dockSounds, hoverMaxSize],
   );
 
   const magnetPoint = magnetActive && magnetDrag ? { x: magnetDrag.x, y: magnetDrag.y } : null;
@@ -308,13 +346,13 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
   // magnet progress, so magnification grows in and shrinks out with the dock.
   const resolveSize = useCallback(
     (id: string) => {
-      const hoverSize = scales.get(id) ?? DOCK_BASE_SIZE;
+      const hoverSize = scales.get(id) ?? baseSize;
       if (!magnetRender) return hoverSize;
       const target =
-        (magnetActive ? scales.get(id) : magnetTargetsRef.current.get(id)) ?? DOCK_BASE_SIZE;
-      return DOCK_BASE_SIZE + (target - DOCK_BASE_SIZE) * magnetProgress;
+        (magnetActive ? scales.get(id) : magnetTargetsRef.current.get(id)) ?? baseSize;
+      return baseSize + (target - baseSize) * magnetProgress;
     },
-    [magnetActive, magnetProgress, magnetRender, scales],
+    [baseSize, magnetActive, magnetProgress, magnetRender, scales],
   );
 
   useEffect(() => {
@@ -381,7 +419,7 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
       const pad = DOCK_HOVER_INFLUENCE;
       const nearDock =
         event.clientX >= rect.left - 12 &&
-        event.clientX <= rect.right + MAX_SIZE + pad &&
+        event.clientX <= rect.right + hoverMaxSize + pad &&
         event.clientY >= rect.top - pad &&
         event.clientY <= rect.bottom + pad;
 
@@ -390,7 +428,7 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
 
     window.addEventListener('pointermove', onPointerMove);
     return () => window.removeEventListener('pointermove', onPointerMove);
-  }, [draggingSoundId, magnetDrag]);
+  }, [draggingSoundId, hoverMaxSize, magnetDrag]);
 
   useEffect(() => {
     if (cursor === null && !magnetPoint) updateScales(null, false);
@@ -419,9 +457,10 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
     if (!magnetRender || insertionIndex === null || renderIndex !== insertionIndex) {
       return undefined;
     }
+    const gap = getDockInsertionGap(horizontal);
     return horizontal
-      ? { marginLeft: `${DOCK_INSERTION_GAP}px` }
-      : { marginTop: `${DOCK_INSERTION_GAP}px` };
+      ? { marginLeft: `${gap}px` }
+      : { marginTop: `${gap}px` };
   };
 
   return (
@@ -446,7 +485,7 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
             const isDragging = draggingSoundId === sound.id;
             const isReturning = returningSoundId === sound.id;
             const size = resolveSize(sound.id);
-            const hoverScale = size / DOCK_BASE_SIZE;
+            const hoverScale = size / baseSize;
             const artwork = getSoundArtworkForRegion(
               regionArt.id,
               regionArt.soundIds,
@@ -472,8 +511,8 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
                       }}
                       className={styles.itemPlaceholder}
                       style={{
-                        width: `${DOCK_BASE_SIZE}px`,
-                        height: `${DOCK_BASE_SIZE}px`,
+                        width: `${baseSize}px`,
+                        height: `${baseSize}px`,
                       }}
                       aria-hidden
                     />
@@ -486,16 +525,19 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
                       type="button"
                       className={styles.item}
                       style={{
-                        width: `${DOCK_BASE_SIZE}px`,
-                        height: `${DOCK_BASE_SIZE}px`,
+                        width: `${baseSize}px`,
+                        height: `${baseSize}px`,
                         transform: `scale(${hoverScale})`,
                       }}
                       onPointerDown={(event) => handlePointerDown(sound, event)}
+                      onClick={(event) => {
+                        if (event.detail === 0) onAddSound(sound);
+                      }}
                       onPointerEnter={(event) => syncTooltipAnchor(sound, event.currentTarget)}
                       onPointerLeave={() => setTooltipAnchor(null)}
                       onFocus={(event) => syncTooltipAnchor(sound, event.currentTarget)}
                       onBlur={() => setTooltipAnchor(null)}
-                      aria-label={`Drag ${sound.name} onto the grid`}
+                      aria-label={`Add ${sound.name} to the soundscape, or drag to position`}
                     >
                       <SoundIconImage
                         src={artwork.src}
@@ -515,8 +557,8 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
             <AddSoundButton
               ref={addButtonRef}
               onClick={onAddClick}
-              size={DOCK_BASE_SIZE}
-              scale={resolveSize(ADD_BUTTON_ID) / DOCK_BASE_SIZE}
+              size={baseSize}
+              scale={resolveSize(ADD_BUTTON_ID) / baseSize}
               onPointerEnter={(event) => {
                 if (magnetActive) return;
                 const rect = event.currentTarget.getBoundingClientRect();

@@ -49,15 +49,20 @@
  * One continuous, eased settle into the dock slot. A pure decelerating curve
  * (no overshoot) so the tile shrinks smoothly to the slot size without a bounce
  * or size pop at the end.
+ *
+ * Driven by `transform` alone. It used to transition `left/top/width/height`,
+ * which are layout properties: every frame forced layout + paint off the main
+ * thread's critical path, so on a phone the flight genuinely dropped frames even
+ * though the frame budget looked fine in a desktop profile. Translate + scale
+ * stay on the compositor, and the shorter duration removes the long slow tail
+ * that made the landing feel like it was crawling.
  */
 .animating {
   transition:
-    left 0.46s cubic-bezier(0.22, 1, 0.36, 1),
-    top 0.46s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.46s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.46s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.42s ease,
-    opacity 0.32s ease;
+    transform 0.34s cubic-bezier(0.3, 0.86, 0.36, 1),
+    box-shadow 0.3s ease,
+    opacity 0.26s ease;
+  will-change: transform;
 }
 
 .label {

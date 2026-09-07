@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
 import type { AddSoundTab, Season, SoundDef } from '../data/types';
 import {
@@ -26,6 +26,7 @@ type Props = {
   draggingSoundId: string | null;
   dragActive: boolean;
   onDragStart: (sound: SoundDef, event: React.PointerEvent<HTMLButtonElement>) => void;
+  onAddSound: (sound: SoundDef) => void;
 };
 
 const TABS: Array<{ id: AddSoundTab; label: string }> = [
@@ -45,6 +46,7 @@ export function AddSoundSheet({
   draggingSoundId,
   dragActive,
   onDragStart,
+  onAddSound,
 }: Props) {
   const [tab, setTab] = useState<AddSoundTab>('wildlife');
   const [season, setSeason] = useState<Season>(defaultSeason);
@@ -80,6 +82,45 @@ export function AddSoundSheet({
   const emptyMessage = isSearching
     ? `No sounds match "${searchQuery.trim()}".`
     : 'No sounds in this category for the current season.';
+
+  // Track the results' natural height so the sheet can ease between sizes as the
+  // list is filtered. The first measurement is committed WITHOUT the transition
+  // (there is no previous height to travel from), and it is armed from the next
+  // change onwards so opening the sheet never animates from zero.
+  const lastResultsHeightRef = useRef<number | null>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const [resultsHeight, setResultsHeight] = useState<number | null>(null);
+  const [animateHeight, setAnimateHeight] = useState(false);
+
+  // A callback ref rather than an effect: the overlay mounts its body after the
+  // sheet's own effects have run, so an effect reading a plain ref found null and
+  // never observed anything. This attaches the moment the node exists.
+  const attachResultsRef = useCallback((node: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+    if (!node || typeof ResizeObserver === 'undefined') {
+      lastResultsHeightRef.current = null;
+      setResultsHeight(null);
+      setAnimateHeight(false);
+      return;
+    }
+    // ResizeObserver reports the current size as soon as it starts observing, so
+    // the first measurement lands without measuring by hand.
+    const observer = new ResizeObserver(() => {
+      const next = node.getBoundingClientRect().height;
+      const previous = lastResultsHeightRef.current;
+      if (previous != null && Math.abs(previous - next) < 0.5) return;
+      // Arm the transition only once a height is already committed, so opening
+      // the sheet does not animate up from nothing.
+      if (previous != null) setAnimateHeight(true);
+      lastResultsHeightRef.current = next;
+      setResultsHeight(next);
+    });
+    observer.observe(node);
+    observerRef.current = observer;
+  }, []);
+
+  useEffect(() => () => observerRef.current?.disconnect(), []);
 
   return (
     <ScaleBlurOverlay
@@ -142,11 +183,22 @@ export function AddSoundSheet({
               key={item.id}
               type="button"
               role="tab"
+              id={`sound-category-${item.id}`}
+              aria-controls="sound-category-panel"
+              tabIndex={tab === item.id ? 0 : -1}
               aria-selected={!isSearching && tab === item.id}
               className={`${styles.categorySegment} ${!isSearching && tab === item.id ? styles.categorySegmentActive : ''}`}
               onClick={() => {
                 setSearchQuery('');
                 setTab(item.id);
+              }}
+              onKeyDown={(event) => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === 'Home' ? TABS[0] : event.key === 'End' ? TABS[TABS.length - 1] : TABS[(TABS.findIndex((entry) => entry.id === item.id) + 1) % TABS.length];
+                setSearchQuery('');
+                setTab(next.id);
+                document.getElementById(`sound-category-${next.id}`)?.focus();
               }}
             >
               {item.label}
@@ -161,7 +213,15 @@ export function AddSoundSheet({
         )}
       </div>
 
-      <div className={styles.scroll} role="tabpanel">
+      <div className={styles.scroll} id="sound-category-panel" role="tabpanel" aria-labelledby={`sound-category-${tab}`}>
+        {/* Height is measured from the content and eased, so filtering the list
+            grows/shrinks the sheet instead of snapping to the new size. */}
+        <div
+          className={styles.sizer}
+          style={resultsHeight != null ? { height: `${resultsHeight}px` } : undefined}
+          data-animate={animateHeight ? 'true' : undefined}
+        >
+        <div ref={attachResultsRef}>
         {listedSounds.length === 0 ? (
           <div className={styles.empty}>
             <p>{emptyMessage}</p>
@@ -200,6 +260,9 @@ export function AddSoundSheet({
                         className={`${styles.card} ${onCanvas ? styles.cardOnCanvas : ''}`}
                         disabled={onCanvas}
                         onPointerDown={(event) => handlePointerDown(sound, event)}
+                        onClick={(event) => {
+                          if (event.detail === 0) onAddSound(sound);
+                        }}
                       >
                         <span className={styles.cardHead}>
                           <span className={styles.iconWrap}>
@@ -237,6 +300,8 @@ export function AddSoundSheet({
             </ul>
           </div>
         )}
+        </div>
+        </div>
       </div>
     </ScaleBlurOverlay>
   );

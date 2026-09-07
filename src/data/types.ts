@@ -35,7 +35,10 @@ export type SoundType =
   | 'adhan'
   | 'ney'
   | 'lion'
-  | 'musette';
+  | 'elephant'
+  | 'musette'
+  | 'subway'
+  | 'cafe';
 
 /**
  * Flavour tags used to bias variant selection toward a location's context
@@ -73,6 +76,7 @@ export type SoundClip = {
 };
 
 export type SoundDef = {
+  recording?: import('./discoveredRecordings').DiscoveredRecording;
   id: string;
   name: string;
   category: SoundCategory;
@@ -109,6 +113,7 @@ export type BedSound = {
 };
 
 export type Region = {
+  discovery?: { status: 'ready' | 'unconfigured' | 'unavailable' | 'empty'; message: string };
   id: string;
   name: string;
   sounds: SoundDef[];

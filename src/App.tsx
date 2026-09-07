@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SheetStack } from '@silk-hq/components';
-import { canvasToNormalized } from './audio/spatialMath';
+import {
+  CANVAS_SPREAD_COMPACT,
+  CANVAS_SPREAD_DEFAULT,
+  canvasToNormalized,
+} from './audio/spatialMath';
 import { DRAG_PREVIEW_INSTANCE_ID, isDragPreviewInstance } from './audio/dragPreview';
 import type { PlaybackRecipe } from './audio/AudioEngine';
 import { LocationSearchSpotlight } from './components/LocationSearchSpotlight';
@@ -12,6 +16,7 @@ import {
   BottomBarMagnetTooltip,
   type BottomBarTooltipAnchor,
 } from './components/BottomBarMagnetTooltip';
+import { AddSoundButton } from './components/AddSoundButton';
 import { MapButton } from './components/MapButton';
 import { FlyingSoundTile } from './components/FlyingSoundTile';
 import { PlayingBarEdgeGradientTuner } from './components/PlayingBarEdgeGradientTuner';
@@ -19,8 +24,10 @@ import { PlayCluster } from './components/PlayCluster';
 import { SearchSpotlightAnimationTuner } from './components/SearchSpotlightAnimationTuner';
 import { ShareButton } from './components/ShareButton';
 import { SoundArtDetailSheet, type DetailTarget } from './components/SoundArtDetailSheet';
+import { SoundTileDesignTuner } from './components/SoundTileDesignTuner';
 import {
-  CANVAS_TILE_SIZE,
+  getCanvasTileSize,
+  isCompactViewport,
   DOCK_BASE_SIZE,
   DRAG_THRESHOLD,
   reorderDockDefaultIds,
@@ -38,7 +45,15 @@ import { GlobeMapSheet } from './components/GlobeMapSheet';
 import { AddSoundSheet } from './components/AddSoundSheet';
 import { LandingGate } from './components/LandingGate';
 import { EnterTransition } from './components/EnterTransition';
-import { SHEET_SCENE_REVEAL_MS, prefersReducedMotion } from './components/sheetRise';
+import {
+  SHEET_SCENE_REVEAL_MS,
+  SCENE_AUTOPLAY_AFTER_MS,
+  SCENE_ASSET_RISE_MS,
+  SCENE_ASSET_RISE_PX,
+  SCENE_RISE_VAR,
+  easeIos,
+  prefersReducedMotion,
+} from './components/sheetRise';
 import { loadLandingFanConfig, type FanConfig } from './components/landingFan';
 import { LandingFanTuner } from './components/LandingFanTuner';
 import { LandingEntranceTuner } from './components/LandingEntranceTuner';
@@ -48,6 +63,7 @@ import {
   type LandingEntranceConfig,
 } from './utils/landingEntranceAnimation';
 import { AboutButton } from './components/AboutButton';
+import { MobileControlsMenu } from './components/MobileControlsMenu';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ProjectInfoSheet } from './components/ProjectInfoSheet';
 import { appStackingAnimation } from './components/sheetDepth';
@@ -56,8 +72,18 @@ import { worldLocations, createCustomWorldLocation, formatWorldLocationLabel, ty
 import type { SoundDef, SpatialPoint } from './data/types';
 import { useAudioEngine } from './hooks/useAudioEngine';
 import { useSpatialSources } from './hooks/useSpatialSources';
-import { buildSceneShareUrl, sceneFromAppState } from './utils/sceneShare';
-import { randomizeSceneSounds } from './utils/randomizeSceneSounds';
+import {
+  buildSceneShareUrl,
+  customLocationFromScene,
+  hasSharedSceneParam,
+  parseSceneFromUrl,
+  peekSharedSceneFromUrl,
+  sceneFromAppState,
+  type SharedScene,
+} from './utils/sceneShare';
+import { getSoundArtworkForRegion } from './data/iconArt';
+import { resolveTileIconSrc } from './data/iconDetailSrc';
+import { dockSoundIdsForActive, randomizeSceneSounds } from './utils/randomizeSceneSounds';
 import { regionSeed, selectSceneVariants } from './utils/soundscapeSelection';
 import { enrichSounds } from './utils/soundTypeInference';
 import { defaultSpawnVolumeForSound } from './utils/defaultSoundVolume';
@@ -67,6 +93,12 @@ import {
   snapshotOriginRect,
   type OriginRectSnapshot,
 } from './utils/overlayOriginAnimation';
+import { preloadDecodedImages } from './utils/preloadImages';
+import { publicUrl } from './utils/publicUrl';
+import {
+  INSECT_ART_CHANGE_EVENT,
+  loadInsectArtOptionId,
+} from './utils/insectArtOptions';
 import styles from './App.module.css';
 
 type SoundDrag = {
@@ -86,27 +118,51 @@ type ReturnFlight = {
   name: string;
   from: { x: number; y: number };
   fromSize: number;
-  to: { x: number; y: number };
+  to: { x: number; y: number; size: number };
+  /** Dock order already committed when the flight began. */
+  dockIds: string[];
 };
 
-/** Airy enter whoosh aligned with SHEET_RISE_DURATION_MS (~860ms). */
+/** Placement spread in force for this viewport (phones push tiles further out). */
+const canvasSpread = () =>
+  isCompactViewport() ? CANVAS_SPREAD_COMPACT : CANVAS_SPREAD_DEFAULT;
+
 const ENTER_WHOOSH_SRC = '/audio/ui/enter-whoosh.mp3';
-/** One-shot level relative to master headroom (baseMasterLevel 0.9). */
-const ENTER_WHOOSH_VOLUME = 0.6;
+/** Extended ~5.8s whoosh — soft enough to sit under sheet rise without cutting. */
+/** ~30% of the previous level — the whoosh was reading much too loud. */
+const ENTER_WHOOSH_VOLUME = 0.1;
+/** Soft ethereal bed while browsing the world map (not a place soundscape). */
+const GLOBE_AMBIENT_SRC = '/audio/ui/globe-ambient.mp3';
+const GLOBE_AMBIENT_ID = 'ui:globe-ambient';
+const GLOBE_AMBIENT_VOLUME = 0.12;
 
 export default function App() {
   const GLOBE_DUCK_GAIN = 0.1;
   const [detailTarget, setDetailTarget] = useState<DetailTarget | null>(null);
   const [detailOriginRect, setDetailOriginRect] = useState<OriginRectSnapshot | null>(null);
+  /** Keeps the source canvas tile hidden through the card-expand close flight. */
+  const [detailExpandInstanceId, setDetailExpandInstanceId] = useState<string | null>(null);
   const [dockDefaultIds, setDockDefaultIds] = useState<string[]>([]);
-  const [environmentId, setEnvironmentId] = useState(environments[0].id);
-  const [regionId, setRegionId] = useState(environments[0].regions[0].id);
+  // Shared-link boot: seed location from a sync-decodable `?scene=` so the
+  // workspace never flashes the default region before the payload applies.
+  const [environmentId, setEnvironmentId] = useState(
+    () => peekSharedSceneFromUrl()?.environmentId ?? environments[0].id,
+  );
+  const [regionId, setRegionId] = useState(() => {
+    const shared = peekSharedSceneFromUrl();
+    return shared?.regionId ?? environments[0].regions[0].id;
+  });
   const [shuffleSalt, setShuffleSalt] = useState(0);
   const [soundDrag, setSoundDrag] = useState<SoundDrag | null>(null);
   const [returnFlight, setReturnFlight] = useState<ReturnFlight | null>(null);
   const [returningId, setReturningId] = useState<string | null>(null);
   const [returningSoundId, setReturningSoundId] = useState<string | null>(null);
   const [dockMagnetDrag, setDockMagnetDrag] = useState<DockMagnetDrag | null>(null);
+  // Pending "open the dock slot" timer, so the tray widens as the returning tile
+  // arrives rather than before it has moved. Flushed if the flight lands first.
+  // True while the globe is holding a soundscape that was playing, so closing it
+  // resumes rather than dropping the visitor back into silence.
+  const resumeSceneAfterGlobeRef = useRef(false);
   const [showGlobe, setShowGlobe] = useState(false);
   // True while the full-screen globe was opened from the landing to *browse the
   // world* (Enter / empty-query Enter), as opposed to opening the map from
@@ -129,15 +185,29 @@ export default function App() {
   // panel finishes rising and reveals the canvas rather than under it. 0 at boot
   // (no transition), then set to the reveal point for every covered entry.
   const [sceneEntranceDelayMs, setSceneEntranceDelayMs] = useState(0);
+  // Token for the random-location-only tile transition: current tiles collapse
+  // into the listener, then the new scene loads and reuses the normal radiate-in.
+  const [randomizeTransitionToken, setRandomizeTransitionToken] = useState(0);
   // Bumped on every covered scene entry so the workspace assets (the canvas of
   // sound tiles and the bottom control bar) rise up into place as the cover
-  // panel reveals them, matching the entrance parallax of the other sheets. 0 at
-  // boot means no rise on the very first paint.
+  // panel reveals them, matching the entrance parallax of the other sheets. This
+  // same rise is also reused when closing the globe back into an existing
+  // soundscape, so the tiles/UI push up from below rather than just fading in. 0
+  // at boot means no rise on the very first paint.
   const [sceneRiseToken, setSceneRiseToken] = useState(0);
-  // True for the scene-rise window so the bottom bar's portalled search pill
-  // tracks the rising bar instead of staying pinned to its resting anchor while
-  // the bar rises around it. Cleared once the rise animation settles.
+  // True for the covered scene-entry window so the bottom bar's portalled
+  // search pill reads `--scene-rise-y` (0 until reveal, then the shared nudge)
+  // instead of staying pinned while the bar rises. Cleared once the nudge settles.
   const [sceneRising, setSceneRising] = useState(false);
+  // True only while the globe is opening over an already-entered soundscape. The
+  // workspace stays mounted and lifts beneath the rising globe so the transition
+  // reads as stacked sheets rather than the map simply appearing over a static
+  // background. Cleared once the globe has fully arrived.
+  const [workspaceGlobeOpening, setWorkspaceGlobeOpening] = useState(false);
+  // Tracks that the currently-open globe was launched from an existing
+  // soundscape, so the bottom chrome can stay mounted beneath it instead of
+  // hiding/fading out as if there were no workspace under the globe.
+  const [globeOverWorkspace, setGlobeOverWorkspace] = useState(false);
   // True while the landing is the OUTGOING page (Enter -> globe, or landing ->
   // location). It STAYS mounted and visible and is gently lifted + dimmed
   // beneath the incoming sheet (the rising globe, or the rising cover panel) so
@@ -157,7 +227,13 @@ export default function App() {
   // panel that cross-fades out. Cleared by the gate's `onEntered` once it has
   // fully risen, which is also when the outgoing globe is unmounted.
   const [landingEntering, setLandingEntering] = useState(false);
-  const [customGlobeLocation, setCustomGlobeLocation] = useState<WorldLocation | null>(null);
+  // True while the workspace page (and its bottom bar) is being pushed away by
+  // the landing rising home, so its chrome stays mounted for the whole lift.
+  const [workspaceLeaving, setWorkspaceLeaving] = useState(false);
+  const [customGlobeLocation, setCustomGlobeLocation] = useState<WorldLocation | null>(() => {
+    const shared = peekSharedSceneFromUrl();
+    return shared ? customLocationFromScene(shared) : null;
+  });
   const [showProjectInfo, setShowProjectInfo] = useState(false);
   const [showAddSounds, setShowAddSounds] = useState(false);
   const [addSoundOriginRect, setAddSoundOriginRect] = useState<OriginRectSnapshot | null>(null);
@@ -176,7 +252,11 @@ export default function App() {
   // straight into the workspace and the first-gesture unlock() fallback handles
   // audio.
   const [landingEnabled, setLandingEnabled] = useState(() => isLandingGateEnabled());
-  const [hasEntered, setHasEntered] = useState(() => !isLandingGateEnabled());
+  // A share link (`?scene=`) skips the landing and opens straight into that
+  // soundscape. Invalid/missing payloads fall back below once parsed.
+  const [hasEntered, setHasEntered] = useState(
+    () => hasSharedSceneParam() || !isLandingGateEnabled(),
+  );
   // Live fan layout for the landing card row, adjustable via the dev-only fan
   // controls panel and persisted (localStorage) as the landing default.
   const [fanConfig, setFanConfig] = useState<FanConfig>(() => loadLandingFanConfig());
@@ -192,6 +272,8 @@ export default function App() {
   // re-arming every one-shot entrance latch (wordmark/fan/tagline/search/Enter)
   // without a page refresh.
   const [landingReplayKey, setLandingReplayKey] = useState(0);
+  // Bumped when the Insects art chip cycles so tiles remount with the new plate.
+  const [insectArtRevision, setInsectArtRevision] = useState(0);
   const canvasRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   const bottomBarRef = useRef<HTMLElement>(null);
@@ -202,14 +284,31 @@ export default function App() {
   // updateDragPreview that resolves afterwards can detect it lost the race and
   // not leave an orphaned, never-cleaned-up preview source playing.
   const dragPreviewGenRef = useRef(0);
+  const randomizeTransitionSeqRef = useRef(0);
+  const pendingRandomRegionRef = useRef<{
+    environmentId: string;
+    regionId: string;
+    token: number;
+  } | null>(null);
 
-  const { engine, unlock, play, playOneShot, togglePlay, isPlaying, isUnlocked } =
-    useAudioEngine();
+  const {
+    engine,
+    unlock,
+    play,
+    pause,
+    playOneShot,
+    playLoop,
+    stopLoop,
+    togglePlay,
+    isPlaying,
+    isUnlocked,
+  } = useAudioEngine();
   const {
     activeSounds,
     selectedId,
     setSelectedId,
     loadDefaults,
+    loadScene,
     addSound,
     removeSound,
     updatePosition,
@@ -232,6 +331,48 @@ export default function App() {
     }
     return region.name;
   }, [customGlobeLocation, environmentId, regionId, region.name]);
+
+  // Workspace chrome (bottom search, play, etc.) must wait until the landing
+  // exit cover has finished — otherwise "Search places" flashes under the
+  // rising sheet the moment a fan tile is clicked.
+  // The workspace and its bottom bar are ONE unit: while the workspace is being
+  // pushed away (wordmark home), its chrome must stay mounted and lift with it
+  // rather than vanishing the instant `hasEntered` flips.
+  const showWorkspaceChrome = (hasEntered || workspaceLeaving) && !landingExiting;
+  /**
+   * The workspace lifts only when it is genuinely the OUTGOING page — the
+   * landing rising home over it, or the globe rising over it.
+   *
+   * It deliberately excludes `coverActive`. A cover is also used for ARRIVALS
+   * (landing → place, globe → workspace), and `coverActive` stays true through
+   * the cover's cross-fade — which is exactly when the arriving chrome mounts.
+   *
+   * The bar was fixed for this once: it had been mounting with the outgoing
+   * lift applied, held at -18vh and scale(0.96), so the portalled pill measured
+   * its anchor off a scaled box (244px read as 234px) and corrected once the
+   * lift cleared — the pill appearing in the wrong place and visibly widening.
+   *
+   * The canvas still had the bug. Because `main` is the same DOM node for the
+   * outgoing and incoming scene, an arrival ran `pageExitLift` toward -18vh
+   * while the JS scene-rise was easing an inline transform down from +44px.
+   * Measured on a Kyoto entry, the two handed over mid-flight and the page
+   * snapped from -2.8px to +9.8px in a single frame, which is the tile jump.
+   * One condition now drives both, so nothing arrives wearing a departure.
+   */
+  const workspaceOutgoing = (landingEntering || workspaceGlobeOpening) && !globeExiting;
+  const workspacePageLifting = workspaceOutgoing;
+  const workspaceBarLifting = workspaceOutgoing;
+  // While any stacked-sheet move is in flight, lift the root overflow clip so
+  // outgoing pages / side tiles / button shadows are not sheared off at the
+  // viewport edge (especially visible on phones).
+  const sheetTransitionActive =
+    coverActive
+    || landingExiting
+    || landingEntering
+    || globeExiting
+    || workspaceGlobeOpening
+    || workspaceLeaving
+    || sceneRising;
 
   const globeLocations = useMemo(() => {
     const curated = worldLocations.filter((location) => !location.custom);
@@ -267,13 +408,98 @@ export default function App() {
       id: regionId,
       soundIds: librarySounds.map((sound) => sound.id),
       tags: region.tags,
+      // Included so cycling insect art invalidates memoised tile art consumers.
+      insectArtRevision,
     }),
-    [regionId, librarySounds, region.tags],
+    [regionId, librarySounds, region.tags, insectArtRevision],
   );
+
+  useEffect(() => {
+    const onInsectArtChange = () => {
+      // Touch storage so the next getSoundArtwork read sees the new id.
+      void loadInsectArtOptionId();
+      setInsectArtRevision((value) => value + 1);
+    };
+    window.addEventListener(INSECT_ART_CHANGE_EVENT, onInsectArtChange);
+    return () => window.removeEventListener(INSECT_ART_CHANGE_EVENT, onInsectArtChange);
+  }, []);
+
+  // Soft radiance swell while dragging tiles (opt-in via Radiance → Drag swell).
+  useEffect(() => {
+    const root = document.documentElement;
+    const dragging = Boolean(soundDrag?.active);
+    if (dragging) root.dataset.radianceDragging = '1';
+    else delete root.dataset.radianceDragging;
+    return () => {
+      delete root.dataset.radianceDragging;
+    };
+  }, [soundDrag?.active]);
 
   const activeSoundIds = useMemo(
     () => activeSounds.map((item) => item.soundId),
     [activeSounds],
+  );
+
+  /** Warm bed audio + tile art for a destination before/while the cover rises. */
+  const warmSceneAssets = useCallback(
+    (nextEnvironmentId: string, nextRegionId: string) => {
+      const nextRegion = getRegion(nextEnvironmentId, nextRegionId);
+      if (!nextRegion) return;
+
+      const beds = nextRegion.bedSounds ?? [];
+      const catalog = getRegionSoundCatalog(nextRegion.sounds, nextRegion.tags);
+      const regionSoundIds = catalog.map((item) => item.id);
+      // Procedural pool sounds carry no fixed `src` — they only resolve to a
+      // concrete clip via the same seeded selection used once the region is
+      // actually applied (salt is always reset to 0 on entry). Replicating
+      // that selection here lets a destination's real audio warm during the
+      // cover window instead of most scenes warming nothing at all.
+      const nextLibrarySounds = enrichSounds(catalog, nextRegion.tags);
+      const nextVariants = selectSceneVariants(nextLibrarySounds, {
+        seed: nextRegion.seed ?? regionSeed(nextEnvironmentId, nextRegionId),
+        salt: 0,
+        sceneTags: nextRegion.tags,
+      });
+      const primarySrcs: string[] = [];
+      const secondarySrcs: string[] = [];
+      const imageSrcs: string[] = [];
+
+      for (const bed of beds) {
+        const variant = nextVariants.get(bed.soundId);
+        const sound =
+          catalog.find((item) => item.id === bed.soundId) ??
+          getSoundDef(nextEnvironmentId, nextRegionId, bed.soundId);
+        const src = variant?.src ?? sound?.src;
+        if (src) primarySrcs.push(src);
+        if (variant?.secondarySrc) secondarySrcs.push(variant.secondarySrc);
+        const art = getSoundArtworkForRegion(
+          nextRegionId,
+          regionSoundIds,
+          bed.soundId,
+          undefined,
+          nextRegion.tags,
+        );
+        imageSrcs.push(
+          publicUrl(
+            resolveTileIconSrc({
+              src: art.src,
+              sourceUrl: art.sourceUrl,
+              detailSrc: art.detailSrc,
+            }),
+          ),
+        );
+      }
+
+      // Primary layers first (what's audible immediately); crossfade partners
+      // trail behind at a lower priority so they don't compete for bandwidth
+      // with the bytes that matter for the first playable moment.
+      if (primarySrcs.length > 0) void engine.preloadVariants(primarySrcs);
+      if (secondarySrcs.length > 0) {
+        void Promise.resolve().then(() => engine.preloadVariants(secondarySrcs));
+      }
+      if (imageSrcs.length > 0) void preloadDecodedImages(imageSrcs);
+    },
+    [engine],
   );
 
   const recipeForSound = useCallback(
@@ -341,10 +567,28 @@ export default function App() {
     [engine, play, recipeForSound, unlock],
   );
 
-  // Warm the enter-to-globe whoosh so the first Enter click is not cold-fetch delayed.
+  // Warm enter whoosh + globe ambient so first Enter is not cold-fetch delayed.
   useEffect(() => {
-    void engine.preloadVariants([ENTER_WHOOSH_SRC]);
+    void engine.preloadVariants([ENTER_WHOOSH_SRC, GLOBE_AMBIENT_SRC]);
   }, [engine]);
+
+  // Ethereal ambient for the whole time the world map is up — a calm bed under
+  // browsing/choosing a place. Opening the globe holds the soundscape (see
+  // `handleGlobeOpenChange`), so without this the map would be silent when
+  // reached from a playing scene. Stops when the globe closes or a place is picked.
+  useEffect(() => {
+    const shouldPlay = showGlobe && !prefersReducedMotion();
+    if (shouldPlay) {
+      void playLoop(GLOBE_AMBIENT_ID, GLOBE_AMBIENT_SRC, {
+        volume: GLOBE_AMBIENT_VOLUME,
+        // Quicker swell so the Auckland wireframe bed is audible as the map rises.
+        fadeInSeconds: 0.85,
+      });
+    } else {
+      stopLoop(GLOBE_AMBIENT_ID, 0.7);
+    }
+    return () => stopLoop(GLOBE_AMBIENT_ID, 0.7);
+  }, [playLoop, showGlobe, stopLoop]);
 
   // Lazy-load: only fetch the variants the current scene actually plays, not
   // the whole catalog. Palette additions load on demand inside addSource.
@@ -362,6 +606,29 @@ export default function App() {
     }
     if (srcs.length > 0) void engine.preloadVariants(srcs);
   }, [activeSounds, engine, soundMap, variantSelection]);
+
+  // Decode the active tile plates during the cover window so the first beds
+  // paint full-frame as soon as the scene radiates in (no empty squares).
+  useEffect(() => {
+    if (activeSounds.length === 0) return;
+    const urls = activeSounds.map((item) => {
+      const art = getSoundArtworkForRegion(
+        regionArt.id,
+        regionArt.soundIds,
+        item.soundId,
+        item.instanceId,
+        regionArt.tags,
+      );
+      return publicUrl(
+        resolveTileIconSrc({
+          src: art.src,
+          sourceUrl: art.sourceUrl,
+          detailSrc: art.detailSrc,
+        }),
+      );
+    });
+    void preloadDecodedImages(urls);
+  }, [activeSounds, regionArt]);
 
   const applyRegion = useCallback(
     (nextEnvironmentId: string, nextRegionId: string) => {
@@ -390,15 +657,63 @@ export default function App() {
   );
 
   useEffect(() => {
-    const { canvasBedSounds, dockSoundIds } = randomizeSceneSounds(
-      region.sounds,
-      region.bedSounds ?? [],
-    );
-    setDockDefaultIds(dockSoundIds);
-    loadDefaults(canvasBedSounds);
-    // Initial randomized scene only; region switches call applyRegion.
+    let cancelled = false;
+
+    const bootDefaultScene = () => {
+      const current = getRegion(environmentId, regionId) ?? region;
+      const { canvasBedSounds, dockSoundIds } = randomizeSceneSounds(
+        current.sounds,
+        current.bedSounds ?? [],
+      );
+      setDockDefaultIds(dockSoundIds);
+      loadDefaults(canvasBedSounds);
+    };
+
+    const applySharedScene = (scene: SharedScene) => {
+      const nextRegion = getRegion(scene.environmentId, scene.regionId);
+      if (!nextRegion) return false;
+      const activeIds = new Set(scene.sounds.map((item) => item.soundId));
+      setEnvironmentId(scene.environmentId);
+      setRegionId(scene.regionId);
+      setShuffleSalt(0);
+      setCustomGlobeLocation(customLocationFromScene(scene));
+      setDockDefaultIds(dockSoundIdsForActive(nextRegion.sounds, activeIds));
+      loadScene(scene.sounds);
+      engine.beginSoundscapeTransition();
+      setHasEntered(true);
+      return true;
+    };
+
+    // Cold start: restore a shared `?scene=` layout (skip landing), or compose
+    // the default bed for the boot region. Later switches use `applyRegion`.
+    if (!hasSharedSceneParam()) {
+      bootDefaultScene();
+      return undefined;
+    }
+
+    // Uncompressed payloads decode sync — apply before paint settles so the
+    // canvas never flashes an empty/default layout.
+    const peeked = peekSharedSceneFromUrl();
+    if (peeked && applySharedScene(peeked)) {
+      return undefined;
+    }
+
+    void (async () => {
+      const scene = await parseSceneFromUrl();
+      if (cancelled) return;
+      if (!scene || !applySharedScene(scene)) {
+        // Broken/stale link: drop back to the normal landing (when enabled).
+        if (isLandingGateEnabled()) setHasEntered(false);
+        bootDefaultScene();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // Initial boot only; region switches call applyRegion.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadDefaults]);
+  }, [loadDefaults, loadScene, engine]);
 
   useEffect(() => {
     if (isUnlocked) return;
@@ -426,6 +741,7 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
+    let autoPlayTimer: number | null = null;
 
     const sync = async () => {
       const activeIds = new Set(activeSounds.map((item) => item.instanceId));
@@ -437,6 +753,20 @@ export default function App() {
         }
       }
 
+      // Start the reveal clock NOW, so the wait for the visuals overlaps the
+      // fetch + decode of the clips instead of following it. Time-to-audio is
+      // then max(load, reveal) rather than load + reveal.
+      const delayMs = autoPlayOnLoad && !prefersReducedMotion() ? SCENE_AUTOPLAY_AFTER_MS : 0;
+      const revealReached = delayMs > 0
+        ? new Promise<void>((resolve) => {
+            autoPlayTimer = window.setTimeout(resolve, delayMs);
+          })
+        : Promise.resolve();
+
+      // Every layer loads CONCURRENTLY. Awaiting each `addSource` in turn made
+      // entry cost the sum of five or six sequential network round-trips, which
+      // is most of why audio arrived seconds after the scene did.
+      const additions: Array<Promise<void>> = [];
       for (const item of activeSounds) {
         if (cancelled) return;
         if (item.instanceId === returningId) continue;
@@ -454,31 +784,44 @@ export default function App() {
                 loopOffset: variant.loopOffset,
               }
             : undefined;
-          await engine.addSource(item.instanceId, sound, item.position, item.volume, recipe);
-          if (cancelled) {
-            engine.removeSource(item.instanceId);
-            return;
-          }
+          additions.push(
+            engine
+              .addSource(item.instanceId, sound, item.position, item.volume, recipe)
+              .then(() => {
+                if (cancelled) engine.removeSource(item.instanceId);
+              }),
+          );
         } else {
           engine.updatePosition(item.instanceId, item.position);
           engine.updateVolume(item.instanceId, item.volume);
         }
       }
 
-      if (cancelled) return;
-
       if (autoPlayOnLoad) {
         await unlock();
+        if (cancelled) return;
+        // Hold only until the entry cover has revealed the scene. Do NOT wait
+        // for every bed to finish loading — play() arms the engine so each
+        // layer starts as its buffer lands (progressive beds, faster first sound).
+        await revealReached;
+        autoPlayTimer = null;
         if (cancelled) return;
         await play();
         if (cancelled) return;
         setAutoPlayOnLoad(false);
       }
+
+      await Promise.all(additions);
+      if (cancelled) return;
     };
 
     void sync();
     return () => {
       cancelled = true;
+      if (autoPlayTimer != null) {
+        window.clearTimeout(autoPlayTimer);
+        autoPlayTimer = null;
+      }
     };
   }, [
     activeSounds,
@@ -525,19 +868,23 @@ export default function App() {
         insertionIndex,
       );
 
+      const dockOrderChanged =
+        nextDockDefaultIds.length !== dockDefaultIds.length
+        || nextDockDefaultIds.some((id, index) => id !== dockDefaultIds[index]);
+
+      // Open the placeholder slot in the same turn as the flight so the centred
+      // tray does not collapse the magnet gap and then re-grow mid-air (that was
+      // the sit-on-top-then-snap). Aim with the post-grow geometry.
+      if (dockOrderChanged) {
+        setDockDefaultIds(nextDockDefaultIds);
+      }
+
       const target = paletteRef.current?.getSlotCenter(
         item.soundId,
         nextActiveIds,
         nextDockDefaultIds,
         item.soundId,
       );
-
-      if (
-        nextDockDefaultIds.length !== dockDefaultIds.length
-        || nextDockDefaultIds.some((id, index) => id !== dockDefaultIds[index])
-      ) {
-        setDockDefaultIds(nextDockDefaultIds);
-      }
 
       if (!target) {
         removeSound(instanceId);
@@ -546,10 +893,6 @@ export default function App() {
 
       setReturningId(instanceId);
       setReturningSoundId(item.soundId);
-      // Start the return flight from the tile's exact on-screen box at release,
-      // the same rect the drag mirror was showing, so the hand-off is seamless:
-      // no size pop (it keeps its current size and only shrinks to the dock slot)
-      // and no positional jump to the pointer, which can lag the tile mid-drag.
       setReturnFlight({
         instanceId,
         soundId: item.soundId,
@@ -560,6 +903,7 @@ export default function App() {
         },
         fromSize: iconRect.width,
         to: target,
+        dockIds: nextDockDefaultIds,
       });
     },
     [
@@ -577,6 +921,13 @@ export default function App() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!selectedId) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (
+        event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey ||
+        target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="slider"], [role="combobox"]') ||
+        document.querySelector('[aria-modal="true"], [data-ui-modal-active="true"]') ||
+        !target?.closest('[data-instance-id]')
+      ) return;
       const step = event.shiftKey ? 0.1 : 0.04;
       switch (event.key) {
         case 'ArrowLeft':
@@ -655,7 +1006,7 @@ export default function App() {
         event.clientY <= rect.bottom;
 
       if (inside) {
-        const position = canvasToNormalized(event.clientX, event.clientY, rect);
+        const position = canvasToNormalized(event.clientX, event.clientY, rect, canvasSpread());
         void updateDragPreview(drag.sound, position);
       } else {
         removeDragPreview();
@@ -689,7 +1040,7 @@ export default function App() {
           event.clientY <= rect.bottom;
 
         if (inside) {
-          const position = canvasToNormalized(event.clientX, event.clientY, rect);
+          const position = canvasToNormalized(event.clientX, event.clientY, rect, canvasSpread());
           addSound(drag.sound, position);
           void ensureScenePlaying();
           if (drag.source === 'library') {
@@ -738,11 +1089,14 @@ export default function App() {
       if (!item) return;
       const sound = soundMap.get(item.soundId);
       setDetailOriginRect(snapshotOriginRect(originRect));
+      setLocationSearchOpen(false);
+      setDetailExpandInstanceId(instanceId);
       setDetailTarget({
         instanceId,
         soundId: item.soundId,
         name: sound ? displaySoundName(sound) : item.soundId,
         volume: item.volume,
+        recording: sound?.recording,
       });
     },
     [activeSounds, soundMap],
@@ -751,6 +1105,10 @@ export default function App() {
   const handleCloseDetail = useCallback(() => {
     setDetailTarget(null);
     setDetailOriginRect(null);
+  }, []);
+
+  const handleDetailExpandExited = useCallback(() => {
+    setDetailExpandInstanceId(null);
   }, []);
 
   const handleDetailVolumeChange = useCallback(
@@ -818,79 +1176,123 @@ export default function App() {
   // random): rise the cover panel over the outgoing page and arm the canvas to
   // hold its tile radiate-in until the panel finishes rising and reveals the
   // canvas, so it reads as "sheet rises up to reveal, then the tiles push out".
-  const playSceneEntryCover = useCallback(() => {
-    setSceneEntranceDelayMs(SHEET_SCENE_REVEAL_MS);
+  const playSceneRevealRise = useCallback(() => {
     setSceneRising(true);
     setSceneRiseToken((token) => token + 1);
+  }, []);
+
+  const playSceneEntryCover = useCallback(() => {
+    setSceneEntranceDelayMs(SHEET_SCENE_REVEAL_MS);
+    playSceneRevealRise();
     playCover();
-  }, [playCover]);
+  }, [playCover, playSceneRevealRise]);
 
   // Rise the revealed soundscape assets. When a scene enters behind the cover
   // panel, the canvas (sound tiles, rings, listener) and the bottom control bar
-  // are held one short step below their resting spot and then glide up as the
-  // cover sweeps away, so the reveal and the assets settling read as one
-  // continuous upward motion (the same feel as the sheet rises). The animation
-  // is delayed to the reveal moment (SHEET_SCENE_REVEAL_MS) with no fill, so the
-  // assets sit naturally until the cover fully covers them and the brief
-  // downward offset it starts from is hidden behind the cover. Reduced motion
-  // skips the rise entirely (the tiles also skip their radiate-in).
+  // sit at rest until the cover fully covers them, then take a brief downward
+  // offset (hidden by the cover) and glide up as it reveals — one continuous
+  // upward settle with the sheet.
+  //
+  // The search pill is portalled to <body>, so it cannot inherit the bar's
+  // transform. `sceneRising` arms at entry start so the pill already reads
+  // `--scene-rise-y`; that var stays 0 until reveal, then this rAF writes the
+  // same y onto the bar/canvas and the var each frame. A parallel CSS keyframe
+  // used to free-run from entry start and finish before the chrome moved.
+  // Reduced motion skips the rise entirely.
   useEffect(() => {
     if (sceneRiseToken === 0) return undefined;
     if (prefersReducedMotion()) {
       setSceneRising(false);
       return undefined;
     }
-    const targets = [mainRef.current, bottomBarRef.current].filter(
+    // Deliberately NOT `main`. The page lift owns main's transform via CSS, and
+    // when both wrote to it the reveal handed over mid-flight — measured, the
+    // content snapped 160px in one frame as the lift released and this rise took
+    // its +44px offset. The bar (and the pill, via the CSS var) keep the nudge;
+    // the canvas is carried by the lift's own transition instead.
+    const targets = [bottomBarRef.current].filter(
       (el): el is HTMLElement => el !== null,
     );
     if (targets.length === 0) {
       setSceneRising(false);
       return undefined;
     }
+
+    const root = document.documentElement;
+    const clearRise = () => {
+      root.style.removeProperty(SCENE_RISE_VAR);
+      targets.forEach((el) => {
+        el.style.transform = '';
+        el.style.willChange = '';
+      });
+    };
+    const writeRise = (y: number) => {
+      const value = `${y.toFixed(2)}px`;
+      root.style.setProperty(SCENE_RISE_VAR, value);
+      targets.forEach((el) => {
+        el.style.transform = y === 0 ? '' : `translate3d(0, ${value}, 0)`;
+      });
+    };
+
     let cancelled = false;
-    const animations = targets.map((el) =>
-      el.animate(
-        [
-          { transform: 'translate3d(0, 44px, 0)' },
-          { transform: 'translate3d(0, 0, 0)' },
-        ],
-        {
-          duration: 620,
-          delay: SHEET_SCENE_REVEAL_MS,
-          easing: 'cubic-bezier(0.32, 0.72, 0, 1)',
-          fill: 'none',
-        },
-      ),
-    );
-    // Keep the bottom bar's search pill tracking the rising bar until the rise
-    // settles, then release it back to the resting anchor.
-    void Promise.all(
-      animations.map((animation) => animation.finished.catch(() => undefined)),
-    ).then(() => {
+    let raf = 0;
+    let start = 0;
+    const tick = (now: number) => {
+      if (cancelled) return;
+      const t = Math.min(1, (now - start) / SCENE_ASSET_RISE_MS);
+      writeRise(SCENE_ASSET_RISE_PX * (1 - easeIos(t)));
+      if (t < 1) {
+        raf = window.requestAnimationFrame(tick);
+        return;
+      }
+      clearRise();
       if (!cancelled) setSceneRising(false);
+    };
+
+    // Take the offset NOW, at entry — the cover is opaque at this point, so the
+    // snap to +44px is never seen. It used to be applied inside the timer below,
+    // which fires exactly as the cover reveals: measured, that put a 44px
+    // single-frame jump on every tile at the first visible frame. Only the ease
+    // should be visible; the step into it must happen behind the cover.
+    targets.forEach((el) => {
+      el.style.willChange = 'transform';
     });
+    writeRise(SCENE_ASSET_RISE_PX);
+
+    const delayTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      // Ease up from here so pill + bar share one clock from the first paint
+      // of the reveal.
+      start = performance.now();
+      raf = window.requestAnimationFrame(tick);
+    }, SHEET_SCENE_REVEAL_MS);
+
     return () => {
       cancelled = true;
-      animations.forEach((animation) => animation.cancel());
+      window.clearTimeout(delayTimer);
+      window.cancelAnimationFrame(raf);
+      clearRise();
     };
   }, [sceneRiseToken]);
 
   const handleGlobeSelect = useCallback(
     (location: WorldLocation) => {
       void unlock();
+      // Extended enter whoosh rides the cover rise into the soundscape.
+      if (!prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
+      setWorkspaceGlobeOpening(false);
+      warmSceneAssets(location.environmentId, location.regionId);
       playSceneEntryCover();
       if (location.custom) {
         setCustomGlobeLocation(location);
       }
       applyRegion(location.environmentId, location.regionId);
-      // Picking a place while browsing from the landing is the entry gesture, so
-      // it starts that location's soundscape (matching the search entry). A
-      // mid-session pick keeps the transport untouched: beginSoundscapeTransition
-      // leaves `playing` alone and addSource only starts sources when already
-      // playing, so a paused user stays silent and a playing user keeps playing.
-      if (!hasEntered) {
-        setAutoPlayOnLoad(true);
-      }
+      // Choosing a place on the globe is always an entry gesture — start the
+      // soundscape. (Opening the map from a playing scene pauses it; without
+      // this, mid-session picks stayed silent after the cover revealed.)
+      setAutoPlayOnLoad(true);
       setShowGlobe(false);
       // Keep the outgoing globe mounted so it stays visible and lifts + dims
       // beneath the rising cover panel; the incoming soundscape canvas is
@@ -903,7 +1305,7 @@ export default function App() {
       // landing gate (a no-op once already inside the workspace).
       setHasEntered(true);
     },
-    [applyRegion, hasEntered, playSceneEntryCover, unlock],
+    [applyRegion, playOneShot, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   // Entry from the landing gate. Unlocking the AudioContext inside this click
@@ -913,6 +1315,10 @@ export default function App() {
   const handleEnterLocation = useCallback(
     (location: WorldLocation) => {
       void unlock();
+      if (!prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
+      warmSceneAssets(location.environmentId, location.regionId);
       playSceneEntryCover();
       // Keep the landing mounted and lifting beneath the rising cover panel even
       // though `hasEntered` flips true, so the old page stays and pushes up while
@@ -926,7 +1332,7 @@ export default function App() {
       setAutoPlayOnLoad(true);
       setHasEntered(true);
     },
-    [applyRegion, playSceneEntryCover, unlock],
+    [applyRegion, playOneShot, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   // Entry via the Enter button or an empty-query Enter in the landing search:
@@ -940,7 +1346,10 @@ export default function App() {
   // Closing the globe (X) returns to the landing; picking a place enters it.
   const handleEnterExperience = useCallback(() => {
     void unlock();
-    // Calm airy whoosh swells with the ~860ms sheet rise. Skip under reduced
+    // Enter opens the world map only — never start (or keep) a place soundscape.
+    setAutoPlayOnLoad(false);
+    if (engine.isPlaying) pause();
+    // Calm airy whoosh swells with the sheet rise. Skip under reduced
     // motion so audio does not outlast the near-instant visual (~140ms).
     if (!prefersReducedMotion()) {
       void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
@@ -954,7 +1363,7 @@ export default function App() {
     setLandingExiting(true);
     setBrowsingFromLanding(true);
     setShowGlobe(true);
-  }, [playOneShot, unlock]);
+  }, [engine, pause, playOneShot, unlock]);
 
   // Close handler for the full-screen globe. Opening always just shows it; the
   // interesting case is closing. When the globe was opened from the landing to
@@ -964,13 +1373,34 @@ export default function App() {
   const handleGlobeOpenChange = useCallback((open: boolean) => {
     if (open) {
       // Opening the map: the globe rises as its real self (approach A) on top of
-      // the workspace beneath it, so no cover panel is needed. This is not a
-      // location entry, so no radiate-in.
+      // the workspace beneath it, so no cover panel is needed. When opening from
+      // an already-entered soundscape, keep that workspace mounted and lifting so
+      // the globe visibly pushes it upward like the other stacked-sheet moves.
+      // This is not a location entry, so no radiate-in.
+      const openingFromWorkspace = hasEntered && !browsingFromLanding;
+      // Same airy whoosh the landing's Enter uses, so arriving at the globe reads
+      // the same way from anywhere. Skipped under reduced motion, where the
+      // visual is near-instant and the sound would outlast it.
+      if (!prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
+      // The globe is its own place — hold the soundscape while it is open, and
+      // remember whether it was playing so closing can pick it back up.
+      resumeSceneAfterGlobeRef.current = openingFromWorkspace && engine.isPlaying;
+      if (engine.isPlaying) pause();
+      setWorkspaceGlobeOpening(openingFromWorkspace);
+      setGlobeOverWorkspace(openingFromWorkspace);
       setShowGlobe(true);
       return;
     }
     // Closing the map: the outgoing globe lifts up (parallax) and stays visible
-    // beneath the incoming page rising over it.
+    // beneath the incoming page rising over it. Play the same whoosh used on
+    // the way in so the transition reads symmetrically in both directions,
+    // instead of only announcing itself when heading into a place.
+    if (!prefersReducedMotion()) {
+      void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+    }
+    setWorkspaceGlobeOpening(false);
     setShowGlobe(false);
     setGlobeExiting(true);
     if (browsingFromLanding) {
@@ -987,51 +1417,70 @@ export default function App() {
     } else {
       // Returning to the workspace: the soundscape canvas is stacked BELOW the
       // globe and cannot be raised above it, so the shared cover panel rises up
-      // over the lifting globe and reveals it. The panel (z-index 500) sits above
-      // the globe page (z-index 400); `onCovered` unmounts the globe once the
-      // panel has fully risen.
+      // over the lifting globe and reveals it. Reuse the existing scene-rise so
+      // the canvas + bottom UI rise from below as the reveal lands, rather than
+      // fading back in flat. The panel (z-index 500) sits above the globe page
+      // (z-index 400); `onCovered` unmounts the globe once the panel has fully
+      // risen.
+      playSceneRevealRise();
       playCover();
+      // Pick the soundscape back up if the globe interrupted it.
+      if (resumeSceneAfterGlobeRef.current) {
+        resumeSceneAfterGlobeRef.current = false;
+        void ensureScenePlaying();
+      }
     }
-  }, [browsingFromLanding, playCover]);
+  }, [
+    browsingFromLanding,
+    engine,
+    ensureScenePlaying,
+    hasEntered,
+    pause,
+    playCover,
+    playOneShot,
+    playSceneRevealRise,
+  ]);
 
-  // The header wordmark doubles as a "home" control. Home returns to the landing
-  // gate when the landing experience is available (mirroring the globe X
-  // return-to-landing path: close the globe, drop the browse/exit state and the
-  // entered flag so the gate is shown again), replaying the landing entrance so
-  // it reads as a fresh arrival. With the landing gate disabled (dev toggle off)
-  // there is no gate to return to, so home is simply the default view: close the
-  // globe. Either way it plays the shared wipe so the navigation feels of a
-  // piece with the rest of the app.
+  // The header wordmark doubles as a "home" control: always return to the
+  // landing gate (enabling it if the DEV toggle had it off), with the outgoing
+  // page pushing up in parallax while landing rises over it.
   const handleGoHome = useCallback(() => {
-    // Lift the outgoing page up (parallax) if the globe is open, otherwise the
-    // workspace beneath stays put. Only lift the globe if it is actually open,
-    // otherwise `globeExiting` would mount an empty globe just to lift it.
+    if (!prefersReducedMotion()) {
+      void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+    }
+    setWorkspaceGlobeOpening(false);
+    setGlobeOverWorkspace(false);
     if (showGlobe) setGlobeExiting(true);
     setShowGlobe(false);
-    if (landingEnabled) {
-      // Home returns to the landing gate, which is itself a full-page opaque
-      // sheet, so it RISES up over the lifting outgoing page with the shared
-      // curved edge (a true stacked-sheet rise, no cover panel and no
-      // cross-fade). Remount it so its entrance re-arms; its `onEntered` unmounts
-      // any lifted globe once it has fully risen.
-      setBrowsingFromLanding(false);
-      setLandingExiting(false);
-      setHasEntered(false);
-      setLandingEntering(true);
-      setLandingReplayKey((key) => key + 1);
-    } else {
-      // No landing gate to return to, so home is just the default view: rise the
-      // shared cover panel over the outgoing page and reveal the workspace.
-      playCover();
+    setDetailTarget(null);
+    setDetailOriginRect(null);
+    setAutoPlayOnLoad(false);
+    pause();
+    if (!landingEnabled) {
+      setLandingEnabled(true);
+      persistLandingGateEnabled(true);
     }
-  }, [landingEnabled, playCover, showGlobe]);
+    // Landing is a full-page opaque sheet: it rises over the lifting outgoing
+    // page (globe or workspace) with the shared curved edge.
+    setBrowsingFromLanding(false);
+    setLandingExiting(false);
+    // Keep the outgoing workspace chrome mounted so the whole page — canvas,
+    // bottom bar, play cluster and search pill — lifts away as one unit.
+    setWorkspaceLeaving(hasEntered);
+    setHasEntered(false);
+    setLandingEntering(true);
+    setLandingReplayKey((key) => key + 1);
+  }, [hasEntered, landingEnabled, pause, playOneShot, showGlobe]);
 
   // The incoming landing has finished rising home over the outgoing page, so
   // settle the rise (drop the raised stacking) and unmount the lifted globe
   // beneath it now that it is fully covered.
   const handleLandingEntered = useCallback(() => {
     setLandingEntering(false);
+    setWorkspaceGlobeOpening(false);
+    setGlobeOverWorkspace(false);
     setGlobeExiting(false);
+    setWorkspaceLeaving(false);
   }, []);
 
   // Dev toggle (Landing switch): persist the preference and reflect it live.
@@ -1061,6 +1510,7 @@ export default function App() {
 
   const handleGeoMatch = useCallback(
     (match: GeoMatchResult) => {
+      warmSceneAssets(match.environmentId, match.regionId);
       playSceneEntryCover();
       setCustomGlobeLocation(
         createCustomWorldLocation({
@@ -1075,16 +1525,39 @@ export default function App() {
       applyRegion(match.environmentId, match.regionId);
       // Mid-session switch: respect the transport rather than forcing playback.
     },
-    [applyRegion, playSceneEntryCover],
+    [applyRegion, playSceneEntryCover, warmSceneAssets],
   );
 
   const handleRandomRegion = useCallback(
     (nextEnvironmentId: string, nextRegionId: string) => {
-      playSceneEntryCover();
-      applyRegion(nextEnvironmentId, nextRegionId);
+      setSceneEntranceDelayMs(0);
+      setSceneRising(false);
+      if (prefersReducedMotion() || activeSounds.length === 0) {
+        pendingRandomRegionRef.current = null;
+        applyRegion(nextEnvironmentId, nextRegionId);
+        return;
+      }
+      randomizeTransitionSeqRef.current += 1;
+      const token = randomizeTransitionSeqRef.current;
+      pendingRandomRegionRef.current = {
+        environmentId: nextEnvironmentId,
+        regionId: nextRegionId,
+        token,
+      };
+      setRandomizeTransitionToken(token);
       // Mid-session switch: respect the transport rather than forcing playback.
     },
-    [applyRegion, playSceneEntryCover],
+    [activeSounds.length, applyRegion],
+  );
+
+  const handleRandomizeTransitionComplete = useCallback(
+    (token: number) => {
+      const pending = pendingRandomRegionRef.current;
+      if (!pending || pending.token !== token) return;
+      pendingRandomRegionRef.current = null;
+      applyRegion(pending.environmentId, pending.regionId);
+    },
+    [applyRegion],
   );
 
   const handleLocationSearchChange = useCallback(
@@ -1097,6 +1570,11 @@ export default function App() {
       // on the globe at the searched coordinates; a curated soundscape clears
       // any existing custom pin.
       void unlock();
+      // Landing search entry into a soundscape gets the same extended whoosh.
+      if (!hasEntered && !prefersReducedMotion()) {
+        void playOneShot(ENTER_WHOOSH_SRC, { volume: ENTER_WHOOSH_VOLUME });
+      }
+      warmSceneAssets(nextEnvironmentId, nextRegionId);
       playSceneEntryCover();
       setCustomGlobeLocation(customLocation ?? null);
       applyRegion(nextEnvironmentId, nextRegionId);
@@ -1113,11 +1591,13 @@ export default function App() {
       // Searching is the alternate entry gesture, so it also leaves the gate.
       setHasEntered(true);
     },
-    [applyRegion, hasEntered, playSceneEntryCover, unlock],
+    [applyRegion, hasEntered, playOneShot, playSceneEntryCover, unlock, warmSceneAssets],
   );
 
   const handleReturnComplete = useCallback(() => {
     if (!returnFlight) return;
+    // Dock order is already committed before the flight; just hand off from the
+    // flying mirror to the real dock tile.
     removeSound(returnFlight.instanceId);
     setReturnFlight(null);
     setReturningId(null);
@@ -1141,11 +1621,15 @@ export default function App() {
   }, [activeSounds, customGlobeLocation, environmentId, headerLocationLabel, regionId]);
 
   useEffect(() => {
-    engine.setDuckingGain(showGlobe ? GLOBE_DUCK_GAIN : 1);
+    // Duck in-scene beds when opening the map from a location. Skip ducking
+    // while browsing from the landing: there is no soundscape yet, and the
+    // enter whoosh + globe ambient ride the unducked master bus.
+    const duck = showGlobe && !browsingFromLanding ? GLOBE_DUCK_GAIN : 1;
+    engine.setDuckingGain(duck);
     return () => {
       engine.setDuckingGain(1);
     };
-  }, [engine, showGlobe]);
+  }, [browsingFromLanding, engine, showGlobe]);
 
   useEffect(() => {
     if (showGlobe) {
@@ -1161,14 +1645,31 @@ export default function App() {
     wasGlobeOpenRef.current = showGlobe;
   }, [showGlobe]);
 
+  // Publish the sheet-transition flag on <html> so portalled chrome (search
+  // pill, globe, cover) and the root overflow chain can all opt out of clipping
+  // for the same window. Cleared the instant every lift/rise settles.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (sheetTransitionActive) {
+      root.dataset.sheetTransition = 'active';
+    } else {
+      delete root.dataset.sheetTransition;
+    }
+    return () => {
+      delete root.dataset.sheetTransition;
+    };
+  }, [sheetTransitionActive]);
+
   return (
     <SheetStack.Root className={sheetStack.root}>
       <SheetStack.Outlet
-        className={sheetStack.outlet}
+        className={`${sheetStack.outlet}${sheetTransitionActive ? ` ${sheetStack.outletTransitioning}` : ''}`}
         stackingAnimation={appStackingAnimation}
         asChild
       >
-        <div className={styles.app}>
+        <div
+          className={`${styles.app}${sheetTransitionActive ? ` ${styles.appTransitioning}` : ''}`}
+        >
       {(!hasEntered || landingExiting || landingEntering) && (
         <LandingGate
           key={landingReplayKey}
@@ -1190,21 +1691,24 @@ export default function App() {
               onEmptyEnter={handleEnterExperience}
               resetToken={locationSearchResetToken}
               idleLabel="Search or create your own"
-              expandDirection="down"
+              // Phones stack Enter beneath the search, so the pill matches its
+              // full width (desktop keeps the fixed centred pill).
+              fluid
+              expandDirection="up"
               theme="light"
               backdrop={false}
               enlarged
               recenterOnExpand
-              riseWithGate={landingEntering}
+              // Only hard-hide once the landing has actually left the screen.
+              // While it is exiting the pill must stay and lift WITH the page,
+              // welded to the Enter button beside it.
+              blocked={showGlobe && !landingEntering && !landingExiting}
+              pageMotion={
+                landingEntering ? 'rise-home' : landingExiting ? 'exit-lift' : 'none'
+              }
             />
           }
         />
-      )}
-
-      {hasEntered && !isUnlocked && (
-        <button type="button" className={styles.unlockBanner} onClick={() => void unlock()}>
-          Tap to enable audio · press Play when you are ready
-        </button>
       )}
 
       <div className={styles.topFabGroup}>
@@ -1212,7 +1716,25 @@ export default function App() {
         <AboutButton onClick={() => setShowProjectInfo(true)} />
       </div>
 
-      <header className={styles.header}>
+      <div className={styles.mobileTopLeft}>
+        <MobileControlsMenu
+          // Places actions live in the bottom bar on phones; burger keeps App chrome.
+          extras={
+            <>
+              <ThemeToggle />
+              <AboutButton
+                onClick={() => {
+                  setShowProjectInfo(true);
+                }}
+              />
+            </>
+          }
+        />
+      </div>
+
+      <header
+        className={`${styles.header} ${showGlobe || globeExiting ? styles.headerAboveGlobe : ''}`}
+      >
         <div className={styles.brand}>
           <h1 className={styles.title}>
             <button
@@ -1227,7 +1749,10 @@ export default function App() {
         </div>
       </header>
 
-      <main className={styles.main} ref={mainRef}>
+      <main
+        className={`${styles.main} ${workspacePageLifting ? styles.pageExitLift : ''}`}
+        ref={mainRef}
+      >
         <section className={styles.workspace} aria-label="Soundscape">
           <div className={styles.dockOverlay}>
             <SoundPalette
@@ -1241,6 +1766,10 @@ export default function App() {
               magnetDrag={dockMagnetDrag}
               regionArt={regionArt}
               onDragStart={handlePaletteDragStart}
+              onAddSound={(sound) => {
+                addSound(sound);
+                void ensureScenePlaying();
+              }}
               onAddClick={(originRect) => {
                 setAddSoundOriginRect(snapshotOriginRect(originRect));
                 setShowAddSounds(true);
@@ -1253,6 +1782,7 @@ export default function App() {
             soundMap={soundMap}
             selectedId={selectedId}
             returningId={returningId}
+            detailExpandInstanceId={detailExpandInstanceId}
             onSelect={setSelectedId}
             onRemove={beginReturnToDock}
             onOpenDetail={handleOpenDetail}
@@ -1266,18 +1796,20 @@ export default function App() {
             ringVariant={ringVariant}
             isPlaying={isPlaying}
             entranceHoldMs={sceneEntranceDelayMs}
+            randomizeTransitionToken={randomizeTransitionToken}
+            onRandomizeTransitionComplete={handleRandomizeTransitionComplete}
           />
         </section>
       </main>
 
       <nav
         ref={bottomBarRef}
-        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe ? styles.bottomBarHidden : ''}`}
+        className={`${styles.bottomBar} ${locationSearchOpen ? styles.bottomBarSearchOpen : ''} ${showGlobe && !globeOverWorkspace ? styles.bottomBarHidden : ''} ${workspaceBarLifting ? styles.pageExitLift : ''} ${detailTarget ? styles.bottomBarRecessed : ''}`}
         aria-label="Main controls"
         onPointerMove={(event) => syncBottomBarTooltip(event.target)}
         onPointerLeave={() => setBottomBarTooltip(null)}
       >
-        {hasEntered && (
+        {showWorkspaceChrome && (
           <div className={styles.bottomBarPlay}>
             <PlayCluster
               engine={engine}
@@ -1286,37 +1818,69 @@ export default function App() {
             />
           </div>
         )}
-        <div className={styles.bottomBarRow}>
-          {hasEntered && (
-            <div className={styles.leftActionGroup}>
+        {showWorkspaceChrome && (
+          <div className={styles.bottomBarSearchRow}>
+            <div className={styles.bottomBarSearch}>
+              <LocationSearchSpotlight
+                appLocations={appLocations}
+                worldLocations={worldLocations}
+                environmentId={environmentId}
+                regionId={regionId}
+                onChange={handleLocationSearchChange}
+                onOpenChange={setLocationSearchOpen}
+                resetToken={locationSearchResetToken}
+                // Phones: search shares a row with the add-sound control and
+                // stretches into the leftover width. Desktop keeps the fixed
+                // centred pill (see the media query on `data-fluid`).
+                fluid
+                // On phones the collapsed pill is not viewport-centred (it
+                // shares its row with +), so the expanded panel recentres.
+                // No-op on desktop, where the pill is already centred.
+                recenterOnExpand
+                // Keep the pill mounted while the globe rises over an open
+                // soundscape (globeOverWorkspace) — blocking on showGlobe alone
+                // made "Kyoto, Japan" vanish mid-transition. Only hard-block when
+                // the bar itself is hidden (e.g. landing browse).
+                blocked={showGlobe && !globeOverWorkspace}
+                recessed={detailTarget !== null}
+                // Replay the bar's own page animation so the portalled pill is
+                // part of the same unit rather than lagging behind it.
+                pageMotion={
+                  workspaceBarLifting ? 'exit-lift' : sceneRising ? 'scene-rise' : 'none'
+                }
+              />
+            </div>
+            <div className={styles.bottomBarAdd}>
+              <AddSoundButton
+                onClick={(originRect) => {
+                  setAddSoundOriginRect(snapshotOriginRect(originRect));
+                  setShowAddSounds(true);
+                }}
+                size={48}
+              />
+            </div>
+          </div>
+        )}
+        {showWorkspaceChrome && (
+          <div className={styles.bottomBarActions}>
+            <div className={styles.actionSlot}>
               <UseMyLocationButton onMatch={handleGeoMatch} />
+            </div>
+            <div className={styles.actionSlot}>
               <RandomizeLocationButton
                 appLocations={appLocations}
                 worldLocations={worldLocations}
                 onPick={handleRandomRegion}
               />
             </div>
-          )}
-          {hasEntered && (
-            <LocationSearchSpotlight
-              appLocations={appLocations}
-              worldLocations={worldLocations}
-              environmentId={environmentId}
-              regionId={regionId}
-              onChange={handleLocationSearchChange}
-              onOpenChange={setLocationSearchOpen}
-              resetToken={locationSearchResetToken}
-              blocked={showGlobe}
-              riseWithBar={sceneRising}
-            />
-          )}
-          {hasEntered && (
-            <div className={styles.rightActionGroup}>
+            <div className={styles.actionSlot}>
               <MapButton onClick={() => handleGlobeOpenChange(true)} />
+            </div>
+            <div className={styles.actionSlot}>
               <ShareButton onShare={handleShare} />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </nav>
       <BottomBarMagnetTooltip anchor={bottomBarTooltip} />
 
@@ -1326,7 +1890,7 @@ export default function App() {
           name={displaySoundName(soundDrag.sound)}
           x={soundDrag.x}
           y={soundDrag.y}
-          size={soundDrag.active ? CANVAS_TILE_SIZE : DOCK_BASE_SIZE}
+          size={soundDrag.active ? getCanvasTileSize() : DOCK_BASE_SIZE}
           showLabel={false}
           regionArt={regionArt}
           elevated={soundDrag.source === 'palette'}
@@ -1347,7 +1911,7 @@ export default function App() {
           animateTo={{
             x: returnFlight.to.x,
             y: returnFlight.to.y,
-            size: DOCK_BASE_SIZE,
+            size: returnFlight.to.size,
           }}
           onComplete={handleReturnComplete}
           regionArt={regionArt}
@@ -1366,6 +1930,7 @@ export default function App() {
         target={detailTarget}
         onVolumeChange={handleDetailVolumeChange}
         regionArt={regionArt}
+        onExpandExited={handleDetailExpandExited}
       />
 
       <GlobeMapSheet
@@ -1375,6 +1940,7 @@ export default function App() {
           // The globe (approach-A incoming) has finished rising into place, so
           // settle the outgoing landing beneath it back to rest (it stays mounted
           // while browsing, now fully covered by the globe).
+          setWorkspaceGlobeOpening(false);
           setLandingExiting(false);
         }}
         onOpenChange={handleGlobeOpenChange}
@@ -1392,6 +1958,8 @@ export default function App() {
           // The cover panel now fully covers the viewport: unmount the lifted
           // outgoing page(s) so the following cross-fade reveals the true
           // destination beneath, not the outgoing layer.
+          setWorkspaceGlobeOpening(false);
+          setGlobeOverWorkspace(false);
           setGlobeExiting(false);
           setLandingExiting(false);
         }}
@@ -1410,12 +1978,21 @@ export default function App() {
         draggingSoundId={soundDrag?.source === 'library' ? soundDrag.sound.id : null}
         dragActive={soundDrag?.source === 'library' ? soundDrag.active : false}
         onDragStart={handleLibraryDragStart}
+        onAddSound={(sound) => {
+          addSound(sound);
+          void ensureScenePlaying();
+          setShowAddSounds(false);
+        }}
       />
 
       <ProjectInfoSheet open={showProjectInfo} onOpenChange={setShowProjectInfo} />
 
       <SearchSpotlightAnimationTuner />
-      <PlayingBarEdgeGradientTuner isPlaying={isPlaying} />
+      <PlayingBarEdgeGradientTuner
+        isPlaying={isPlaying}
+        landingEnabled={landingEnabled}
+        onLandingEnabledChange={handleLandingEnabledChange}
+      />
       <LandingFanTuner
         config={fanConfig}
         onChange={setFanConfig}
@@ -1427,6 +2004,7 @@ export default function App() {
         onChange={setLandingEntranceConfig}
         onReplay={handleReplayLandingEntrance}
       />
+      <SoundTileDesignTuner regionArt={regionArt} sampleTarget={detailTarget} />
     </SheetStack.Root>
   );
 }

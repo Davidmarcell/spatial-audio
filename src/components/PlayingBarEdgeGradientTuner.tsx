@@ -1,69 +1,20 @@
-import { useEffect, useState } from 'react';
-import { usePlayingBarEdgeGradient } from '../context/PlayingBarEdgeGradientContext';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  configSummary,
   DEFAULT_PLAYING_BAR_EDGE_GRADIENT,
-  isPlayingBarEdgeGradientTunerEnabled,
-  loadPlayingBarEdgeGradientSavedDefault,
+  applyPlayingBarEdgeGradient,
+  configSummary,
+  loadPlayingBarEdgeGradient,
   persistPlayingBarEdgeGradientTunerVisible,
+  savePlayingBarEdgeGradientSavedDefault,
+  type PlayingBarEdgeGradientConfig,
 } from '../utils/playingBarEdgeGradient';
+import {
+  INSECT_ART_CHANGE_EVENT,
+  cycleInsectArtOptionId,
+  getInsectArtOption,
+  loadInsectArtOptionId,
+} from '../utils/insectArtOptions';
 import styles from './PlayingBarEdgeGradientTuner.module.css';
-
-type SliderProps = {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step?: number;
-  unit?: string;
-  displayValue?: string;
-  onChange: (value: number) => void;
-};
-
-type ToggleProps = {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function SliderField({
-  label,
-  value,
-  min,
-  max,
-  step = 0.01,
-  unit = '',
-  displayValue,
-  onChange,
-}: SliderProps) {
-  return (
-    <label className={styles.field}>
-      <span className={styles.fieldLabel}>
-        {label}
-        <span className={styles.fieldValue}>
-          {displayValue ?? `${value}${unit}`}
-        </span>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-    </label>
-  );
-}
-
-function ToggleField({ label, checked, onChange }: ToggleProps) {
-  return (
-    <label className={styles.fieldToggle}>
-      <span className={styles.fieldLabel}>{label}</span>
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-    </label>
-  );
-}
 
 type PlayingBarEdgeGradientTunerProps = {
   isPlaying?: boolean;
@@ -72,268 +23,309 @@ type PlayingBarEdgeGradientTunerProps = {
   onLandingEnabledChange?: (enabled: boolean) => void;
 };
 
+type SliderField = {
+  key: keyof PlayingBarEdgeGradientConfig;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  /** Rendered value, e.g. a percentage or a degree suffix. */
+  format?: (value: number) => string;
+};
+
+const STRENGTH_FIELDS: SliderField[] = [
+  {
+    key: 'waveOpacity',
+    label: 'Strength',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    format: (v) => `${Math.round(v * 100)}%`,
+  },
+  {
+    key: 'edgeRise',
+    label: 'Corner lift',
+    min: 0,
+    max: 1,
+    step: 0.01,
+    format: (v) => `${Math.round(v * 100)}%`,
+  },
+  {
+    key: 'glowStopHigh',
+    label: 'Glow height',
+    min: 0.4,
+    max: 2.2,
+    step: 0.01,
+  },
+  {
+    key: 'glowStopLow',
+    label: 'Glow start',
+    min: 0,
+    max: 1.6,
+    step: 0.01,
+  },
+  {
+    key: 'verticalOffset',
+    label: 'Vertical shift',
+    min: 0,
+    max: 0.6,
+    step: 0.01,
+  },
+];
+
+const GRADIENT_FIELDS: SliderField[] = [
+  { key: 'gradientAngle', label: 'Angle', min: 0, max: 360, step: 1, format: (v) => `${Math.round(v)}°` },
+  { key: 'gradientOffset', label: 'Offset', min: 0, max: 1, step: 0.01 },
+  { key: 'gradientScale', label: 'Scale', min: 0.1, max: 2, step: 0.01 },
+  { key: 'gradientMidpoint', label: 'Midpoint', min: 0, max: 1, step: 0.01 },
+  { key: 'gradientSoftness', label: 'Softness', min: 0.01, max: 1, step: 0.01 },
+];
+
+const BREATH_FIELDS: SliderField[] = [
+  { key: 'breathDurationSec', label: 'Breath cycle', min: 3, max: 24, step: 0.5, format: (v) => `${v}s` },
+];
+
+/**
+ * Is the Radiance panel available in this session?
+ *
+ * Deliberately NOT gated on `import.meta.env.DEV`: the app is reviewed from a
+ * production preview build, where a dev-only gate would mean the controls never
+ * appear. Opt in per session with `?radiance=1` (or the older `?shaderDebug=1`),
+ * opt out with `?radiance=0`. Saved visual values still apply independently.
+ */
+function readTunerVisible(): boolean {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('radiance') === '0' || params.get('shaderDebug') === '0') return false;
+  // Review controls require an explicit URL opt-in, including preview builds.
+  // Old saved visibility flags must not expose tooling to ordinary visitors.
+  return params.get('radiance') === '1' || params.get('shaderDebug') === '1';
+}
+
 export function PlayingBarEdgeGradientTuner({
   isPlaying = false,
-  landingEnabled = false,
+  landingEnabled,
   onLandingEnabledChange,
 }: PlayingBarEdgeGradientTunerProps) {
-  const { config, setConfig, saveConfigAsDefault, resetConfig } = usePlayingBarEdgeGradient();
-  const [visible, setVisible] = useState(() => isPlayingBarEdgeGradientTunerEnabled());
-  const [collapsed, setCollapsed] = useState(false);
-  const [savedDefault, setSavedDefault] = useState(() => loadPlayingBarEdgeGradientSavedDefault());
+  const [config, setConfig] = useState<PlayingBarEdgeGradientConfig>(() =>
+    typeof window === 'undefined' ? DEFAULT_PLAYING_BAR_EDGE_GRADIENT : loadPlayingBarEdgeGradient(),
+  );
+  // Resolved once at mount from the URL / stored flag. Read lazily rather than in
+  // an effect so the first render already knows, with no extra pass.
+  const [available] = useState(() => readTunerVisible());
+  // Open the panel so the controls are immediately reachable when reviewing.
+  const [open, setOpen] = useState(() => readTunerVisible());
+  const [insectArtId, setInsectArtId] = useState(() => loadInsectArtOptionId());
 
-  const showPanel = (persist = true) => {
-    setVisible(true);
-    if (persist) persistPlayingBarEdgeGradientTunerVisible(true);
-  };
+  // Apply on mount even when the panel is hidden, so a saved default is what the
+  // app actually renders rather than only taking effect once the panel is opened.
+  useEffect(() => {
+    applyPlayingBarEdgeGradient(config);
+  }, [config]);
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('shaderDebug') === '1') {
-      showPanel();
-    }
-  }, []);
+    if (available) persistPlayingBarEdgeGradientTunerVisible(true);
+  }, [available]);
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key.toLowerCase() !== 'g' || !event.shiftKey) return;
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          target.closest('input, textarea, select, [contenteditable="true"]'))
-      ) {
-        return;
-      }
-      event.preventDefault();
-      setVisible((current) => {
-        const next = !current;
-        persistPlayingBarEdgeGradientTunerVisible(next);
-        return next;
-      });
+    const onChange = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: string }>).detail?.id;
+      if (id) setInsectArtId(id);
     };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener(INSECT_ART_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(INSECT_ART_CHANGE_EVENT, onChange);
   }, []);
 
-  if (!import.meta.env.DEV) return null;
+  const insectArt = getInsectArtOption(insectArtId);
 
-  const hidePanel = () => {
-    setVisible(false);
-    persistPlayingBarEdgeGradientTunerVisible(false);
+  const update = useCallback(<K extends keyof PlayingBarEdgeGradientConfig>(
+    key: K,
+    value: PlayingBarEdgeGradientConfig[K],
+  ) => {
+    setConfig((current) => ({ ...current, [key]: value }));
+  }, []);
+
+  const summary = useMemo(() => configSummary(config), [config]);
+
+  const renderSlider = (field: SliderField) => {
+    const value = config[field.key] as number;
+    return (
+      <label className={styles.field} key={field.key}>
+        <span className={styles.fieldLabel}>
+          {field.label}
+          <span className={styles.fieldValue}>
+            {field.format ? field.format(value) : value.toFixed(2)}
+          </span>
+        </span>
+        <input
+          type="range"
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          value={value}
+          onChange={(event) => update(field.key, Number(event.target.value) as never)}
+        />
+      </label>
+    );
   };
 
-  return (
-    <>
-      {!visible && (
-        <div className={styles.launcherDock}>
+  if (!available) return null;
+
+  if (!open) {
+    return (
+      <div className={styles.launcherDock}>
+        <button
+          type="button"
+          className={styles.launcher}
+          onClick={() => setOpen(true)}
+        >
+          Radiance
+        </button>
+        <button
+          type="button"
+          className={styles.landingChip}
+          title={`Insect art: ${insectArt.label}. Click to cycle options.`}
+          onClick={() => setInsectArtId(cycleInsectArtOptionId(insectArtId))}
+        >
+          Insects
+          <span className={styles.landingChipState}>{insectArt.label}</span>
+        </button>
+        {onLandingEnabledChange && (
           <button
             type="button"
-            className={`${styles.launcher} ${isPlaying ? styles.launcherActive : ''}`}
-            onClick={() => showPanel()}
-            aria-label="Open background radiance controls"
+            className={`${styles.landingChip} ${landingEnabled ? styles.landingChipOn : ''}`}
+            onClick={() => onLandingEnabledChange(!landingEnabled)}
           >
-            Radiance
+            <span className={styles.landingChipDot} aria-hidden />
+            Landing
+            <span className={styles.landingChipState}>{landingEnabled ? 'On' : 'Off'}</span>
           </button>
-          {onLandingEnabledChange && (
-            <button
-              type="button"
-              className={`${styles.landingChip} ${landingEnabled ? styles.landingChipOn : ''}`}
-              onClick={() => onLandingEnabledChange(!landingEnabled)}
-              aria-pressed={landingEnabled}
-              aria-label={
-                landingEnabled ? 'Hide landing page' : 'Show landing page'
-              }
-            >
-              <span className={styles.landingChipDot} aria-hidden="true" />
-              Landing
-              <span className={styles.landingChipState}>
-                {landingEnabled ? 'on' : 'off'}
-              </span>
-            </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <div>
+          <h2 className={styles.title}>Radiance</h2>
+          <p className={styles.summary}>{summary}</p>
+        </div>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={styles.iconButton}
+            title="Close"
+            onClick={() => setOpen(false)}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.body}>
+        {!isPlaying && (
+          <p className={styles.hint}>
+            The radiance only paints while a soundscape is playing — press play to
+            see these changes.
+          </p>
+        )}
+
+        {STRENGTH_FIELDS.map(renderSlider)}
+
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Colour</h3>
+          <div className={styles.fieldToggle}>
+            <span className={styles.fieldLabel}>Use scene colours</span>
+            <input
+              type="checkbox"
+              checked={config.useSceneColours}
+              onChange={(event) => update('useSceneColours', event.target.checked)}
+            />
+          </div>
+          {!config.useSceneColours && (
+            <div className={styles.colourRow}>
+              <label className={styles.colourField}>
+                <span className={styles.colourLabel}>Colour 1</span>
+                <input
+                  type="color"
+                  value={config.colour1}
+                  onChange={(event) => update('colour1', event.target.value)}
+                />
+              </label>
+              <label className={styles.colourField}>
+                <span className={styles.colourLabel}>Colour 2</span>
+                <input
+                  type="color"
+                  value={config.colour2}
+                  onChange={(event) => update('colour2', event.target.value)}
+                />
+              </label>
+            </div>
           )}
         </div>
-      )}
 
-      {visible && (
-        <aside className={`${styles.panel} ${collapsed ? styles.panelCollapsed : ''}`}>
-          <header className={styles.header}>
-            <div>
-              <h2 className={styles.title}>Background radiance</h2>
-              <p className={styles.summary}>{configSummary(config)}</p>
-            </div>
-            <div className={styles.headerActions}>
-              <button
-                type="button"
-                className={styles.iconButton}
-                onClick={() => setCollapsed((current) => !current)}
-                aria-label={collapsed ? 'Expand tuning panel' : 'Collapse tuning panel'}
-              >
-                {collapsed ? '‹' : '›'}
-              </button>
-              <button
-                type="button"
-                className={styles.iconButton}
-                onClick={hidePanel}
-                aria-label="Hide tuning panel"
-              >
-                ×
-              </button>
-            </div>
-          </header>
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Gradient</h3>
+          {GRADIENT_FIELDS.map(renderSlider)}
+        </div>
 
-          {!collapsed && (
-            <div className={styles.body}>
-              <p className={styles.hint}>
-                Press Play to preview. Toggle with <kbd>Shift</kbd>+<kbd>G</kbd> or the Radiance chip
-                (dev only).
-              </p>
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Motion</h3>
+          <div className={styles.fieldToggle}>
+            <span className={styles.fieldLabel}>Breathing</span>
+            <input
+              type="checkbox"
+              checked={config.breatheEnabled}
+              onChange={(event) => update('breatheEnabled', event.target.checked)}
+            />
+          </div>
+          {config.breatheEnabled && BREATH_FIELDS.map(renderSlider)}
+          <div className={styles.fieldToggle}>
+            <span className={styles.fieldLabel}>Swell while dragging</span>
+            <input
+              type="checkbox"
+              checked={config.dragReactive}
+              onChange={(event) => update('dragReactive', event.target.checked)}
+            />
+          </div>
+          <p className={styles.hint}>
+            Drag swell wakes a soft bottom glow while tiles are moved — works even
+            when Strength is 0.
+          </p>
+        </div>
 
-              {onLandingEnabledChange && (
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Landing page</h3>
-                  <ToggleField
-                    label="Show landing page"
-                    checked={landingEnabled}
-                    onChange={onLandingEnabledChange}
-                  />
-                  <span className={styles.fieldNote}>
-                    Off by default so the app boots straight into the workspace. Turn on to preview
-                    the intro gate.
-                  </span>
-                </div>
-              )}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Insect art</h3>
+          <button
+            type="button"
+            className={styles.saveButton}
+            onClick={() => setInsectArtId(cycleInsectArtOptionId(insectArtId))}
+          >
+            Cycle plate · {insectArt.label}
+          </button>
+        </div>
 
-              <div className={styles.section}>
-                <h3 className={styles.sectionTitle}>Opacity</h3>
-                <SliderField
-                  label="Wave opacity"
-                  value={config.waveOpacity}
-                  min={0.2}
-                  max={1}
-                  step={0.01}
-                  displayValue={config.waveOpacity.toFixed(2)}
-                  onChange={(waveOpacity) => setConfig({ waveOpacity })}
-                />
-              </div>
-
-              <div className={styles.section}>
-                <h3 className={styles.sectionTitle}>Background radiance</h3>
-                <SliderField
-                  label="Angle"
-                  value={config.gradientAngle}
-                  min={0}
-                  max={360}
-                  step={1}
-                  unit="°"
-                  displayValue={`${config.gradientAngle}°`}
-                  onChange={(gradientAngle) => setConfig({ gradientAngle })}
-                />
-                <SliderField
-                  label="Offset"
-                  value={config.gradientOffset}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  displayValue={config.gradientOffset.toFixed(2)}
-                  onChange={(gradientOffset) => setConfig({ gradientOffset })}
-                />
-                <SliderField
-                  label="Scale"
-                  value={config.gradientScale}
-                  min={0.1}
-                  max={2}
-                  step={0.01}
-                  displayValue={config.gradientScale.toFixed(2)}
-                  onChange={(gradientScale) => setConfig({ gradientScale })}
-                />
-                <SliderField
-                  label="Midpoint"
-                  value={config.gradientMidpoint}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  displayValue={config.gradientMidpoint.toFixed(2)}
-                  onChange={(gradientMidpoint) => setConfig({ gradientMidpoint })}
-                />
-                <SliderField
-                  label="Softness"
-                  value={config.gradientSoftness}
-                  min={0.01}
-                  max={1}
-                  step={0.01}
-                  displayValue={config.gradientSoftness.toFixed(2)}
-                  onChange={(gradientSoftness) => setConfig({ gradientSoftness })}
-                />
-              </div>
-
-              <div className={styles.section}>
-                <h3 className={styles.sectionTitle}>Motion</h3>
-                <ToggleField
-                  label="Breathe"
-                  checked={config.breatheEnabled}
-                  onChange={(breatheEnabled) => setConfig({ breatheEnabled })}
-                />
-                <SliderField
-                  label="Breath duration"
-                  value={config.breathDurationSec}
-                  min={4}
-                  max={24}
-                  step={0.5}
-                  unit="s"
-                  onChange={(breathDurationSec) => setConfig({ breathDurationSec })}
-                />
-                <SliderField
-                  label="Wave height shift"
-                  value={config.verticalOffset}
-                  min={0}
-                  max={0.6}
-                  step={0.01}
-                  displayValue={config.verticalOffset.toFixed(2)}
-                  onChange={(verticalOffset) => setConfig({ verticalOffset })}
-                />
-                <SliderField
-                  label="Edge rise"
-                  value={config.edgeRise}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  displayValue={config.edgeRise.toFixed(2)}
-                  onChange={(edgeRise) => setConfig({ edgeRise })}
-                />
-              </div>
-
-              <div className={styles.footer}>
-                <div className={styles.footerActions}>
-                  <button
-                    type="button"
-                    className={styles.saveButton}
-                    onClick={() => {
-                      saveConfigAsDefault();
-                      setSavedDefault({ ...config });
-                    }}
-                  >
-                    Save
-                  </button>
-                  <button type="button" className={styles.resetButton} onClick={resetConfig}>
-                    Reset
-                  </button>
-                </div>
-                <span className={styles.defaults}>
-                  {savedDefault
-                    ? `Saved baseline: ${configSummary(savedDefault)}`
-                    : `No saved baseline · code defaults: ${configSummary(DEFAULT_PLAYING_BAR_EDGE_GRADIENT)}`}
-                </span>
-              </div>
-            </div>
-          )}
-        </aside>
-      )}
-    </>
+        <div className={styles.footer}>
+          <div className={styles.footerActions}>
+            <button
+              type="button"
+              className={styles.saveButton}
+              onClick={() => savePlayingBarEdgeGradientSavedDefault(config)}
+            >
+              Save as default
+            </button>
+            <button
+              type="button"
+              className={styles.resetButton}
+              onClick={() => setConfig(DEFAULT_PLAYING_BAR_EDGE_GRADIENT)}
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

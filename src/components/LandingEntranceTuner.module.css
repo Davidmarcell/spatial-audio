@@ -2,18 +2,19 @@
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
   left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
-  z-index: 500;
+  z-index: 920;
   width: min(18.5rem, calc(100vw - 1.5rem));
   max-height: calc(100vh - 1.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   border: 1px solid var(--glass-border);
   border-radius: 0.85rem;
-  background: color-mix(in srgb, var(--glass-panel-bg) 88%, transparent);
+  background: color-mix(in srgb, var(--glass-panel-bg) 94%, #fff);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   color: var(--text);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .panelCollapsed {
@@ -28,7 +29,7 @@
   position: fixed;
   left: calc(env(safe-area-inset-left, 0px) + 17.5rem);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
-  z-index: 499;
+  z-index: 900;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -36,15 +37,15 @@
 
 .launcher {
   padding: 0.45rem 0.75rem;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border-strong, rgba(0, 0, 0, 0.18));
   border-radius: 999px;
-  background: color-mix(in srgb, var(--glass-panel-bg) 90%, transparent);
+  background: color-mix(in srgb, var(--glass-panel-bg) 94%, #fff);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  color: var(--text-secondary);
+  color: var(--text);
   font: inherit;
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.01em;
   cursor: pointer;
   box-shadow: var(--shadow-sm);

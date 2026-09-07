@@ -1,164 +1,176 @@
 .root {
-  display: flex;
-  flex-direction: column;
+  --sound-tile-card-radius: var(--panel-radius);
+  --sound-tile-image-radius: 16px;
+  --sound-tile-padding: var(--space-4);
+  --sound-tile-image-size: 320px;
+  --sound-tile-column-gap: 16px;
+
+  position: relative;
+  /* Arcade sheet: always a single tall column — art above, meta below. */
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  align-items: start;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  padding: var(--sound-tile-padding);
+  box-sizing: border-box;
+  overflow: auto;
+  background: #fff;
+  color: #121212;
 }
 
-.header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.85rem 0.85rem 0.65rem;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.headerText {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.dismiss {
+.close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 6;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
+  width: var(--control-height);
+  height: var(--control-height);
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 999px;
-  background: var(--surface-elevated);
-  color: var(--text-muted);
-  line-height: 0;
-  cursor: pointer;
+  background: rgba(255, 255, 255, 0.96);
+  color: #333;
   box-shadow: none;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.close:hover {
+  color: #111;
+  background: #fff;
+}
+
+.closeIcon {
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.artworkWrap {
+  width: 100%;
+  max-width: none;
+  align-self: stretch;
   flex-shrink: 0;
 }
 
-.dismiss:hover {
-  color: var(--text);
+.artworkHidden {
+  visibility: hidden;
+}
+
+/* Shared-element slot: natural aspect (portrait grows taller; landscape
+   wider) — but capped to `--sound-tile-art-height` (viewport-aware) so a very
+   tall plate (a full-page bird portrait, say) can never push the rest of the
+   card off-screen. Width comes from the same capped box, so the art narrows
+   rather than distorts once the height cap kicks in, and stays centered. */
+.artworkWrapShared {
+  width: var(--sound-tile-art-width, 100%);
+  max-width: 100%;
+  height: var(--sound-tile-art-height, auto);
+  aspect-ratio: var(--sound-tile-art-aspect, 1);
+  margin-inline: auto;
+}
+
+.artwork.artworkShared {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--sound-tile-image-radius);
+  overflow: hidden;
+  transform: translateZ(0);
 }
 
 .artwork {
-  flex-shrink: 0;
-  min-width: 0;
-  height: min(36vh, 280px);
-  max-height: min(36vh, 280px);
-  background: #f8f6f2;
-  border-bottom: 1px solid var(--border);
-  /* Shared image-tile radius so the detail artwork rounds like the tiles; the
-     inner image inherits this and is clipped to it. */
-  border-radius: var(--tile-radius);
+  width: 100%;
+  height: auto;
+  border-radius: var(--sound-tile-image-radius);
   overflow: hidden;
+  background: #f3efe8;
 }
 
 .infoColumn {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  padding: 0.15rem 0 0;
 }
 
 .scroll {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-
-.eyebrow {
-  margin: 0;
-  font-size: 0.68rem;
-  color: var(--text-secondary);
+  flex: 1;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 1.35rem;
-  line-height: 1.12;
-  letter-spacing: -0.03em;
+  font-size: 1.5rem;
   font-weight: 700;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: 0.8rem;
-  letter-spacing: -0.01em;
-  color: var(--text-secondary);
-  font-weight: 400;
-}
-
-.body {
-  margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.6;
-  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1.33;
+  color: #111;
 }
 
 .meta {
   margin: 0;
   display: grid;
-  gap: 0.55rem;
+  gap: var(--space-2);
 }
 
-.meta div {
+.metaRow {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  min-width: 0;
 }
 
-.meta dt {
+.metaLabel {
   margin: 0;
-  font-size: 0.72rem;
-  text-transform: none;
-  letter-spacing: normal;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
   font-weight: 550;
+  color: #626262;
 }
 
-.meta dd {
+.metaValue {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   line-height: 1.45;
-}
-
-.meta a {
-  color: var(--accent-strong);
-  text-decoration: none;
-}
-
-.meta a:hover {
-  text-decoration: underline;
+  color: #171717;
 }
 
 .sourceLink {
-  composes: pillCompact from '../styles/glassButton.module.css';
-  composes: noShadow from '../styles/glassButton.module.css';
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  color: var(--text);
+  gap: 0.28rem;
+  color: inherit;
   text-decoration: none;
 }
 
 .sourceLink:hover {
-  text-decoration: none;
+  text-decoration: underline;
+}
+
+.sourceArrow {
+  font-size: 0.95em;
+  line-height: 1;
+  translate: 0 0.02em;
+}
+
+.volumeBlock {
+  margin-top: auto;
+  margin-inline: 0;
+  width: auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-top: 0.35rem;
 }
 
 .volumeHeader {
@@ -166,37 +178,108 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem;
+  padding-inline: 0;
+}
+
+.volumeLabel {
+  margin: 0;
+  /* Match the Title/Artist/Source label treatment. */
+  font-size: 0.72rem;
+  font-weight: 550;
+  color: #626262;
 }
 
 .volumeValue {
   font-size: 0.85rem;
-  color: var(--accent-strong);
-  font-variant-numeric: tabular-nums;
   font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: #111;
 }
 
 .slider {
+  margin: 0;
+  box-sizing: border-box;
+  --sound-tile-slider-size: 12px;
   width: 100%;
-  accent-color: var(--accent);
+  max-width: 100%;
+  appearance: none;
+  height: var(--sound-tile-slider-size);
+  border-radius: 999px;
+  background: #ddd8d1;
+  outline: none;
+  accent-color: #111;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: var(--sound-tile-slider-size);
+  border-radius: 999px;
+  background: #ddd8d1;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--sound-tile-slider-size);
+  height: var(--sound-tile-slider-size);
+  margin-top: 0;
+  border-radius: 50%;
+  background: #111;
+  border: none;
+  cursor: pointer;
+}
+
+.slider::-moz-range-track {
+  height: var(--sound-tile-slider-size);
+  border-radius: 999px;
+  background: #ddd8d1;
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+  width: var(--sound-tile-slider-size);
+  height: var(--sound-tile-slider-size);
+  border-radius: 50%;
+  background: #111;
+  border: none;
+  cursor: pointer;
 }
 
 @media (max-width: 760px) {
-  .artwork {
-    height: min(36vh, 260px);
-    max-height: min(36vh, 260px);
+  .root {
+    gap: 0.95rem;
+  }
+
+  .infoColumn {
+    padding-right: 0;
   }
 }
 
-@media (min-width: 761px) {
-  .root {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
+/* iOS bottom-sheet: edge-to-edge, taller art, no card padding chrome. */
+.sheetPresentation {
+  grid-template-columns: 1fr;
+  gap: 1.1rem;
+  padding: 0.2rem 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  overflow: visible;
+}
 
-  .artwork {
-    height: auto;
-    max-height: none;
-    border-bottom: none;
-    border-right: 1px solid var(--border);
-  }
+.sheetPresentation .artworkWrap {
+  max-width: none;
+  filter: none;
+}
+
+.sheetPresentation .artwork {
+  border-radius: 18px;
+}
+
+.sheetPresentation .infoColumn {
+  padding-right: 0;
+}
+
+.sheetPresentation .close {
+  top: 0.1rem;
+  right: 0.15rem;
+}
+
+.sheetPresentation .title {
+  font-size: 1.55rem;
 }

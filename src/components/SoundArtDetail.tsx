@@ -1,9 +1,21 @@
+import type { CSSProperties } from 'react';
 import { getSoundArtworkForRegion, type RegionArtContext } from '../data/iconArt';
-import { getSoundBlurb } from '../data/soundBlurbs';
+import {
+  clampDetailCardWidth,
+  detailArtBox,
+  portraitArtMaxHeightPx,
+} from '../utils/detailArtLayout';
 import { SoundIconImage } from './SoundIconImage';
+import {
+  loadSoundTileDesign,
+  shortArtworkSourceLabel,
+  soundTileDesignToCssVars,
+  type SoundTileDesignConfig,
+} from './soundTileDesign';
 import styles from './SoundArtDetail.module.css';
 
 export type DetailTarget = {
+  recording?: import('../data/discoveredRecordings').DiscoveredRecording;
   instanceId: string;
   soundId: string;
   name: string;
@@ -14,12 +26,38 @@ type Props = {
   target: DetailTarget;
   onVolumeChange: (instanceId: string, volume: number) => void;
   regionArt: RegionArtContext;
+  /** Optional live design tokens (DEV tuner). Falls back to saved defaults. */
+  designConfig?: SoundTileDesignConfig;
+  onClose?: () => void;
+  /** Mobile iOS bottom-sheet presentation (taller, edge-to-edge). */
+  presentation?: 'card' | 'sheet';
+  /** Hide artwork while a shared-element face covers the same slot. */
+  artworkHidden?: boolean;
+  /**
+   * `shared` keeps the same tile image through expand, in a natural-aspect
+   * slot (portrait art grows taller so more of the illustration is visible).
+   */
+  artworkMode?: 'natural' | 'shared';
+  /** Natural width/height used when `artworkMode="shared"`. */
+  artAspect?: number;
+  /** Exact destination used by the flying artwork; no second layout estimate. */
+  sharedArtBox?: { artW: number; artH: number; isLandscape: boolean };
+  /** Fade the meta/volume column during card-expand (0–1). */
+  infoOpacity?: number;
 };
 
 export function SoundArtDetailContent({
   target,
   onVolumeChange,
   regionArt,
+  designConfig,
+  onClose,
+  presentation = 'card',
+  artworkHidden = false,
+  artworkMode = 'natural',
+  artAspect = 1,
+  sharedArtBox,
+  infoOpacity = 1,
 }: Props) {
   const artwork = getSoundArtworkForRegion(
     regionArt.id,
@@ -28,69 +66,144 @@ export function SoundArtDetailContent({
     target.instanceId,
     regionArt.tags,
   );
-  const blurb = getSoundBlurb(target.soundId);
   const percent = Math.round(target.volume * 100);
+  const sourceLabel = shortArtworkSourceLabel(artwork.sourceUrl);
+  const design = designConfig ?? loadSoundTileDesign();
+  // Same box the flight estimate targets — shared helper, shared caps, shared
+  // available width. If these two ever diverge the card resizes after landing.
+  const artBox =
+    artworkMode === 'shared'
+      ? sharedArtBox ?? detailArtBox(
+          artAspect,
+          design.imageSizePx,
+          portraitArtMaxHeightPx(),
+          Math.max(120, clampDetailCardWidth(design.panelWidthPx) - design.paddingPx * 2),
+        )
+      : null;
+  const designStyle = {
+    ...soundTileDesignToCssVars(design),
+    ...(artBox
+      ? {
+          '--sound-tile-art-width': `${artBox.artW}px`,
+          '--sound-tile-art-height': `${artBox.artH}px`,
+          '--sound-tile-image-size': `${artBox.isLandscape ? artBox.artW : design.imageSizePx}px`,
+        }
+      : null),
+  } as CSSProperties;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.artwork}>
-        <SoundIconImage
-          src={artwork.src}
-          sourceUrl={artwork.sourceUrl}
-          detailSrc={artwork.detailSrc}
-          alt={target.name}
-          soundId={target.soundId}
-          size="detail"
-        />
+    <div
+      className={`${styles.root} ${presentation === 'sheet' ? styles.sheetPresentation : ''}`}
+      style={designStyle}
+    >
+      {onClose && (
+        <button
+          type="button"
+          className={styles.close}
+          aria-label={`Close ${target.name} details`}
+          onClick={onClose}
+        >
+          <span className={styles.closeIcon} aria-hidden>
+            ×
+          </span>
+        </button>
+      )}
+
+      <div
+        data-detail-art="settled"
+        className={[
+          styles.artworkWrap,
+          artworkMode === 'shared' ? styles.artworkWrapShared : '',
+          artworkHidden ? styles.artworkHidden : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        style={
+          artworkMode === 'shared'
+            ? ({
+                '--sound-tile-art-aspect': `${Math.max(0.4, artAspect)}`,
+              } as CSSProperties)
+            : undefined
+        }
+      >
+        <div className={`${styles.artwork} ${artworkMode === 'shared' ? styles.artworkShared : ''}`}>
+          {artworkMode === 'shared' ? (
+            <SoundIconImage
+              src={artwork.src}
+              sourceUrl={artwork.sourceUrl}
+              detailSrc={artwork.detailSrc}
+              alt={artwork.title}
+              soundId={target.soundId}
+              size="canvas"
+            />
+          ) : (
+            <SoundIconImage
+              src={artwork.src}
+              sourceUrl={artwork.sourceUrl}
+              detailSrc={artwork.detailSrc}
+              alt={artwork.title}
+              soundId={target.soundId}
+              size="detailNatural"
+            />
+          )}
+        </div>
       </div>
 
-      <div className={styles.infoColumn}>
+      <div
+        className={styles.infoColumn}
+        style={
+          infoOpacity < 1
+            ? {
+                opacity: infoOpacity,
+                // Fade only — never scale/reflow the type during expand.
+                pointerEvents: infoOpacity < 0.95 ? 'none' : undefined,
+              }
+            : undefined
+        }
+      >
         <div className={styles.scroll}>
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>About this sound</h3>
-            <p className={styles.body}>{blurb}</p>
-          </section>
+          <h3 className={styles.title}>{target.name}</h3>
 
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Illustration</h3>
-            <dl className={styles.meta}>
-              <div>
-                <dt>Title</dt>
-                <dd>{artwork.title}</dd>
-              </div>
-              <div>
-                <dt>Artist</dt>
-                <dd>{artwork.author}</dd>
-              </div>
-              {artwork.medium && (
-                <div>
-                  <dt>Medium</dt>
-                  <dd>{artwork.medium}</dd>
-                </div>
-              )}
-              <div>
-                <dt>License</dt>
-                <dd>{artwork.license}</dd>
-              </div>
-              <div>
-                <dt>Source</dt>
-                <dd>
-                  <a
-                    href={artwork.sourceUrl}
-                    className={styles.sourceLink}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    View original
+          <dl className={styles.meta}>
+            {target.recording && (
+              <div className={styles.metaRow}>
+                <dt className={styles.metaLabel}>Field recording · creator-supplied location</dt>
+                <dd className={styles.metaValue}>
+                  <a href={target.recording.sourceUrl} target="_blank" rel="noreferrer noopener">
+                    {target.recording.author} · {target.recording.license} ↗
                   </a>
                 </dd>
               </div>
-            </dl>
-          </section>
+            )}
+            <div className={styles.metaRow}>
+              <dt className={styles.metaLabel}>{target.recording ? 'Illustrative artwork' : 'Title'}</dt>
+              <dd className={styles.metaValue}>{artwork.title}</dd>
+            </div>
+            <div className={styles.metaRow}>
+              <dt className={styles.metaLabel}>Artist</dt>
+              <dd className={styles.metaValue}>{artwork.author}</dd>
+            </div>
+            <div className={styles.metaRow}>
+              <dt className={styles.metaLabel}>Source</dt>
+              <dd className={styles.metaValue}>
+                <a
+                  className={styles.sourceLink}
+                  href={artwork.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  <span>{sourceLabel}</span>
+                  <span className={styles.sourceArrow} aria-hidden>
+                    ↗
+                  </span>
+                </a>
+              </dd>
+            </div>
+          </dl>
 
-          <section className={styles.section}>
+          <section className={styles.volumeBlock}>
             <div className={styles.volumeHeader}>
-              <h3 className={styles.sectionTitle}>Volume</h3>
+              <p className={styles.volumeLabel}>Volume</p>
               <span className={styles.volumeValue}>{percent}%</span>
             </div>
             <input

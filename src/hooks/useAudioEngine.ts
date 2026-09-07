@@ -37,6 +37,18 @@ export function useAudioEngine() {
     [],
   );
 
+  const playLoop = useCallback(
+    async (id: string, src: string, options?: { volume?: number; fadeInSeconds?: number }) => {
+      await audioEngine.playLoop(id, src, options);
+      setIsUnlocked(true);
+    },
+    [],
+  );
+
+  const stopLoop = useCallback((id: string, fadeOutSeconds?: number) => {
+    audioEngine.stopLoop(id, fadeOutSeconds);
+  }, []);
+
   const pause = useCallback(() => {
     audioEngine.pause();
     setIsPlaying(false);
@@ -58,10 +70,23 @@ export function useAudioEngine() {
       unlock,
       play,
       playOneShot,
+      playLoop,
+      stopLoop,
       pause,
       togglePlay,
       engine: audioEngine,
     }),
-    [isPlaying, isUnlocked, preloadSounds, unlock, play, playOneShot, pause, togglePlay],
+    [
+      isPlaying,
+      isUnlocked,
+      preloadSounds,
+      unlock,
+      play,
+      playOneShot,
+      playLoop,
+      stopLoop,
+      pause,
+      togglePlay,
+    ],
   );
 }

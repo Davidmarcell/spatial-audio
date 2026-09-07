@@ -4,31 +4,19 @@
  */
 export const FALLBACK_ICON_SRC = '/icons/gray-catbird.jpg';
 
-/** Met plates shipped under public/icons/met/ (see npm run download:icons). */
-const BUNDLED_MET_SRCS = new Set([
-  '/icons/met/10378.jpg',
-  '/icons/met/10770.jpg',
-  '/icons/met/11124.jpg',
-  '/icons/met/11131.jpg',
-  '/icons/met/11138.jpg',
-  '/icons/met/11306.jpg',
-  '/icons/met/12307.jpg',
-  '/icons/met/12392.jpg',
-  '/icons/met/12586.jpg',
-  '/icons/met/286187.jpg',
-  '/icons/met/338617.jpg',
-  '/icons/met/363843.jpg',
-  '/icons/met/371022.jpg',
-  '/icons/met/393450.jpg',
-  '/icons/met/489985.jpg',
-  '/icons/met/55433.jpg',
-  '/icons/met/751141.jpg',
-  '/icons/met/830271.jpg',
-  '/icons/met/853645.jpg',
-]);
-
+/**
+ * True when `src` is an app-shipped file under `public/icons/` (including the
+ * full Met plate set under `public/icons/met/`). Remote http(s) URLs are not
+ * local.
+ *
+ * Historically only a subset of `/icons/met/*` was allowlisted; plates on disk
+ * but missing from that list were treated as remote-only, so the tile fallback
+ * chain skipped the local file and could show a broken image when Wikimedia /
+ * the catbird fallback failed. Prefer any `/icons/` path as local.
+ */
 export function isLocallyBundledIconSrc(src: string): boolean {
-  return !src.startsWith('/icons/met/') || BUNDLED_MET_SRCS.has(src);
+  if (!src) return false;
+  return src.startsWith('/icons/');
 }
 
 export function getDetailIconSrc(
@@ -74,6 +62,11 @@ export function resolveTileIconSrc(entry: {
   return entry.src;
 }
 
+function pushUnique(chain: string[], src: string | undefined) {
+  if (!src || chain.includes(src)) return;
+  chain.push(src);
+}
+
 export function iconSrcFallbackChain(
   entry: { src: string; sourceUrl?: string; detailSrc?: string },
   size: 'tile' | 'detail' = 'tile',
@@ -82,26 +75,29 @@ export function iconSrcFallbackChain(
   const detailPrimary = getDetailIconSrc(entry.src, entry.sourceUrl, entry.detailSrc);
   const chain: string[] = [];
 
-  // Prefer bundled local files first so dev and portfolio base paths always resolve.
-  if (isLocallyBundledIconSrc(entry.src)) {
-    chain.push(entry.src);
+  // Always try the authored local `/icons/…` path first when present, even if a
+  // remote detail/commons URL is also available.
+  if (entry.src.startsWith('/icons/')) {
+    pushUnique(chain, entry.src);
+  } else if (isLocallyBundledIconSrc(entry.src)) {
+    pushUnique(chain, entry.src);
   }
 
   if (size === 'detail') {
-    if (detailPrimary !== entry.src) chain.push(detailPrimary);
-    if (entry.detailSrc && entry.detailSrc !== detailPrimary) chain.push(entry.detailSrc);
+    if (detailPrimary !== entry.src) pushUnique(chain, detailPrimary);
+    if (entry.detailSrc && entry.detailSrc !== detailPrimary) {
+      pushUnique(chain, entry.detailSrc);
+    }
   } else if (tileSrc !== entry.src) {
-    chain.push(tileSrc);
+    pushUnique(chain, tileSrc);
   }
 
   const commonsRemote = getDetailIconSrc(entry.src, entry.sourceUrl, undefined);
-  if (commonsRemote !== entry.src && !chain.includes(commonsRemote)) {
-    chain.push(commonsRemote);
+  if (commonsRemote !== entry.src) {
+    pushUnique(chain, commonsRemote);
   }
 
-  if (!chain.includes(FALLBACK_ICON_SRC)) {
-    chain.push(FALLBACK_ICON_SRC);
-  }
+  pushUnique(chain, FALLBACK_ICON_SRC);
 
   return chain;
 }

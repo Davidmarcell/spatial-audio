@@ -56,12 +56,43 @@ Registered in `src/data/soundClips.generated.ts` and credited automatically on t
 | `public/audio/pool/songbird/songbird-tree-sparrow.mp3` | Passer montanus - Eurasian Tree Sparrow XC347806 | Derek Paulo (xeno-canto) | CC BY-SA 4.0 | [Commons file](https://commons.wikimedia.org/wiki/File:Passer_montanus_-_Eurasian_Tree_Sparrow_XC347806.mp3) |
 | `public/audio/pool/bells/bells-gong-temple.mp3` | Gong, sweet | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1482](https://bigsoundbank.com/gong-sweet-s1482.html) |
 | `public/audio/pool/traffic/traffic-highway.mp3` | Highway | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0122](https://bigsoundbank.com/highway-s0122.html) |
+| `public/audio/pool/subway/subway-metro-arrival.mp3` | Metro: Stopping and starting #2 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3041](https://bigsoundbank.com/metro-stopping-and-starting-2-s3041.html) |
+| `public/audio/pool/subway/subway-metro-rolling.mp3` | Metro, Paris #2 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0092](https://bigsoundbank.com/metro-paris-2-s0092.html) |
+| `public/audio/pool/subway/subway-corridor.mp3` | Metro corridor, Paris #1 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0093](https://bigsoundbank.com/metro-corridor-paris-1-s0093.html) |
+| `public/audio/pool/subway/subway-london-kings-cross.mp3` | King's Cross St. Pancras station, London | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0639](https://bigsoundbank.com/king-s-cross-st-pancras-station-london-s0639.html) |
+| `public/audio/pool/tram/tram-passing.mp3` | Passing tram | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0278](https://bigsoundbank.com/passing-tram-s0278.html) |
+| `public/audio/pool/city-hum/city-london-street.mp3` | London street | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0641](https://bigsoundbank.com/london-street-s0641.html) |
+| `public/audio/pool/city-hum/city-london-soundscape.mp3` | London street #2 | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0643](https://bigsoundbank.com/london-street-2-s0643.html) |
+| `public/audio/pool/city-hum/city-paris-small-street.mp3` | Little Parisian street | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1713](https://bigsoundbank.com/little-parisian-street-s1713.html) |
+| `public/audio/pool/city-hum/city-village-centre.mp3` | Village town centre, Manou (Perche) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1346](https://bigsoundbank.com/village-city-center-1-s1346.html) |
+| `public/audio/pool/cafe/cafe-pizzeria.mp3` | Restaurant (pizzeria) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0624](https://bigsoundbank.com/restaurant-s0624.html) |
+| `public/audio/pool/cafe/cafe-small-restaurant.mp3` | Small restaurant conversations | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3542](https://bigsoundbank.com/small-restaurant-conversations-s3542.html) |
+| `public/audio/pool/cafe/cafe-brunch.mp3` | Restaurant #2 (brunch) | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3376](https://bigsoundbank.com/restaurant-2-s3376.html) |
+| `public/audio/pool/market/market-outdoor-french.mp3` | Outdoor market #2, Neuilly-sur-Seine | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3378](https://bigsoundbank.com/outdoor-market-2-s3378.html) |
+| `public/audio/pool/market/market-covered-2.mp3` | Covered market #2, Levallois-Perret | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #3347](https://bigsoundbank.com/covered-market-2-s3347.html) |
+| `public/audio/pool/stream/stream-japanese-temple-fountain.mp3` | Fountain of a Japanese temple | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #0913](https://bigsoundbank.com/fountain-of-a-japanese-temple-s0913.html) |
+| `public/audio/pool/stream/stream-paris-square-fountain.mp3` | Parisian paved square fountain | Joseph SARDIN / BigSoundBank | CC0 1.0 | [BigSoundBank #1081](https://bigsoundbank.com/parisian-paved-square-fountain-s1081.html) |
 
 ## UI transitions
 
 | File | Title | Author | License | Source |
 |------|-------|--------|---------|--------|
-| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (trimmed ~860ms) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
+| `public/audio/ui/enter-whoosh.mp3` | Swooshes, whoosh, short, deep (~4.6s, natural swell with smooth exponential fade-out) | susssounds | CC0 1.0 | [Freesound #752068](https://freesound.org/people/susssounds/sounds/752068/) |
+| `public/audio/ui/globe-ambient.mp3` | Ethereal globe browse ambient (synthesized soft noise + pad) | Saudade | Original (app asset) | — |
+
+## Icon fonts
+
+The UI icons prefer **Font Awesome 6 Pro (Regular)**, which is licensed and not
+redistributable — `public/fonts/fontawesome/` is gitignored, so that file only
+exists on a machine with the Pro install. Because relying on it alone left every
+icon blank on phones and on any deploy, the bundled **Font Awesome Free**
+webfonts are appended to the same family stack as per-glyph fallbacks. Font
+Awesome uses one codepoint per icon across styles, so the glyphs are the same
+icons; only the stroke weight differs where a Pro-only Regular cut is missing.
+
+| Package | Files | License | Source |
+|---------|-------|---------|--------|
+| `@fortawesome/fontawesome-free` | `webfonts/fa-regular-400.woff2`, `webfonts/fa-solid-900.woff2` | Fonts: SIL OFL 1.1 · Code: MIT | [fontawesome.com/license/free](https://fontawesome.com/license/free) |
 
 ## Re-downloading assets
 

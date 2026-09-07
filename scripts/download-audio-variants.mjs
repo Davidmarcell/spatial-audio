@@ -98,6 +98,12 @@ const BSB = [
   // Region-neutral motorway wash that adds depth to the traffic pool so cities
   // without a region-specific street clip get varied road texture, not silence.
   ['traffic-highway', 'traffic', ['urban'], true, '0122', 'highway-s0122', 'Highway'],
+  // ---- subway / metro (train arrives, stops, leaves — platform recording) ----
+  // Not a spoken announcement (no clean CC0/reusable source found for one),
+  // but the train-arrival/departure rumble is the single most recognisable
+  // "subway" sound and reads correctly under any big-city scene (Manhattan,
+  // London, Paris, Tokyo…) via the generic `urban` tag.
+  ['subway-metro-arrival', 'subway', ['urban', 'european'], false, '3041', 'metro-stopping-and-starting-2-s3041', 'Metro: Stopping and starting #2'],
   // ---- market / crowd ----
   ['market-covered-1', 'market', ['urban', 'european'], true, '3346', 'covered-market-1-s3346', 'Covered market #1'],
   ['market-crowd', 'market', ['urban'], true, '3515', 'crowd-of-50-60-people-1-s3515', 'Crowd of 50-60 people #1'],
@@ -197,7 +203,8 @@ const COMMONS = [
   ['puffin-1', 'seabird', ['european', 'coastal', 'cold'], true, 'Atlantic Puffin (Fratercula arctica) (W1CDR0001416 BD3).ogg', 'CC BY-SA 4.0', 'British Library'],
   ['gannet-1', 'seabird', ['european', 'coastal'], true, 'Northern Gannet (Morus bassanus) (W1CDR0001422 BD11).ogg', 'CC BY-SA 4.0', 'British Library'],
   ['arctic-tern-1', 'seabird', ['european', 'coastal', 'cold'], false, 'Sterna paradisaea - Arctic Tern XC564600.mp3', 'CC BY-SA 4.0', 'Doug Hynes'],
-  ['arctic-tern-2', 'seabird', ['european', 'coastal', 'cold'], true, 'Holm of Papa Sterna paradisaea.wav', 'CC BY-SA 4.0', 'Gunther Tschuch'],
+  // arctic-tern-2: Commons original is an uncompressed WAV; see LOCAL below
+  // for the committed MP3 transcode.
   // ---- North African / Mediterranean songbirds ----
   ['laughing-dove-1', 'songbird', ['mediterranean', 'arid'], true, 'Spilopelia senegalensis call in Tehran.ogg', 'CC BY-SA 4.0', 'MRG90'],
   ['laughing-dove-2', 'songbird', ['mediterranean', 'arid'], true, 'S-senegalensis.ogg', 'CC BY 2.5', 'L. Shyamal'],
@@ -222,7 +229,8 @@ const COMMONS = [
   ['tropical-bird-asian-koel', 'tropical-bird', ['asian', 'tropical', 'forest', 'garden'], true, 'Eudynamys scolopaceus - Asian Koel XC476378.mp3', 'CC BY-SA 4.0', 'Manoj Karingamadathil'],
   ['tropical-bird-racket-tailed-drongo', 'tropical-bird', ['asian', 'tropical', 'forest'], true, 'Dicrurus paradiseus - Greater Racket-tailed Drongo XC124717.ogg', 'CC BY-SA 3.0', 'Sudipto Roy'],
   ['tropical-bird-red-whiskered-bulbul', 'tropical-bird', ['asian', 'tropical', 'forest', 'garden'], true, 'Pycnonotus jocosus (Red-whiskered Bulbul).wav', 'CC BY-SA 4.0', 'Subhashish Panigrahi'],
-  ['tropical-bird-great-hornbill', 'tropical-bird', ['asian', 'tropical', 'forest'], false, 'Great hornbill , Buceros bicornis,call.wav', 'CC BY-SA 4.0', 'Shino jacob koottanad'],
+  // tropical-bird-great-hornbill: Commons original is an uncompressed WAV;
+  // see LOCAL below for the committed MP3 transcode.
   // ---- Asian songbirds ----
   ['songbird-japanese-bush-warbler-uguisu', 'songbird', ['asian', 'temperate', 'forest', 'garden'], true, 'Uguisu5707.ogg', 'CC BY 2.1 jp', 'Jnn'],
   ['songbird-japanese-bush-warbler-2', 'songbird', ['asian', 'temperate', 'forest', 'garden'], true, 'Japanese nightingale note01.ogg', 'CC BY-SA 3.0', 'Unknown'],
@@ -253,8 +261,10 @@ const COMMONS = [
   // Ring-necked / Cape turtle dove — the quintessential background coo of the
   // East-African savanna (pinned by the Serengeti recipe).
   ['songbird-cape-turtle-dove', 'songbird', ['african', 'savanna', 'arid'], true, 'Streptopelia capicola abunda, roep, 17 s, Bronberg, a.mp3', 'CC BY-SA 4.0', 'JMK'],
-  // ---- Serengeti signature: distant lion roar (NEW `lion` type) ----
+  // ---- Serengeti signatures: lion (dock) + elephant trumpet (default bed) ----
   ['lion-roar-1', 'lion', ['african', 'savanna', 'arid'], false, 'Lion raring-sound1TamilNadu178.ogg', 'Public domain', 'தகவலுழவன் (Wikimedia Commons)'],
+  // Elephant trumpet is prepared locally (short Commons original padded into a
+  // ~11s distant-call loop) — see LOCAL list `elephant-trumpet-1`.
   // ---- Morepork / ruru (Queenstown, Auckland). No CC recording of Ninox
   // novaeseelandiae exists on Commons, so the near-identical call of its
   // congener, the Southern Boobook (Ninox boobook), stands in. STAND-IN FLAG. ----
@@ -343,6 +353,13 @@ const LOCAL = [
   // A calm, natural fir-forest wind (the new default breeze). The Commons
   // original is a 11 MB Ogg; we ship the site's 64 kbps MP3 transcode (~6 MB).
   ['wind-fir-forest', 'wind', ['forest', 'temperate', 'calm'], true, '/audio/pool/wind/wind-fir-forest.mp3', 'Wind in the spruces, Vijlenerbos (transcoded 64 kbps MP3 of the CC BY 3.0 original)', 'luc de bruijn (Wikimedia Commons)', 'CC BY 3.0', 'https://commons.wikimedia.org/wiki/File:Wind_in_sparren_in_het_Vijlenerbos_-_SoundCloud_-_luc_de_bruijn.ogg'],
+  // Distant Serengeti elephant — Commons trumpet (~1.4s, CC0) padded/loudnormed
+  // into an ~11s intermittent call so it sits as a bed without looping frantically.
+  ['elephant-trumpet-1', 'elephant', ['african', 'savanna', 'arid'], false, '/audio/pool/elephant/elephant-trumpet-1.mp3', 'Elephant voice — trumpeting (padded loop for distant savanna call)', 'தகவலுழவன் (Wikimedia Commons)', 'CC0', 'https://commons.wikimedia.org/wiki/File:Elephant_voice_-_trumpeting.ogg'],
+  // Commons originals for these two are uncompressed WAVs (0.6–3.4 MB); we
+  // ship a lighter MP3 transcode (scripts/optimize-audio.mjs) instead.
+  ['arctic-tern-2', 'seabird', ['european', 'coastal', 'cold'], true, '/audio/pool/seabird/arctic-tern-2.mp3', 'Holm of Papa Sterna paradisaea (MP3 transcode of the CC BY-SA 4.0 WAV original)', 'Gunther Tschuch (Wikimedia Commons)', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Holm_of_Papa_Sterna_paradisaea.wav'],
+  ['tropical-bird-great-hornbill', 'tropical-bird', ['asian', 'tropical', 'forest'], false, '/audio/pool/tropical-bird/tropical-bird-great-hornbill.mp3', 'Great hornbill, Buceros bicornis, call (MP3 transcode of the CC BY-SA 4.0 WAV original)', 'Shino jacob koottanad (Wikimedia Commons)', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Great_hornbill_,_Buceros_bicornis,call.wav'],
 ];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -472,7 +489,12 @@ for (const clip of manifest) {
 // Signature species that must stay unique to the single pin that pins them via
 // `fixedClipId`: excluded from the dispersion/weighted pools so they never leak
 // onto unrelated same-continent pins (see soundscapeSelection `pinnedOnly`).
-const PINNED_ONLY = new Set(['corvid-common-raven', 'corvid-stellers-jay']);
+const PINNED_ONLY = new Set([
+  'corvid-common-raven',
+  'corvid-stellers-jay',
+  // Serengeti signature — keep the padded elephant call off other African pins.
+  'elephant-trumpet-1',
+]);
 for (const clip of manifest) {
   if (PINNED_ONLY.has(clip.id)) clip.pinnedOnly = true;
 }

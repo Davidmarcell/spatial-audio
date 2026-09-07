@@ -600,6 +600,23 @@ export const soundClips: SoundClip[] = [
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Higurashi 20180728 1902.ogg"
   },
   {
+    "id": "insects-higurashi-cicada",
+    "type": "insects",
+    "tags": [
+      "asian",
+      "temperate",
+      "forest",
+      "summer",
+      "night"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/insects/insects-higurashi-cicada.ogg",
+    "title": "Tanna japonensis",
+    "author": "Σ64",
+    "license": "CC BY 4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tanna_japonensis_v01.ogg"
+  },
+  {
     "id": "insects-nocturnal",
     "type": "insects",
     "tags": [
@@ -732,6 +749,22 @@ export const soundClips: SoundClip[] = [
     "author": "Kuco (Wikimedia Commons)",
     "license": "Public domain",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:LaughingKookaburra.ogg"
+  },
+  {
+    "id": "elephant-trumpet-1",
+    "type": "elephant",
+    "tags": [
+      "african",
+      "savanna",
+      "arid"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/elephant/elephant-trumpet-1.mp3",
+    "title": "Elephant voice — trumpeting (padded loop for distant savanna call)",
+    "author": "தகவலுழவன் (Wikimedia Commons)",
+    "license": "CC0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Elephant_voice_-_trumpeting.ogg",
+    "pinnedOnly": true
   },
   {
     "id": "lion-roar-1",
@@ -1276,7 +1309,7 @@ export const soundClips: SoundClip[] = [
       "cold"
     ],
     "sustained": true,
-    "src": "/audio/pool/seabird/arctic-tern-2.wav",
+    "src": "/audio/pool/seabird/arctic-tern-2.mp3",
     "title": "Holm of Papa Sterna paradisaea",
     "author": "Gunther Tschuch",
     "license": "CC BY-SA 4.0",
@@ -2235,7 +2268,7 @@ export const soundClips: SoundClip[] = [
       "forest"
     ],
     "sustained": false,
-    "src": "/audio/pool/tropical-bird/tropical-bird-great-hornbill.wav",
+    "src": "/audio/pool/tropical-bird/tropical-bird-great-hornbill.mp3",
     "title": "Great hornbill , Buceros bicornis,call",
     "author": "Shino jacob koottanad",
     "license": "CC BY-SA 4.0",
@@ -2401,6 +2434,19 @@ export const soundClips: SoundClip[] = [
     "weight": 1.5
   },
   {
+    "id": "subway-metro-arrival",
+    "type": "subway",
+    "tags": [
+      "urban"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/subway/subway-metro-arrival.mp3",
+    "title": "Metro: Stopping and starting #2",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/metro-stopping-and-starting-2-s3041.html"
+  },
+  {
     "id": "wind-tall-grass",
     "type": "wind",
     "tags": [
@@ -2415,5 +2461,223 @@ export const soundClips: SoundClip[] = [
     "license": "CC0 1.0",
     "sourceUrl": "https://bigsoundbank.com/wind-in-tall-grass-s0908.html",
     "weight": 1.5
+  },
+  {
+    "id": "subway-metro-rolling",
+    "type": "subway",
+    "tags": [
+      "urban"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/subway/subway-metro-rolling.mp3",
+    "title": "Metro, Paris #2",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/metro-paris-2-s0092.html"
+  },
+  {
+    "id": "subway-corridor",
+    "type": "subway",
+    "tags": [
+      "urban"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/subway/subway-corridor.mp3",
+    "title": "Metro corridor, Paris #1",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/metro-corridor-paris-1-s0093.html"
+  },
+  {
+    "id": "subway-london-kings-cross",
+    "type": "subway",
+    "tags": [
+      "urban",
+      "european"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/subway/subway-london-kings-cross.mp3",
+    "title": "King's Cross St. Pancras station, London",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/king-s-cross-st-pancras-station-london-s0639.html"
+  },
+  {
+    "id": "tram-passing",
+    "type": "tram",
+    "tags": [
+      "urban",
+      "european"
+    ],
+    "sustained": false,
+    "src": "/audio/pool/tram/tram-passing.mp3",
+    "title": "Passing tram",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/passing-tram-s0278.html"
+  },
+  {
+    "id": "city-london-street",
+    "type": "city-hum",
+    "tags": [
+      "urban",
+      "european",
+      "temperate"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/city-hum/city-london-street.mp3",
+    "title": "London street",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/london-street-s0641.html"
+  },
+  {
+    "id": "city-london-soundscape",
+    "type": "city-hum",
+    "tags": [
+      "urban",
+      "european",
+      "temperate"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/city-hum/city-london-soundscape.mp3",
+    "title": "London street #2",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/london-street-2-s0643.html"
+  },
+  {
+    "id": "city-paris-small-street",
+    "type": "city-hum",
+    "tags": [
+      "urban",
+      "european",
+      "calm"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/city-hum/city-paris-small-street.mp3",
+    "title": "Little Parisian street",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/little-parisian-street-s1713.html"
+  },
+  {
+    "id": "city-village-centre",
+    "type": "city-hum",
+    "tags": [
+      "european",
+      "rural",
+      "calm",
+      "temperate"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/city-hum/city-village-centre.mp3",
+    "title": "Village town centre, Manou (Perche)",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/village-city-center-1-s1346.html",
+    "weight": 0.35
+  },
+  {
+    "id": "cafe-pizzeria",
+    "type": "cafe",
+    "tags": [
+      "urban",
+      "european"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/cafe/cafe-pizzeria.mp3",
+    "title": "Restaurant (pizzeria)",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/restaurant-s0624.html"
+  },
+  {
+    "id": "cafe-small-restaurant",
+    "type": "cafe",
+    "tags": [
+      "urban",
+      "european",
+      "calm"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/cafe/cafe-small-restaurant.mp3",
+    "title": "Small restaurant conversations",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/small-restaurant-conversations-s3542.html"
+  },
+  {
+    "id": "cafe-brunch",
+    "type": "cafe",
+    "tags": [
+      "urban",
+      "european"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/cafe/cafe-brunch.mp3",
+    "title": "Restaurant #2 (brunch, ~40 people)",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/restaurant-2-s3376.html"
+  },
+  {
+    "id": "market-outdoor-french",
+    "type": "market",
+    "tags": [
+      "urban",
+      "european"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/market/market-outdoor-french.mp3",
+    "title": "Outdoor market #2, Neuilly-sur-Seine",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/outdoor-market-2-s3378.html"
+  },
+  {
+    "id": "market-covered-2",
+    "type": "market",
+    "tags": [
+      "urban",
+      "european",
+      "calm"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/market/market-covered-2.mp3",
+    "title": "Covered market #2, Levallois-Perret",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/covered-market-2-s3347.html"
+  },
+  {
+    "id": "stream-japanese-temple-fountain",
+    "type": "stream",
+    "tags": [
+      "asian",
+      "eastasian",
+      "calm",
+      "garden"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/stream/stream-japanese-temple-fountain.mp3",
+    "title": "Fountain of a Japanese temple",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/fountain-of-a-japanese-temple-s0913.html"
+  },
+  {
+    "id": "stream-paris-square-fountain",
+    "type": "stream",
+    "tags": [
+      "urban",
+      "european"
+    ],
+    "sustained": true,
+    "src": "/audio/pool/stream/stream-paris-square-fountain.mp3",
+    "title": "Parisian paved square fountain (Place Victor Hugo)",
+    "author": "Joseph SARDIN — BigSoundBank.com",
+    "license": "CC0 1.0",
+    "sourceUrl": "https://bigsoundbank.com/parisian-paved-square-fountain-s1081.html"
   }
 ];

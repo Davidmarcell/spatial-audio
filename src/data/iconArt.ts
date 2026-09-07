@@ -12,6 +12,11 @@ import {
   resolveTileIconSrc,
 } from './iconDetailSrc';
 import type { VariantTag } from './types';
+import {
+  getInsectArtOption,
+  isInsectArtOverrideTarget,
+  loadInsectArtOptionId,
+} from '../utils/insectArtOptions';
 
 /**
  * Sound → art rationale (curated pass):
@@ -78,9 +83,37 @@ const extendedFixedIcons: Record<string, string> = {
   'paris-bells': '/icons/paris-notre-dame-delauney.jpg',
   'paris-sparrows': '/icons/paris-house-sparrow-naumann.jpg',
   'paris-cityhum': '/icons/paris-boulevard-pissarro.jpg',
-  // Redwoods: the two new default corvids get their own species plates.
+  // Redwoods: the two new default corvids get their own species plates; canopy
+  // and drip layers leave the generic Met forest/stream sketches for Bierstadt
+  // Giant Redwoods and Mønsted's forest stream.
   'redwoods-raven': '/icons/redwoods-raven-audubon.jpg',
   'redwoods-jay': '/icons/redwoods-stellers-jay-audubon.jpg',
+  'redwoods-canopy': '/icons/redwoods-bierstadt.jpg',
+  'redwoods-drip': '/icons/forest-stream.jpg',
+  // Kyoto: species-accurate Japanese plates (uguisu, higurashi, kajika, jungle
+  // crow) plus Hiroshige for temple bells / garden waterside — keyed by the
+  // bespoke kyoto-* sound ids so nothing leaks onto other Asian pins.
+  'kyoto-bells': '/icons/pool/bells-temple.jpg',
+  'kyoto-uguisu': '/icons/kyoto-uguisu-ishizaki.jpg',
+  'kyoto-higurashi': '/icons/kyoto-higurashi-utamaro.jpg',
+  'kyoto-stream': '/icons/kyoto-garden-stream-hiroshige.jpg',
+  'kyoto-crows': '/icons/kyoto-jungle-crow-kyosai.jpg',
+  'kyoto-frogs': '/icons/kyoto-kajika-frog.jpg',
+  // Serengeti: distant elephant (Kuhnert steppe plate). Lion stays available in
+  // the dock with its own Kuhnert plates via the `lion` pool / fixed mapping.
+  'global-elephant': '/icons/elephant-kuhnert-steppe.jpg',
+  'global-lion': '/icons/lion-kuhnert-awakening.jpg',
+  // Bangkok street traffic — Kerr's Menam/Chao Phraya painting, not a Paris boulevard.
+  'bangkok-traffic': '/icons/pool/street-bangkok-kerr.jpg',
+  // Havana city hum — tall Obispo Street postcard (Habana Vieja), not Brooklyn.
+  'havana-cityhum': '/icons/havana-obispo-street.jpg',
+  // Default insect plates (live Insects chip can override these while reviewing).
+  'global-insects': '/icons/cricket-field-ensifera.jpg',
+  'summer-cicadas': '/icons/insect-jardine-plate.jpg',
+  'sydney-cicadas': '/icons/cicada-maculata.jpg',
+  // Subway (available in every big-city library) — a genre painting of the
+  // sound's own subject (subway-car riders), not a generic street/traffic plate.
+  'global-subway': '/icons/pool/subway-riders-mora.jpg',
 };
 
 /** Attributions for the extended fixed plates above (kept out of the generated file). */
@@ -92,6 +125,78 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     license: 'Public domain',
     sourceUrl:
       'https://commons.wikimedia.org/wiki/File:Houghton_Typ_805L.34_-_John_Gould,_Ramphastos_toco,_1834.jpg',
+  },
+  {
+    file: '/icons/cricket-field-ensifera.jpg',
+    title: 'Cricket, from a plate of Ensifera (crickets and bush-crickets)',
+    author: 'Gotthilf Heinrich von Schubert, Naturgeschichte (1886)',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ensifera_Naturgeschichte.jpg',
+  },
+  {
+    file: '/icons/cicada-maculata.jpg',
+    title: 'Illustrations of Exotic Entomology — Cicada Maculata',
+    author: 'Dru Drury / John Obadiah Westwood',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Illustrations_of_Exotic_Entomology_Cicada_Maculata.jpg',
+  },
+  {
+    file: '/icons/insect-jardine-plate.jpg',
+    title: "Naturalist's Library Entomology, Plate 21 (cicada)",
+    author: "Sir William Jardine (Naturalist's Library)",
+    license: 'Public domain',
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Jardine_Naturalist's_library_Entomology_Plate_21.jpg",
+  },
+  {
+    file: '/icons/insect-field-cricket-plate.jpg',
+    title:
+      'Locusta sexpunctata, Gryllus campestris, Gryllotalpa mitidula (plate detail)',
+    author: '19th-century natural history plate (Wikimedia Commons)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Locusta_sexpunctata(grasshopper_of_six_points),_Gryllus_campestris(field_crickets),_Gryllotalpa_mitidula(Australian_Crickets).jpg',
+  },
+  {
+    file: '/icons/insect-natural-history.jpg',
+    title:
+      'Natural history of the animal kingdom for the use of young people (Plate XXIV)',
+    author: 'W. F. Kirby / public-domain plate',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Natural_history_of_the_animal_kingdom_for_the_use_of_young_people_(Plate_XXIV)_(5974465081).jpg',
+  },
+  {
+    file: '/icons/lion-kuhnert-awakening.jpg',
+    title: 'Des Löwen Erwachen (The Lion Awakens)',
+    author: 'Wilhelm Kuhnert (before 1929)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Des_L%C3%B6wen_Erwachen.jpg',
+  },
+  {
+    file: '/icons/elephant-kuhnert-steppe.jpg',
+    title: 'Afrikanischer Elefant in der Steppe (African Elephant on the Steppe)',
+    author: 'Wilhelm Kuhnert (1922)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Afrikanischer_Elefant_in_der_Steppe_1922.jpg',
+  },
+  {
+    file: '/icons/pool/street-bangkok-kerr.jpg',
+    title: 'Menam River, Bangkok, Siam',
+    author: 'Alexander Kerr (c. 1915)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Menam_River_Bangkok_Siam_Painting_by_A_Kerr_c1915.png',
+  },
+  {
+    file: '/icons/havana-obispo-street.jpg',
+    title: 'Havana — Obispo Street',
+    author: 'American Photo Studios, Havana (photomechanical postcard)',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Havana_-_Obispo_Street_1.jpg',
   },
   {
     file: '/icons/kereru.jpg',
@@ -176,15 +281,80 @@ const extendedFixedIconAttributions: ArtworkAttribution[] = [
     license: 'Public domain',
     sourceUrl: "https://commons.wikimedia.org/wiki/File:Steller's_Jay_(illustration).jpg",
   },
+  {
+    file: '/icons/redwoods-bierstadt.jpg',
+    title: 'Giant Redwood Trees of California',
+    author: 'Albert Bierstadt (1874), The Berkshire Museum',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Albert_Bierstadt_-_Giant_Redwood_Trees_of_California_-_Google_Art_Project.jpg',
+  },
+  {
+    file: '/icons/forest-stream.jpg',
+    title: 'A Forest Stream',
+    author: 'Peder Mørk Mønsted (1905)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:A_Forest_Stream_by_Peder_Mork_Monsted.jpg',
+  },
+  {
+    file: '/icons/kyoto-uguisu-ishizaki.jpg',
+    title: 'Japanese bush warbler (uguisu, Cettia diphone) — Cock Blomhoff Collection',
+    author: 'Ishizaki Yūshi — pencil drawing and watercolour (Naturalis Biodiversity Center, RMNH.ART.383)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Naturalis_Biodiversity_Center_-_RMNH.ART.383_-_Cettia_diphone_-_Y%C5%ABshi_Ishizaki_-_Cock_Blomhoff_Collection_-_pencil_drawing_-_water_colour.jpg',
+  },
+  {
+    file: '/icons/kyoto-higurashi-utamaro.jpg',
+    title: 'Evening Cicada, Higurashi; Spider, Kumo, from the Picture Book of Crawling Creatures (Ehon mushi erami)',
+    author: 'Kitagawa Utamaro (MET DP135555)',
+    license: 'CC0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:%E3%80%8E%E7%94%BB%E6%9C%AC%E8%99%AB%E6%92%B0%E3%80%8F_%E3%80%8C%E3%81%B2%E3%81%8F%E3%82%89%E3%81%97%E3%80%8D%E3%80%8C%E3%81%8F%E3%82%82%E3%80%8D-Evening_Cicada,_Higurashi;_Spider,_Kumo,_from_the_Picture_Book_of_Crawling_Creatures_(Ehon_mushi_erami)_MET_DP135555.jpg',
+  },
+  {
+    file: '/icons/kyoto-garden-stream-hiroshige.jpg',
+    title: 'Tea-houses on the Bank of the Tadasu River in a Shower, from Famous Places of Kyōto',
+    author: 'Utagawa Hiroshige (MET DP120471)',
+    license: 'CC0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:%E4%BA%AC%E9%83%BD%E5%90%8D%E6%89%80%E4%B9%8B%E5%86%85_%E7%B3%BA%E5%B7%9D%E5%8E%9F%E4%B9%8B%E5%A4%95%E7%AB%8B-Tea-houses_on_the_Bank_of_the_Tadasu_River_in_a_Shower_MET_DP120471.jpg',
+  },
+  {
+    file: '/icons/kyoto-jungle-crow-kyosai.jpg',
+    title: 'Full Moon with Crow on Plum Branch',
+    author: 'Kawanabe Kyōsai (Cleveland Museum of Art 1930.203)',
+    license: 'CC0',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Kawanabe_Kyosai_-_Full_Moon_with_Crow_on_Plum_Branch_-_1930.203_-_Cleveland_Museum_of_Art.tif',
+  },
+  {
+    file: '/icons/pool/subway-riders-mora.jpg',
+    title: 'Subway Riders in New York City (Evening News)',
+    author: 'Francis Luis Mora (1914) — Oil on canvas',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Francis_Luis_Mora_-_Subway_riders_in_NYC.jpg',
+  },
+  {
+    file: '/icons/kyoto-kajika-frog.jpg',
+    title: 'Hyla bürgeri (Kajika frog, Buergeria buergeri) — Fauna Japonica, Batrachii Tab. III',
+    author: 'Iconographia Zoologica / Fauna Japonica (Temminck & Schlegel); Special Collections, University of Amsterdam',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Hyla_b%C3%BCrgeri_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ11500119.tif',
+  },
 ];
 
 /** Exclude Met plates whose titles are semantically wrong for a pool. */
 const POOL_TITLE_BLOCKLIST: Partial<Record<string, RegExp>> = {
   stream: /figure on shore|boys in a dory|figure in a canoe|portrait|marie antoinette/i,
   surf: /figure on shore/i,
-  wind: /marie antoinette|portrait/i,
+  // "Birch Tree, Niagara" reads as a single spindly trunk sketch, not a forest —
+  // excluded from both wind and forest so neither tile draws it.
+  wind: /marie antoinette|portrait|birch tree, niagara/i,
   rain: /new york from the heights/i,
-  forest: /figure in a canoe/i,
+  forest: /figure in a canoe|birch tree, niagara/i,
 };
 
 /** Keyword rules for sounds missing an explicit pool mapping (checked in order). */
@@ -210,6 +380,8 @@ const SEMANTIC_POOL_RULES: Array<{ test: (soundId: string) => boolean; pool: str
   { test: (id) => /(?:^|-)(?:wind|breeze|gust)(?:$|-)/.test(id), pool: 'wind' },
   { test: (id) => /rain|monsoon|shower|drizzle|storm/.test(id), pool: 'rain' },
   { test: (id) => /tram|streetcar|eletrico|trolley/.test(id), pool: 'tram' },
+  { test: (id) => /subway|metro/.test(id), pool: 'tram' },
+  { test: (id) => /cafe|restaurant|terrace|bistro/.test(id), pool: 'market' },
   { test: (id) => /traffic|city-hum|motorway|highway/.test(id), pool: 'traffic' },
   // Human / cultural ambiences. `bell` is matched only as a whole word so it
   // never swallows `bellbird` (a songbird handled earlier).
@@ -231,6 +403,23 @@ const SEMANTIC_POOL_RULES: Array<{ test: (soundId: string) => boolean; pool: str
  * the flavour resolver + per-scene dedup pick an in-region street.
  */
 const streetArtExtras: IconPoolEntry[] = [
+  {
+    src: '/icons/pool/street-bangkok-kerr.jpg',
+    title: 'Menam River, Bangkok, Siam',
+    author: 'Alexander Kerr (c. 1915)',
+    license: 'Public domain',
+    sourceUrl:
+      'https://commons.wikimedia.org/wiki/File:Menam_River_Bangkok_Siam_Painting_by_A_Kerr_c1915.png',
+    tags: ['asian', 'seasian', 'tropical', 'urban'],
+  },
+  {
+    src: '/icons/havana-obispo-street.jpg',
+    title: 'Havana — Obispo Street',
+    author: 'American Photo Studios, Havana (photomechanical postcard)',
+    license: 'Public domain',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Havana_-_Obispo_Street_1.jpg',
+    tags: ['americas', 'caribbean', 'tropical', 'urban'],
+  },
   {
     src: '/icons/pool/street-paris.jpg',
     title: 'Paris Street; Rainy Day',
@@ -469,12 +658,58 @@ const sceneArtPools: Record<string, IconPoolEntry[]> = {
 const speciesArtPools: Record<string, IconPoolEntry[]> = {
   insects: [
     {
+      src: '/icons/insect-jardine-plate.jpg',
+      title: "Naturalist's Library Entomology, Plate 21 (cicada)",
+      author: "Sir William Jardine (Naturalist's Library)",
+      license: 'Public domain',
+      sourceUrl:
+        "https://commons.wikimedia.org/wiki/File:Jardine_Naturalist's_library_Entomology_Plate_21.jpg",
+      tags: ['temperate', 'summer', 'cicada'],
+    },
+    {
+      src: '/icons/cicada-maculata.jpg',
+      title: 'Illustrations of Exotic Entomology — Cicada Maculata',
+      author: 'Dru Drury / John Obadiah Westwood',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Illustrations_of_Exotic_Entomology_Cicada_Maculata.jpg',
+      tags: ['tropical', 'summer', 'cicada'],
+    },
+    {
+      src: '/icons/cricket-field-ensifera.jpg',
+      title: 'Cricket, from a plate of Ensifera (crickets and bush-crickets)',
+      author: 'Gotthilf Heinrich von Schubert, Naturgeschichte (1886)',
+      license: 'Public domain',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ensifera_Naturgeschichte.jpg',
+      tags: ['temperate', 'european', 'night'],
+    },
+    {
+      src: '/icons/insect-field-cricket-plate.jpg',
+      title:
+        'Locusta sexpunctata, Gryllus campestris, Gryllotalpa mitidula (plate detail)',
+      author: '19th-century natural history plate (Wikimedia Commons)',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Locusta_sexpunctata(grasshopper_of_six_points),_Gryllus_campestris(field_crickets),_Gryllotalpa_mitidula(Australian_Crickets).jpg',
+      tags: ['temperate', 'australian', 'summer'],
+    },
+    {
       src: '/icons/insects.jpg',
       title: 'Metamorphosis of a Small Emperor Moth on a Damson Plum (plate 13)',
       author: 'Maria Sibylla Merian (Getty Museum)',
       license: 'Public domain',
       sourceUrl:
         'https://commons.wikimedia.org/wiki/File:Metamorphosis_of_a_Small_Emperor_Moth_on_a_Damson_Plum,_plate_13_of_the_Caterpillar_Book,_by_Maria_Sibylla_Merian_(Getty_109Q5N).jpg',
+      tags: ['temperate', 'european'],
+    },
+    {
+      src: '/icons/insect-natural-history.jpg',
+      title:
+        'Natural history of the animal kingdom for the use of young people (Plate XXIV)',
+      author: 'W. F. Kirby / public-domain plate',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Natural_history_of_the_animal_kingdom_for_the_use_of_young_people_(Plate_XXIV)_(5974465081).jpg',
       tags: ['temperate', 'european'],
     },
     {
@@ -671,6 +906,24 @@ const speciesArtPools: Record<string, IconPoolEntry[]> = {
   ],
   lion: [
     {
+      src: '/icons/lion-kuhnert-ruaha-tanzania.jpg',
+      title: 'Leeuw aan de Ruaharivier, Tanzania, Afrika (Lion on the Ruaha River)',
+      author: 'Wilhelm Kuhnert (between 1880 and 1926), Rijksmuseum Twenthe',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_-_Leeuw_aan_de_Ruaharivier,_Tanzania,_Afrika_-_0194_-_Rijksmuseum_Twenthe.jpg',
+      tags: ['african', 'savanna'],
+    },
+    {
+      src: '/icons/lion-kuhnert-head.jpg',
+      title: 'Kopf eines Löwen (Head of a Lion)',
+      author: 'Wilhelm Kuhnert (1896)',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Kopf_eines_L%C3%B6wen.jpg',
+      tags: ['african', 'savanna'],
+    },
+    {
       src: '/icons/lion.jpg',
       title: 'Lion (Felis leo capensis) — Brehms Het Leven der Dieren',
       author: 'Alfred Edmund Brehm (Brehms Tierleben / Het Leven der Dieren)',
@@ -678,6 +931,17 @@ const speciesArtPools: Record<string, IconPoolEntry[]> = {
       sourceUrl:
         'https://commons.wikimedia.org/wiki/File:Brehms_Het_Leven_der_Dieren_Zoogdieren_Orde_4_Leeuw_(Felis_leo_capensis).jpg',
       tags: ['african', 'savanna'],
+    },
+  ],
+  elephant: [
+    {
+      src: '/icons/elephant-kuhnert-steppe.jpg',
+      title: 'Afrikanischer Elefant in der Steppe (African Elephant on the Steppe)',
+      author: 'Wilhelm Kuhnert (1922)',
+      license: 'Public domain',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Wilhelm_Kuhnert_Afrikanischer_Elefant_in_der_Steppe_1922.jpg',
+      tags: ['african', 'savanna', 'arid'],
     },
   ],
   owl: [
@@ -854,8 +1118,11 @@ const soundPoolMap: Record<string, string> = {
   'global-fado': 'music',
   'global-adhan': 'mosque',
   'global-ney': 'music',
-  // Distant lion roar (Serengeti signature) → dedicated PD lion plate.
+  // Distant lion / elephant (Serengeti) → dedicated Kuhnert plates.
   'global-lion': 'lion',
+  'global-elephant': 'elephant',
+  'bangkok-traffic': 'traffic',
+  'havana-cityhum': 'traffic',
   // Musette accordion (Paris uses a bespoke pinned plate; this is the fallback
   // for any bare global-musette instance) → the music/instrument art pool.
   'global-musette': 'music',
@@ -1185,11 +1452,27 @@ export function getSoundIconEntry(
   return withDisplaySrc(pickFromPool(pool, key, sceneTags));
 }
 
+function insectArtOverrideEntry(soundId: string): IconPoolEntry | null {
+  if (typeof window === 'undefined') return null;
+  if (!isInsectArtOverrideTarget(soundId)) return null;
+  const option = getInsectArtOption(loadInsectArtOptionId());
+  return {
+    src: option.src,
+    title: option.title,
+    author: option.author,
+    license: option.license,
+    sourceUrl: option.sourceUrl,
+  };
+}
+
 export function getSoundArtwork(
   soundId: string,
   variantKey?: string,
   sceneTags?: VariantTag[],
 ): IconPoolEntry {
+  const insectOverride = insectArtOverrideEntry(soundId);
+  if (insectOverride) return withDisplaySrc(insectOverride);
+
   const fixed = fixedIconEntry(soundId);
   if (fixed) return withDisplaySrc(fixed);
 
@@ -1219,6 +1502,9 @@ export function getSoundArtworkForRegion(
   variantKey?: string,
   sceneTags?: VariantTag[],
 ): IconPoolEntry {
+  const insectOverride = insectArtOverrideEntry(soundId);
+  if (insectOverride) return withDisplaySrc(insectOverride);
+
   const regional = getRegionArtworkMap(regionId, regionSoundIds, sceneTags).get(soundId);
   if (regional) return regional;
   return getSoundArtwork(soundId, variantKey, sceneTags);
@@ -1229,6 +1515,8 @@ export type RegionArtContext = {
   soundIds: string[];
   /** Scene-wide region/climate flavour tags biasing tile art selection. */
   tags?: VariantTag[];
+  /** Optional revision so art-preference changes remount tile consumers. */
+  insectArtRevision?: number;
 };
 
 /**

@@ -20,6 +20,23 @@
     max-width var(--search-shell-duration) var(--search-shell-ease);
 }
 
+/* Fluid: let the spacer stretch to its container so the portal can take its
+   collapsed width from the measurement (see the `fluid` prop). Phones only —
+   desktop keeps the fixed, centred pill so the expanded panel stays on the
+   viewport centre. */
+@media (max-width: 768px) {
+  /* The `[data-size='lg']` block later in this file sets an explicit width at
+     the same specificity, so the landing pill needs the combined selector to
+     win. */
+  .root[data-fluid='true'],
+  .root[data-size='lg'][data-fluid='true'] {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
 .rootOpen {
   position: absolute;
   left: 50%;
@@ -194,6 +211,9 @@
   border-radius: 999px;
   z-index: 341;
   pointer-events: none;
+  /* Panel keeps overflow:hidden for its fill; the anchor must not clip the
+     pill's drop shadow (especially on phones near the bottom safe-area). */
+  overflow: visible;
   width: var(--search-trigger-width, min(20rem, 52vw));
   min-width: var(--search-trigger-width, min(20rem, 52vw));
   max-width: var(--search-trigger-width, min(20rem, 52vw));
@@ -230,6 +250,73 @@
   z-index: 451;
 }
 
+/* —— Page motion ——
+   The pill is portalled to <body>, so it cannot inherit the transform that
+   carries its host page. Instead it replays the SAME animation on the SAME
+   clock, which keeps it welded to the Enter button / bottom bar beside it
+   rather than lagging a frame behind a per-frame measurement. */
+.panelAnchor[data-page-motion='exit-lift'] {
+  pointer-events: none;
+  /* The deltas are computed for a centre-origin scale (the pill's own centre is
+     mapped through the host's transform), so override the resting pill origin. */
+  transform-origin: 50% 50%;
+  animation: searchPageExitLift 1s var(--ease-in-out-strong) both;
+}
+
+/* Matches `pageExitLift` / `landingExitLift`, resolved at the pill's centre so
+   the page's scale-about-its-own-centre lands the pill in the right place. */
+@keyframes searchPageExitLift {
+  from {
+    transform: translate3d(calc(-50% + var(--recenter-anchor, 0px)), 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(
+        calc(-50% + var(--recenter-anchor, 0px) + var(--page-motion-dx, 0px)),
+        var(--page-motion-dy, 0px),
+        0
+      )
+      scale(var(--page-motion-scale, 1));
+  }
+}
+
+/* Home-rise is driven by `animateRise`'s own rAF clock: LandingGate publishes
+   the live offset as `--landing-rise-y` in the same frame it transforms the
+   gate, so the pill is welded to the page rather than running a parallel
+   animation that drifts through the steep part of the curve. */
+.panelAnchor[data-page-motion='rise-home'] {
+  pointer-events: none;
+  transition: none;
+  transform: translate3d(
+    calc(-50% + var(--recenter-anchor, 0px)),
+    var(--landing-rise-y, 0px),
+    0
+  );
+}
+
+/* Scene reveal nudge: App publishes `--scene-rise-y` on the same rAF that
+   transforms the bottom bar / canvas. The pill keeps this attribute for the
+   whole covered entry (`y` stays 0 until reveal) so it never free-runs a
+   parallel keyframe and finishes before the chrome moves. */
+.panelAnchor[data-page-motion='scene-rise'] {
+  pointer-events: none;
+  transition: none;
+  transform: translate3d(
+    calc(-50% + var(--recenter-anchor, 0px)),
+    var(--scene-rise-y, 0px),
+    0
+  );
+}
+
+/* Sound-tile (and similar) overlays sit at z-index 500+. Keep the portalled
+   search pill in the page chrome layer and visually recessed so it cannot
+   compete with the open tile. */
+.panelAnchor[data-recessed='true'] {
+  z-index: 20;
+  opacity: 0.38;
+  pointer-events: none;
+  transition: opacity var(--search-duration-fast, 180ms) var(--ease-ios, ease);
+}
+
 .panelAnchor[data-expand='down'] {
   transform-origin: 50% 0%;
 }
@@ -256,23 +343,50 @@
     0 7px 20px rgba(0, 0, 0, 0.056);
 }
 
+/* Mobile landing stack: softer, shorter shadow so it does not wash over Enter
+   below, and match the Enter pill's treatment. */
+@media (max-width: 768px) {
+  .panelAnchor[data-size='lg'][data-theme='light'] .panel,
+  .panelAnchor[data-size='lg'] .panel {
+    box-shadow:
+      0 10px 28px rgba(0, 0, 0, 0.07),
+      0 3px 10px rgba(0, 0, 0, 0.04);
+  }
+
+  .panelAnchor[data-size='lg'] .searchRow {
+    min-height: 3.68rem;
+  }
+}
+
 /* Landing hero moment: scale the whole search shell up ~15% by growing its
    metric custom properties, so the pill and the expanded panel enlarge together
    and the in-flow reservation matches the portalled pill. */
 .root[data-size='lg'] {
-  --search-trigger-width: min(25rem, 62vw);
-  flex-basis: min(25rem, 62vw);
-  width: min(25rem, 62vw);
-  min-width: min(25rem, 62vw);
-  max-width: min(25rem, 62vw);
+  --search-trigger-width: min(25rem, calc(100% - 0.2rem));
+  flex-basis: min(25rem, calc(100% - 0.2rem));
+  width: min(25rem, calc(100% - 0.2rem));
+  min-width: min(25rem, calc(100% - 0.2rem));
+  max-width: min(25rem, calc(100% - 0.2rem));
   --search-shell-collapsed-height: 3.68rem;
+  /* In-flow node is only a layout spacer; the visible pill is portalled. */
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .panelAnchor[data-size='lg'] {
-  --search-trigger-width: min(25rem, 62vw);
-  --search-bar-width: min(700px, calc(100vw - 1.5rem));
+  --search-trigger-width: min(25rem, calc(100vw - 2.4rem));
+  --search-bar-width: min(700px, calc(100vw - 2.4rem));
   --search-shell-collapsed-height: 3.68rem;
-  --search-shell-expanded-height: min(31rem, calc(100vh - 6.5rem - env(safe-area-inset-top, 0px)));
+  /* Stay inside the phone viewport when the landing pill opens upward. */
+  --search-shell-expanded-height: min(
+    28rem,
+    calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
+}
+
+.panelAnchor[data-size='lg'] .panel {
+  /* Solid white — no frosted wash through the landing search. */
+  background-color: var(--search-panel-bg);
 }
 
 .panelAnchor[data-size='lg'] .searchRow {
@@ -293,27 +407,55 @@
   font-size: clamp(0.85rem, 1.5vw, 1rem);
 }
 
-/* Landing entrance: the enlarged pill fades and rises into place as the final
-   beat of the hero sequence, on the same easing and stagger rhythm as the
-   wordmark and fan. Applied to the portalled pill itself (transform + opacity
-   only, so nothing reflows and the measured anchor never moves), and gated by
-   the one-shot `data-landing-entrance` latch so it plays only on the initial
-   landing mount, never on a later open / close / hover / focus. `backwards`
-   fill holds the hidden start-state from the first paint (no flash) and, unlike
-   `both`, releases the transform when it ends so the open/close transforms take
-   over cleanly. The `-50%` X is preserved throughout to keep the pill centred. */
+/* Landing entrance: the whole closed pill (glass + icon + "Search or create
+   your own") is ONE asset that rises with Enter. Never paint an empty white
+   shell first — the closed label stays opacity 1 inside the fading panel.
+   `data-entrance-deferred` plays with delay 0 when the gate already waited for
+   the wordmark settle before mounting us. */
 .panelAnchor[data-size='lg'][data-landing-entrance='in'] .panel {
-  animation: landingSearchRise var(--landing-search-duration, 0.55s) var(--ease-premium-enter)
-    var(--landing-search-delay, 0.66s) backwards;
+  animation: landingSearchRise var(--landing-search-duration, 0.46s) var(--ease-premium-enter)
+    var(--landing-search-delay, 0.56s) both;
+}
+
+/* JS already waited the shared Enter delay — rise with no extra hold. */
+.panelAnchor[data-size='lg'][data-landing-entrance='in'][data-entrance-deferred='true'] .panel {
+  animation-delay: 0s;
+}
+
+/* Compact preload: gate mounted us after settle; match Enter's short beat. */
+.panelAnchor[data-size='lg'][data-landing-entrance='in'][data-pair-immediate='true'] .panel {
+  animation-delay: 0.06s;
+}
+
+/* Phones run the whole landing entrance on one tempo — same duration as the
+   wordmark's centre → rest settle (see `--landing-beat` in LandingGate). */
+@media (max-width: 768px) {
+  .panelAnchor[data-size='lg'][data-landing-entrance='in'] .panel {
+    animation-duration: 0.56s;
+  }
+}
+
+/* The closed label is part of the glass, not a second fade after the white pill.
+   This applies to EVERY instance, not just the enlarged landing one: the bottom
+   bar's pill was scoped out, so on entering a soundscape the pill appeared and
+   its location text faded in afterwards. */
+.panelAnchor[data-landing-entrance='in'] .searchPairClosed,
+.panelAnchor[data-landing-entrance='in'] .searchPairClosed.searchPairVisible,
+.panelAnchor[data-search-phase='closed'] .searchPairClosed,
+.panelAnchor[data-search-phase='closed'] .searchPairClosed.searchPairVisible {
+  opacity: 1;
+  transition: none;
 }
 
 @keyframes landingSearchRise {
   from {
     opacity: 0;
+    visibility: hidden;
     transform: translate3d(-50%, var(--landing-search-rise, 12px), 0);
   }
   to {
     opacity: 1;
+    visibility: visible;
     transform: translate3d(-50%, 0, 0);
   }
 }
@@ -477,16 +619,23 @@
   padding: 0.55rem 1rem;
   font-size: 0.9375rem;
   font-weight: 500;
+  /* Row metrics are unchanged: the pill height and the Enter button beside it
+     are driven from here, so descender room is added on the label spans only. */
   line-height: 1;
   border-top: 1px solid transparent;
   box-sizing: border-box;
 }
 
+/* Stretched to the row's full height and centred, so the label spans below can
+   carry a taller line box (descender room) without shifting off centre or
+   changing the pill's own height. */
 .searchPair {
   position: absolute;
   left: 1rem;
   right: 1rem;
-  display: inline-flex;
+  top: 0;
+  bottom: 0;
+  display: flex;
   align-items: center;
   gap: 0.55rem;
   min-width: 0;
@@ -500,6 +649,23 @@
   pointer-events: none;
 }
 
+/* The selected-place label should stay optically centred in the closed pill.
+   Take the icon out of the flex flow so it does not shift the label right. */
+.searchPairClosed {
+  justify-content: center;
+}
+
+.searchPairClosed .searchIcon {
+  position: absolute;
+  left: 0;
+}
+
+.searchPairClosed .searchTextLabel {
+  flex: 0 1 auto;
+  max-width: calc(100% - 2.25rem);
+  text-align: center;
+}
+
 /* Closed label stays absolutely positioned like the prompt overlay so it
    never competes with the input shell for flex width (which caused premature
    ellipsis in the collapsed pill and a centred caret when open). */
@@ -510,7 +676,9 @@
   color: var(--text);
   font-size: inherit;
   font-weight: inherit;
-  line-height: inherit;
+  /* Own line box: these clip with overflow:hidden for the ellipsis, and the
+     row's 1.0 line-height shaved descenders (the g in "Serengeti"). */
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -522,7 +690,7 @@
   color: var(--text-muted);
   font-size: inherit;
   font-weight: inherit;
-  line-height: inherit;
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -579,7 +747,7 @@
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
-  line-height: 1;
+  line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -832,7 +1000,7 @@
   flex-shrink: 0;
   width: 2rem;
   height: 2rem;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid var(--glass-border);
   overflow: hidden;
   background: var(--thumb-bg);
@@ -852,7 +1020,7 @@
   flex-shrink: 0;
   width: 2rem;
   height: 2rem;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid var(--glass-border);
   background: var(--thumb-fallback);
   display: flex;
@@ -890,8 +1058,9 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.5rem 0.55rem;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  min-height: 64px;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -934,16 +1103,16 @@
 }
 
 .resultName {
-  font-size: 0.84rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.45;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .resultMeta {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   line-height: 1.35;
   color: var(--text-muted);
   white-space: normal;
@@ -1098,6 +1267,10 @@
     will-change: auto;
   }
 
+  .panelAnchor[data-page-motion] {
+    animation: none;
+  }
+
   .panel,
   .phaseOpeningRise,
   .phaseOpen,
@@ -1110,9 +1283,30 @@
     animation: none;
   }
 
-  /* No rise under reduced motion: the landing pill simply appears in place. */
+  /* No rise under reduced motion, but KEEP the delay so the whole pill (glass
+     + label) arrives with Enter — never an empty white shell first. */
   .panelAnchor[data-size='lg'][data-landing-entrance='in'] .panel {
-    animation: none;
+    animation: landingSearchAppear var(--landing-search-delay, 0.56s) linear both;
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  .panelAnchor[data-size='lg'][data-landing-entrance='in'][data-entrance-deferred='true'] .panel {
+    animation-delay: 0s;
+  }
+
+  .panelAnchor[data-size='lg'][data-landing-entrance='in'][data-pair-immediate='true'] .panel {
+    animation-delay: 0.06s;
+  }
+
+  @keyframes landingSearchAppear {
+    from {
+      opacity: 0;
+      visibility: hidden;
+    }
+    to {
+      opacity: 1;
+      visibility: visible;
+    }
   }
 
   :global(html[data-search-width-spring='1']) .panelAnchorExpanded[data-search-phase='opening-width'],

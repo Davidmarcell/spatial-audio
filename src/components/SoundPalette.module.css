@@ -193,60 +193,105 @@
 }
 
 @media (max-width: 768px) {
-  .dock {
+  .palette {
+    width: 100%;
+    max-width: 100%;
+    align-items: stretch;
+  }
+
+  .palette .dock {
     flex-direction: row;
-    padding: 0.25rem 0.4rem;
+    align-items: center;
+    /* Full-width tray; page gutter is the 16px padding on dockOverlay. */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0.12rem 0.1rem;
+    border-radius: 0.95rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    /* Lift the tray so the full-width bar reads on a white canvas (plain
+       glass-fill was disappearing into the page). */
+    background-color: var(--surface-elevated);
+    box-shadow: var(--shadow-md);
+    border-color: var(--glass-border-strong, var(--glass-border));
+  }
+
+  .palette .dock::-webkit-scrollbar {
+    display: none;
   }
 
   .dockDraggingOut {
-    padding-left: 0.42rem;
-    padding-right: 0.42rem;
+    padding-left: 0.22rem;
+    padding-right: 0.22rem;
   }
 
   .itemGroup {
     flex-direction: row;
+    width: auto;
+    flex-shrink: 0;
   }
 
   .list {
     flex-direction: row;
     align-items: center;
-    padding: 0.08rem 0.35rem;
-    gap: 0.02rem;
+    flex-wrap: nowrap;
+    width: max-content;
+    padding: 0;
+    gap: 2px;
   }
 
   .dockDraggingOut .list {
-    padding-left: 0.55rem;
-    padding-right: 0.55rem;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .addWrap {
     min-height: auto;
-    min-width: 3.25rem;
-    padding: 0 0.15rem;
+    min-width: 48px;
+    width: 48px;
+    flex-shrink: 0;
+    padding: 0;
+    justify-content: center;
   }
 
   .itemWrap {
     min-height: auto;
-    min-width: 4.4rem;
+    min-width: 48px;
+    width: 48px;
+    flex-shrink: 0;
     overflow: visible;
   }
 
   .itemWrapLift {
-    min-width: 3.25rem;
-    max-width: 3.25rem;
+    min-width: 48px;
+    max-width: 48px;
+    width: 48px;
     overflow: hidden;
   }
 
   .itemWrapOut {
     min-width: 0;
     max-width: 0;
+    width: 0;
     overflow: hidden;
     margin: 0;
     padding: 0;
   }
 
   .item {
+    width: 48px;
+    height: 48px;
     transform-origin: center bottom;
+  }
+
+  .activeDot {
+    bottom: 0.14rem;
+    width: 0.22rem;
+    height: 0.22rem;
   }
 }
 

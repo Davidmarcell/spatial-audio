@@ -1,8 +1,10 @@
-import { getRegion, getRegionSoundCatalog } from '../data/environments';
+import { getRegion, getRegionSoundCatalog, registerProceduralRegion } from '../data/environments';
+import { validRecording, type DiscoveredRecording } from '../data/discoveredRecordings';
 import type { ActiveSound, SpatialPoint } from '../data/types';
 import type { WorldLocation } from '../data/worldLocations';
 
 export type SharedScene = {
+  recordings?: DiscoveredRecording[];
   environmentId: string;
   regionId: string;
   locationName?: string;
@@ -18,6 +20,8 @@ export type SharedScene = {
 };
 
 type SceneWire = {
+  v?: 2;
+  d?: DiscoveredRecording[];
   e: string;
   r: string;
   n?: string;
@@ -85,6 +89,7 @@ function encodeWire(scene: SharedScene): SceneWire {
     ]),
   };
   if (scene.locationName) wire.n = scene.locationName;
+  if (scene.recordings?.length) { wire.v = 2; wire.d = scene.recordings; }
   if (scene.customLocation) {
     wire.c = [
       round3(scene.customLocation.lat),
@@ -99,12 +104,25 @@ function encodeWire(scene: SharedScene): SceneWire {
 
 function decodeWire(wire: SceneWire): SharedScene | null {
   if (!wire.e || !wire.r || !Array.isArray(wire.s)) return null;
+  if (wire.v === 2 && wire.d) {
+    if (wire.e !== 'procedural' || typeof wire.r !== 'string' || !wire.r.startsWith('procedural-')
+      || wire.r.length > 400 || !Array.isArray(wire.d) || !wire.d.length || wire.d.length > 4
+      || !wire.d.every(validRecording)) return null;
+    registerProceduralRegion({
+      id: wire.r, name: typeof wire.n === 'string' ? wire.n.slice(0, 200) : 'Shared field recordings',
+      procedural: true,
+      sounds: wire.d.map(recording => ({ id: `discovered-${recording.id}`, name: recording.name,
+        src: recording.src, category: 'ambient', loop: true, recording })),
+      discovery: { status: 'ready', message: 'Saved field-recording selection · creator-supplied locations, not a live feed.' },
+    });
+  }
   const region = getRegion(wire.e, wire.r);
   if (!region) return null;
 
   const validSoundIds = new Set(getRegionSoundCatalog(region.sounds).map((sound) => sound.id));
   const sounds = wire.s
-    .filter((row) => Array.isArray(row) && row.length >= 4 && validSoundIds.has(row[0]))
+    .filter((row) => Array.isArray(row) && row.length >= 4 && validSoundIds.has(row[0])
+      && row.slice(1, 4).every(value => typeof value === 'number' && Number.isFinite(value)))
     .map(([soundId, x, y, volume]) => ({
       soundId,
       position: { x: Number(x), y: Number(y) },
@@ -117,6 +135,7 @@ function decodeWire(wire: SceneWire): SharedScene | null {
     environmentId: wire.e,
     regionId: wire.r,
     sounds,
+    recordings: wire.d,
   };
   if (typeof wire.n === 'string' && wire.n) scene.locationName = wire.n;
   if (Array.isArray(wire.c) && wire.c.length >= 4) {
@@ -141,6 +160,29 @@ export function buildScenePayload(scene: SharedScene): Promise<string> {
   });
 }
 
+function decodeSceneJson(json: string): SharedScene | null {
+  if (!json) return null;
+  try {
+    const wire = JSON.parse(json) as SceneWire;
+    return decodeWire(wire);
+  } catch {
+    return null;
+  }
+}
+
+/** Sync decode for uncompressed payloads (compressed `z.` needs async). */
+export function tryDecodeScenePayloadSync(encoded: string): SharedScene | null {
+  const trimmed = encoded.trim();
+  if (!trimmed || trimmed.startsWith('z.')) return null;
+  let json = '';
+  try {
+    json = new TextDecoder().decode(fromBase64Url(trimmed));
+  } catch {
+    json = trimmed;
+  }
+  return decodeSceneJson(json);
+}
+
 export async function decodeScenePayload(encoded: string): Promise<SharedScene | null> {
   const trimmed = encoded.trim();
   if (!trimmed) return null;
@@ -159,14 +201,27 @@ export async function decodeScenePayload(encoded: string): Promise<SharedScene |
     }
   }
 
-  if (!json) return null;
+  return decodeSceneJson(json);
+}
 
-  try {
-    const wire = JSON.parse(json) as SceneWire;
-    return decodeWire(wire);
-  } catch {
-    return null;
-  }
+/**
+ * Best-effort sync peek at a `?scene=` boot payload. Returns null when absent
+ * or when the payload is compressed (caller should `parseSceneFromUrl`).
+ */
+export function peekSharedSceneFromUrl(
+  href = typeof window !== 'undefined' ? window.location.href : '',
+): SharedScene | null {
+  if (!href) return null;
+  const param = readSceneParam(href);
+  if (!param) return null;
+  return tryDecodeScenePayloadSync(param);
+}
+
+export function hasSharedSceneParam(
+  href = typeof window !== 'undefined' ? window.location.href : '',
+): boolean {
+  if (!href) return false;
+  return Boolean(readSceneParam(href));
 }
 
 export async function buildSceneShareUrl(
@@ -232,6 +287,7 @@ export function sceneFromAppState(input: {
     regionId: input.regionId,
     locationName: input.locationName,
     sounds,
+    recordings: region.sounds.flatMap(sound => sound.recording ? [sound.recording] : []),
   };
 
   if (

@@ -159,7 +159,10 @@ const P = {
   stream: { id: 'global-stream', name: 'Stream', category: 'water', type: 'stream', keywords: ['stream', 'water', 'brook'], vol: 0.44 },
   surf: { id: 'global-surf', name: 'Surf', category: 'water', type: 'waves', keywords: ['surf', 'waves', 'ocean', 'coast'], vol: 0.4 },
   rain: { id: 'global-rain', name: 'Rain', category: 'ambient', type: 'rain', keywords: ['rain', 'shower', 'weather'], vol: 0.4 },
-  insects: { id: 'global-insects', name: 'Insects', category: 'insect', type: 'insects', keywords: ['insects', 'crickets', 'cicadas'], vol: 0.2 },
+  // Named for what it actually is — a cricket chorus — to match the pinned
+  // cricket plate. Scenes that want a different insect override the name (and
+  // usually the clip too): 'Cicadas', 'Higurashi Cicadas', 'Jungle Insects'…
+  insects: { id: 'global-insects', name: 'Crickets', category: 'insect', type: 'insects', keywords: ['insects', 'crickets', 'cicadas'], vol: 0.2 },
   songbird: { id: 'global-songbird', name: 'Songbirds', category: 'bird', type: 'songbird', keywords: ['bird', 'songbird'], vol: 0.5 },
   seabird: { id: 'global-gull', name: 'Seabirds', category: 'bird', type: 'seabird', keywords: ['gull', 'seabird', 'coast'], vol: 0.42 },
   tropicalBird: { id: 'global-tropical-bird', name: 'Tropical Birds', category: 'bird', type: 'tropical-bird', keywords: ['bird', 'tropical'], vol: 0.5 },
@@ -177,7 +180,10 @@ const P = {
   adhan: { id: 'global-adhan', name: 'Adhan', category: 'ambient', type: 'adhan', keywords: ['adhan', 'call to prayer', 'ezan', 'muezzin', 'mosque'], vol: 0.28 },
   ney: { id: 'global-ney', name: 'Turkish Taksim', category: 'ambient', type: 'ney', keywords: ['ney', 'taksim', 'reed', 'flute', 'ottoman', 'music'], vol: 0.4 },
   lion: { id: 'global-lion', name: 'Distant Lion Roar', category: 'ambient', type: 'lion', keywords: ['lion', 'roar', 'savanna', 'predator'], vol: 0.22 },
+  elephant: { id: 'global-elephant', name: 'Distant Elephant', category: 'ambient', type: 'elephant', keywords: ['elephant', 'trumpet', 'savanna', 'herd'], vol: 0.2 },
   musette: { id: 'global-musette', name: 'Musette Accordion', category: 'ambient', type: 'musette', keywords: ['musette', 'accordion', 'accordeon', 'french', 'cafe', 'paris', 'music', 'valse'], vol: 0.36 },
+  subway: { id: 'global-subway', name: 'Subway', category: 'ambient', type: 'subway', keywords: ['subway', 'metro', 'underground', 'train', 'platform', 'transit'], vol: 0.28 },
+  cafe: { id: 'global-cafe', name: 'Café', category: 'ambient', type: 'cafe', keywords: ['cafe', 'restaurant', 'terrace', 'conversation', 'chatter', 'bistro'], vol: 0.26 },
 } satisfies Record<string, Preset>;
 
 type PresetKey = keyof typeof P;
@@ -194,7 +200,31 @@ function option(key: PresetKey, opts?: { id?: string; name?: string; vol?: numbe
 type Recipe = { extraTags?: VariantTag[]; layers: LayerSpec[] };
 
 function slugifyPlace(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+/**
+ * Curated recipes are keyed on the bare place name (`kyoto`), but search hands
+ * the generator a full label — "Kyoto, Kyoto Prefecture, Japan" — which
+ * slugifies to `kyotokyotoprefecturejapan` and matches nothing. Every
+ * hand-authored recipe was therefore unreachable from the search box: typing
+ * "Paris" and pressing Enter returned City Hum + Church Bells + Market while the
+ * hand-built Paris sat unused.
+ *
+ * Try the whole label first (so an exact curated key still wins), then the
+ * leading comma-segment, which is the place's own name in every label the
+ * search builds.
+ */
+function curatedRecipeFor(name: string): Recipe | undefined {
+  const direct = CURATED_PLACES[slugifyPlace(name)];
+  if (direct) return direct;
+  const head = name.split(',')[0];
+  if (!head || head === name) return undefined;
+  return CURATED_PLACES[slugifyPlace(head)];
 }
 
 /**
@@ -208,7 +238,10 @@ const CURATED_PLACES: Record<string, Recipe> = {
   // ---- Americas ----
   havana: { extraTags: ['caribbean', 'neotropical'], layers: [
     bed('jazz', { name: 'Son & Trova' }), bed('surf', { name: 'Malecón Surf', vol: 0.34 }),
-    bed('songbird', { name: 'Street Birds' }), bed('cityHum', { name: 'Habana Vieja' }),
+    bed('songbird', { name: 'Street Birds' }),
+    // Bespoke id so Habana Vieja gets its own tall Obispo Street plate instead
+    // of the generic Brooklyn rooftops traffic draw.
+    bed('cityHum', { id: 'havana-cityhum', name: 'Habana Vieja', clip: 'city-latam-aguascalientes' }),
     bed('insects', { name: 'Warm-Night Insects' }),
   ] },
   monteverde: { extraTags: ['neotropical', 'rainforest', 'cloud-forest'], layers: [
@@ -220,11 +253,13 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // Two corvids now play by default: a Common Raven croak and a Steller's Jay
     // call, each pinned to its own sourced nearctic clip + bespoke plate, over
     // the redwood canopy, Pacific wren song, dripping canopy and distant surf.
-    bed('forest', { name: 'Redwood Canopy' }),
-    bed('songbird', { name: 'Pacific Wren & Varied Thrush' }),
+    // Canopy + drip layers use bespoke ids so they keep Bierstadt / Mønsted
+    // plates instead of the generic Met forest/stream pool draws.
+    bed('forest', { id: 'redwoods-canopy', name: 'Redwood Canopy' }),
+    bed('songbird', { name: 'Pacific Wren & Varied Thrush', clip: 'songbird-white-throated-sparrow' }),
     bed('corvid', { id: 'redwoods-raven', name: 'Common Raven', vol: 0.4, clip: 'corvid-common-raven' }),
     bed('corvid', { id: 'redwoods-jay', name: "Steller's Jay", vol: 0.42, clip: 'corvid-stellers-jay' }),
-    bed('stream', { name: 'Dripping Canopy', vol: 0.42 }),
+    bed('stream', { id: 'redwoods-drip', name: 'Dripping Canopy', vol: 0.42 }),
     bed('surf', { name: 'Distant Pacific', vol: 0.3 }),
     option('owl', { name: 'Spotted Owl' }),
   ] },
@@ -241,23 +276,27 @@ const CURATED_PLACES: Record<string, Recipe> = {
   // and a pinned clip so the mix is deterministic. The generic global-market /
   // global-bells / global-jazz ids are gone (they collided on one market plate).
   paris: { extraTags: ['european', 'mediterranean', 'urban', 'garden'], layers: [
-    bed('musette', { id: 'paris-musette', name: 'Musette Accordion', vol: 0.34, clip: 'musette-duet' }),
+    // Accordion / bells are signature but piercing — keep them soft in the bed.
+    bed('musette', { id: 'paris-musette', name: 'Musette Accordion', vol: 0.08, clip: 'musette-duet' }),
     bed('market', { id: 'paris-cafe', name: 'Café Terrace', vol: 0.24, clip: 'market-crowd' }),
-    bed('stream', { id: 'paris-seine', name: 'Seine Quay', vol: 0.3, clip: 'stream-flow' }),
-    bed('bells', { id: 'paris-bells', name: 'Notre-Dame Bells', vol: 0.3, clip: 'bells-4-church' }),
+    bed('bells', { id: 'paris-bells', name: 'Notre-Dame Bells', vol: 0.15, clip: 'bells-4-church' }),
     bed('songbird', { id: 'paris-sparrows', name: 'Tuileries Sparrows', vol: 0.42, clip: 'songbird-house-sparrow' }),
     bed('cityHum', { id: 'paris-cityhum', name: 'Boulevard Hum', vol: 0.2, clip: 'city-pedestrian' }),
+    // Seine stays in the dock so it is one drag away, not auto-playing under the mix.
+    option('stream', { id: 'paris-seine', name: 'Seine Quay', vol: 0.3, clip: 'stream-flow' }),
   ] },
   swissalps: { extraTags: ['alpine', 'mountain'], layers: [
-    bed('stream', { name: 'Snowmelt Stream', vol: 0.46 }), bed('wind', { name: 'Alpine Wind' }),
+    bed('stream', { name: 'Snowmelt Stream', vol: 0.46 }), bed('wind', { name: 'Alpine Wind', clip: 'wind-in-tree' }),
     bed('bells', { name: 'Cowbells', vol: 0.32 }), bed('songbird', { name: 'Meadow Birds' }),
-    bed('forest', { name: 'Pine Slopes' }),
+    bed('forest', { name: 'Pine Slopes', clip: 'forest-1' }),
   ] },
   lisbon: { extraTags: ['european', 'mediterranean', 'coastal', 'urban', 'garden'], layers: [
     // Tram 28 rattle+bell, a fado guitar bed, summer swifts pinned to the Apus
     // apus recording, and the Sé cathedral bells drifting over the Alfama.
-    bed('tram', { name: 'Tram 28' }),
-    bed('fado', { name: 'Fado' }),
+    // Pinned: the tram pool gained a generic "passing tram", and without a pin
+    // the seeded picker handed Lisbon that instead of its own Bica funicular.
+    bed('tram', { name: 'Tram 28', clip: 'tram-lisboa-bica' }),
+    bed('fado', { name: 'Fado', clip: 'fado-tic-tac' }),
     bed('songbird', { name: 'Summer Swifts', vol: 0.42, clip: 'songbird-common-swift' }),
     bed('bells', { name: 'Sé Cathedral Bells', vol: 0.3 }),
   ] },
@@ -265,51 +304,58 @@ const CURATED_PLACES: Record<string, Recipe> = {
     // ~6 layers: a quiet, respectful adhan; Bosphorus gulls (pinned to a distinct
     // European gull); the Grand Bazaar; ubiquitous courtyard laughing doves; a
     // drifting Turkish taksim; Bosphorus water.
-    bed('adhan', { name: 'Adhan' }),
+    bed('adhan', { name: 'Adhan', clip: 'adhan-1' }),
     bed('seabird', { name: 'Bosphorus Gulls', vol: 0.4, clip: 'herring-gull-2' }),
     // Pin the covered-market bed so the SE-Asian Cebu night market (now eligible
     // because this recipe carries an `asian` tag) can't disperse onto the Bazaar.
     bed('market', { name: 'Grand Bazaar', vol: 0.3, clip: 'market-covered-1' }),
     bed('songbird', { name: 'Courtyard Doves', vol: 0.4, clip: 'laughing-dove-1' }),
-    bed('ney', { name: 'Turkish Taksim' }),
+    bed('ney', { name: 'Turkish Taksim', clip: 'ney-taksim-hicaz' }),
     bed('surf', { name: 'Bosphorus Waterside', vol: 0.32 }),
   ] },
   // ---- Africa ----
   serengeti: { extraTags: ['savanna', 'arid', 'african'], layers: [
-    // Accurate open-plains mix. The old "Savanna Birds" layer resolved to an
-    // African Fish Eagle (a waterside raptor, wrong for open grassland); every
-    // bird voice here is now pinned to a genuine savanna species.
-    bed('lion', { name: 'Distant Lion Roar', vol: 0.22 }),
+    // Open-plains mix: a distant elephant trumpet (calmer signature than the
+    // old lion roar), Hadada Ibis + Ring-necked Dove pinned to savanna species,
+    // grassland insects, tall-grass wind, and vervets. Lion stays in the dock.
+    bed('elephant', { name: 'Distant Elephant', vol: 0.2, clip: 'elephant-trumpet-1' }),
     bed('tropicalBird', { name: 'Hadada Ibis', vol: 0.4, clip: 'tropical-bird-hadada-ibis' }),
     bed('songbird', { name: 'Ring-necked Dove', vol: 0.42, clip: 'songbird-cape-turtle-dove' }),
     bed('insects', { name: 'Grassland Insects', clip: 'insects-field-cricket' }),
-    bed('wind', { name: 'Savanna Wind' }),
+    bed('wind', { name: 'Savanna Wind', clip: 'wind-tall-grass' }),
     bed('primates', { name: 'Vervets', vol: 0.28 }),
+    option('lion', { name: 'Distant Lion Roar', vol: 0.22, clip: 'lion-roar-1' }),
     option('owl', { name: 'Pearl-spotted Owlet', clip: 'owl-pearl-spotted-owlet' }),
   ] },
   capetown: { extraTags: ['coastal', 'savanna'], layers: [
     bed('seabird', { name: 'Cape Gulls' }), bed('songbird', { name: 'Robin-Chats' }),
-    bed('surf', { name: 'Atlantic Surf', vol: 0.38 }), bed('wind', { name: 'Cape Wind' }),
-    bed('insects', { name: 'Fynbos Insects' }),
+    bed('surf', { name: 'Atlantic Surf', vol: 0.38 }), bed('wind', { name: 'Cape Wind', clip: 'wind-tall-grass' }),
+    bed('insects', { name: 'Fynbos Insects', clip: 'insects-singing-1' }),
   ] },
   // ---- Asia / Pacific ----
+  // Kyoto: every layer is pinned to a Japanese-native clip + a bespoke plate
+  // (see extendedFixedIcons) so the mix stops resolving to Tibetan bowls,
+  // generic nocturnal insects, SE-Asian bulbuls, and Haeckel frog plates.
   kyoto: { extraTags: ['forest', 'garden'], layers: [
-    bed('bells', { name: 'Temple Bells' }), bed('songbird', { name: 'Bush Warbler' }),
-    bed('insects', { name: 'Higurashi Cicadas' }), bed('stream', { name: 'Garden Stream' }),
-    bed('corvid', { name: 'Jungle Crows' }), option('frogs', { name: 'Kajika Frogs' }),
+    bed('bells', { id: 'kyoto-bells', name: 'Temple Bells', vol: 0.34, clip: 'bells-gong-temple' }),
+    bed('songbird', { id: 'kyoto-uguisu', name: 'Bush Warbler', vol: 0.5, clip: 'songbird-japanese-bush-warbler-2' }),
+    bed('insects', { id: 'kyoto-higurashi', name: 'Higurashi Cicadas', vol: 0.22, clip: 'insects-higurashi-cicada' }),
+    bed('stream', { id: 'kyoto-stream', name: 'Garden Stream', vol: 0.44, clip: 'stream-flow' }),
+    bed('corvid', { id: 'kyoto-crows', name: 'Jungle Crows', vol: 0.46, clip: 'corvid-large-billed-crow' }),
+    option('frogs', { id: 'kyoto-frogs', name: 'Kajika Frogs', vol: 0.3, clip: 'frogs-kajika' }),
   ] },
   queenstown: { extraTags: ['nz', 'pacific', 'alpine', 'mountain', 'cold'], layers: [
     // Pin the NZ Bellbird so the new Pacific-tagged Australian Magpie (added to
     // the shared songbird pool for Sydney) can't disperse onto this NZ pin.
     bed('wind', { name: 'Southern Alps Wind' }), bed('songbird', { name: 'Rifleman & Rock Wren', clip: 'legacy-bellbird' }),
-    bed('stream', { name: 'Lakeshore Lapping', vol: 0.44 }), bed('forest', { name: 'Beech Forest' }),
+    bed('stream', { name: 'Lakeshore Lapping', vol: 0.44 }), bed('forest', { name: 'Beech Forest', clip: 'legacy-forest-ambience' }),
     // Pin the genuine ruru/morepork call (Ninox) so it can't resolve to an
     // unrelated pygmy-owl clip.
     option('owl', { name: 'Morepork', clip: 'owl-morepork-ruru' }),
   ] },
   bariloche: { extraTags: ['neotropical', 'mountain'], layers: [
     bed('stream', { name: 'Mountain Stream', vol: 0.46 }), bed('wind', { name: 'Patagonian Wind' }),
-    bed('songbird', { name: 'Andean Birds', clip: 'songbird-rufous-collared-sparrow' }), bed('forest', { name: 'Andean Forest' }),
+    bed('songbird', { name: 'Andean Birds', clip: 'songbird-rufous-collared-sparrow' }), bed('forest', { name: 'Andean Forest', clip: 'forest-3' }),
     option('corvid', { name: 'Corvids' }),
   ] },
   himalayas: { extraTags: ['mountain', 'cold'], layers: [
@@ -318,24 +364,30 @@ const CURATED_PLACES: Record<string, Recipe> = {
     bed('songbird', { name: 'Mountain Birds' }),
   ] },
   sydney: { extraTags: ['australia', 'coastal', 'garden'], layers: [
-    bed('kookaburra', { name: 'Kookaburra', vol: 0.5 }),
+    bed('kookaburra', { name: 'Kookaburra', vol: 0.5, clip: 'kookaburra-1' }),
     // Australian Magpie carol, pinned to the sourced Pacific/Australia clip
     // (routed through the deep songbird pool). Replaces the generic "Bush Birds".
     bed('songbird', { name: 'Australian Magpie', vol: 0.42, clip: 'songbird-australian-magpie' }),
-    // Pin a real cicada so the tile stops resolving to a field cricket.
-    bed('insects', { name: 'Cicadas', vol: 0.22, clip: 'insects-cicadas' }),
+    // Bespoke id so Sydney cicadas can keep a cicada plate (not the cricket default).
+    bed('insects', { id: 'sydney-cicadas', name: 'Cicadas', vol: 0.22, clip: 'insects-cicadas' }),
     // Pin a cleaner beach/surf bed instead of the Adriatic `legacy-surf`.
     bed('surf', { name: 'Harbour Surf', vol: 0.38, clip: 'waves-beach-sea' }),
     // Pin the harbour-tagged gull clip.
     bed('seabird', { name: 'Silver Gulls', vol: 0.4, clip: 'seabird-gulls-harbour' }),
+    // Side-dock options to add by hand (rain, breeze, bush, city, night owl).
+    option('rain', { name: 'Harbour Rain', vol: 0.38 }),
+    option('wind', { name: 'Harbour Breeze', vol: 0.3 }),
+    option('forest', { name: 'Bush Reserve', vol: 0.4 }),
+    option('cityHum', { name: 'City Hum', vol: 0.2 }),
+    option('owl', { name: 'Night Owl', vol: 0.32 }),
   ] },
   bali: { extraTags: ['tropical', 'coastal', 'rainforest'], layers: [
     bed('tropicalBird', { name: 'Rice-Field Birds' }), bed('frogs', { name: 'Paddy Frogs' }),
-    bed('insects', { name: 'Jungle Insects' }), bed('surf', { name: 'Reef Surf', vol: 0.36 }),
+    bed('insects', { name: 'Jungle Insects', clip: 'legacy-insect-chorus' }), bed('surf', { name: 'Reef Surf', vol: 0.36 }),
     bed('primates', { name: 'Macaques', vol: 0.28 }),
   ] },
   lapland: { extraTags: ['boreal', 'cold'], layers: [
-    bed('wind', { name: 'Arctic Wind' }), bed('forest', { name: 'Taiga Forest' }),
+    bed('wind', { name: 'Arctic Wind', clip: 'wind-fir-forest' }), bed('forest', { name: 'Taiga Forest', clip: 'forest-night-rain' }),
     bed('stream', { name: 'Snowmelt Brook', vol: 0.44 }), bed('corvid', { name: 'Ravens' }),
     bed('songbird', { name: 'Boreal Birds' }),
   ] },
@@ -469,6 +521,19 @@ function buildLayeredRecipe(ctx: RecipeContext): LayerSpec[] {
       layers.push(bed('bells', { name: 'Church Bells', vol: 0.3 }));
     }
     layers.push(bed('market', { vol: 0.26 }));
+    // A metro is one of the few things that genuinely tells cities apart, so in
+    // a city that actually has one it PLAYS rather than waiting in the dock.
+    // Manhattan should open with trains under it; a market town should not hear
+    // any. `metro` is a bundled fact on the city table, so this stays
+    // deterministic and snapshot-testable.
+    if (ctx.city?.metro) {
+      layers.push(bed('subway', { name: 'Subway', vol: 0.24 }));
+    } else {
+      layers.push(option('subway'));
+    }
+    // The murmur of a room full of people. Offered rather than defaulted: it
+    // overlaps the market bed's texture, so having both playing muddies a mix.
+    layers.push(option('cafe'));
   }
 
   // 6. WEATHER + OWL, offered in the library, off by default.
@@ -506,7 +571,13 @@ export function buildProceduralRegion(info: ProceduralLocationInfo): Region {
   // Phase 1 signals: the country -> culture profile and the major-city table.
   const cc = info.geocode?.countryCode;
   const culture = getCultureProfile(cc, traits.regionTag);
-  const city = matchMajorCity(info.name, info.lat, info.lng, cc);
+  const city = matchMajorCity(
+    info.name,
+    info.lat,
+    info.lng,
+    cc,
+    info.geocode?.type ?? info.geocode?.addresstype,
+  );
   const tod = timeOfDayFor(info.lng, new Date());
 
   const urban = traits.urban || !!city;
@@ -525,7 +596,7 @@ export function buildProceduralRegion(info: ProceduralLocationInfo): Region {
   if (culture.tags) habitatTags.push(...culture.tags);
   if (city?.tags) habitatTags.push(...city.tags);
 
-  const recipe = CURATED_PLACES[slugifyPlace(info.name)];
+  const recipe = curatedRecipeFor(info.name);
   const layers = recipe
     ? recipe.layers
     : buildLayeredRecipe({ traits, culture, city, tod, urban, tropical, warm, nearWater, coastal });

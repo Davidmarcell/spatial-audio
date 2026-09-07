@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { animateRise } from './sheetRise';
+import { FALLBACK_ICON_SRC } from '../data/iconDetailSrc';
 import { getLocationArtForItem } from '../data/locationArt';
 import {
   formatWorldLocationLabel,
@@ -16,7 +17,17 @@ import {
   type WorldLocation,
 } from '../data/worldLocations';
 import { publicUrl } from '../utils/publicUrl';
-import { DEFAULT_FAN_CONFIG, type FanConfig } from './landingFan';
+import {
+  DEFAULT_FAN_CONFIG,
+  DESKTOP_TILE_PX,
+  MOBILE_FAN_CONFIG,
+  MOBILE_SCATTER_LAYOUT,
+  MOBILE_SCATTER_OVERLAP_REM,
+  MOBILE_SCATTER_ROW_SIZE,
+  MOBILE_TILE_PX,
+  scatterSpotFor,
+  type FanConfig,
+} from './landingFan';
 import styles from './LandingGate.module.css';
 
 /**
@@ -29,6 +40,84 @@ const LANDING_TILE_COUNT = 6;
  * beat. The readable word is exposed to assistive tech via the container's
  * `aria-label`; the visible per-letter spans are decorative (`aria-hidden`). */
 const WORDMARK_TEXT = 'Saudade';
+
+/** Compact breakpoint — keep in sync with App / dock mobile media queries. */
+const COMPACT_MQ = '(max-width: 768px)';
+
+/**
+ * Live vertical offset of the gate's home-rise, published on the document root
+ * each frame. Body-portalled landing chrome (the search pill) reads this so it
+ * rides the exact same clock as the gate — see `data-page-motion='rise-home'`
+ * in LocationSearchSpotlight.module.css.
+ */
+const GATE_RISE_VAR = '--landing-rise-y';
+
+/**
+ * Hold at centre until the letter cascade has landed, then begin the
+ * centre → rest settle (no second static beat, and do not wait on fan art).
+ * Letter timing: delay 0.05s + 7×0.06s stagger + 0.62s rise ≈ 1.09s.
+ */
+const PRELOAD_WORDMARK_LAND_MS = 1200;
+/** Cap so a slow tile never blocks the fan forever. */
+const PRELOAD_ART_TIMEOUT_MS = 4200;
+/**
+ * One continuous centre → rest motion for the hero wordmark. The assets that
+ * rise afterwards share this exact duration (see `--landing-beat` in the compact
+ * block of LandingGate.module.css), so the whole entrance reads as one tempo.
+ */
+const PRELOAD_WORDMARK_SETTLE_MS = 560;
+/** Eased in and out of the settle, weighted so it leaves the centre gently. */
+const SETTLE_EASE_POINTS = [0.5, 0.02, 0.2, 1] as const;
+const PRELOAD_WORDMARK_SETTLE_EASE = `cubic-bezier(${SETTLE_EASE_POINTS.join(', ')})`;
+
+/**
+ * The fan, the copy and the search+Enter pair start rising while the wordmark is
+ * still travelling — once it is this close to its resting place. Overlapping the
+ * two beats stops the entrance reading as two separate events.
+ */
+const PRELOAD_ASSET_LEAD_PX = 52;
+
+/**
+ * Release `onReached` on the first frame the element's top edge is within
+ * `withinPx` of `restTop`, then stop.
+ *
+ * This watches the real geometry rather than predicting a time from the easing
+ * curve. A predicted `setTimeout` is measurably wrong here: its clock starts when
+ * the effect runs, but the transition's clock does not start until the next
+ * paint, so it fired ~20ms early — around 14px at the speed the wordmark is
+ * travelling by then. Reading the rect is also immune to later changes in the
+ * duration, the easing, or the scale component.
+ */
+function releaseWhenWithin(
+  el: HTMLElement,
+  restTop: number,
+  withinPx: number,
+  onReached: () => void,
+): () => void {
+  let frame = 0;
+  // Seeded from the live gap, not Infinity: the per-frame step below has to be a
+  // real number on the very first check or it fires instantly.
+  let previousGap = el.getBoundingClientRect().top - restTop;
+  const check = () => {
+    const gap = el.getBoundingClientRect().top - restTop;
+    // The mark almost never lands on a frame boundary, and by this point the
+    // wordmark covers ~10px per frame. Fire on whichever side of the mark is
+    // nearer, so the quantisation error is centred rather than always one frame
+    // late. Before the transform starts moving the step is 0 and this reduces to
+    // a plain `gap <= withinPx` test.
+    const perFrame = Math.max(0, previousGap - gap);
+    previousGap = gap;
+    if (gap - withinPx <= perFrame / 2) {
+      onReached();
+      return;
+    }
+    frame = requestAnimationFrame(check);
+  };
+  frame = requestAnimationFrame(check);
+  return () => cancelAnimationFrame(frame);
+}
+/** Reduced-motion: still show a centred hold, then snap to rest + assets. */
+const PRELOAD_REDUCED_HOLD_MS = 700;
 
 /** Fisher-Yates shuffle over a fresh copy (never mutates the source array). */
 function shuffle<T>(items: readonly T[]): T[] {
@@ -46,16 +135,13 @@ function shuffle<T>(items: readonly T[]): T[] {
 const MAGNET_STRENGTH = 0.16;
 const MAGNET_MAX_PX = 8;
 
-// Landing tile edge length in px (mirror of the CSS `.locationImage` size). Used
-// to reserve enough vertical room beneath the fan that no tile overlaps the body
-// copy, accounting for the arc drop plus the rotated tiles' hanging corners.
-const TILE_PX = 150;
-
 type LandingLocation = {
   location: WorldLocation;
   src: string;
   label: string;
 };
+
+type LandingPhase = 'booting' | 'revealed';
 
 type Props = {
   /** Enter the app at this location and start its soundscape. */
@@ -102,8 +188,118 @@ function prefersReducedMotion() {
   );
 }
 
+function isCompactViewport() {
+  return (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(COMPACT_MQ).matches
+  );
+}
+
+function waitForImageSource(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    const finish = () => {
+      if (typeof image.decode === 'function' && image.naturalWidth > 0) {
+        void image.decode().then(() => resolve()).catch(() => resolve());
+      } else {
+        resolve();
+      }
+    };
+    image.addEventListener('load', finish, { once: true });
+    image.addEventListener('error', () => resolve(), { once: true });
+    image.decoding = 'async';
+    image.src = src;
+    if (image.complete) finish();
+  });
+}
+
+function waitForSources(srcs: string[], timeoutMs: number): Promise<void> {
+  if (srcs.length === 0) return Promise.resolve();
+  const loaded = Promise.all(srcs.map((src) => waitForImageSource(src))).then(() => undefined);
+  const timeout = new Promise<void>((resolve) => {
+    window.setTimeout(resolve, timeoutMs);
+  });
+  return Promise.race([loaded, timeout]);
+}
+
+function waitForDomImages(
+  images: Array<HTMLImageElement | null>,
+  timeoutMs: number,
+): Promise<void> {
+  const pending = images.filter((image): image is HTMLImageElement => Boolean(image));
+  if (pending.length === 0) return Promise.resolve();
+
+  const loaded = Promise.all(
+    pending.map(
+      (image) =>
+        new Promise<void>((resolve) => {
+          if (image.complete && image.naturalWidth > 0) {
+            if (typeof image.decode === 'function') {
+              void image.decode().then(() => resolve()).catch(() => resolve());
+            } else {
+              resolve();
+            }
+            return;
+          }
+          const done = () => resolve();
+          image.addEventListener('load', done, { once: true });
+          image.addEventListener('error', done, { once: true });
+        }),
+    ),
+  ).then(() => undefined);
+
+  const timeout = new Promise<void>((resolve) => {
+    window.setTimeout(resolve, timeoutMs);
+  });
+
+  return Promise.race([loaded, timeout]);
+}
+
 const clampMagnet = (value: number) =>
   Math.max(-MAGNET_MAX_PX, Math.min(MAGNET_MAX_PX, value));
+
+const FALLBACK_TILE_SRC = publicUrl(FALLBACK_ICON_SRC);
+
+/** Fan tile image with a local fallback so a transient 404/abort after go-home
+ * cannot leave a permanent broken-image icon in the hero row. */
+function LandingFanImage({
+  src,
+  sizePx,
+  imgRef,
+}: {
+  src: string;
+  sizePx: number;
+  imgRef?: (node: HTMLImageElement | null) => void;
+}) {
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [didFallback, setDidFallback] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(src);
+    setDidFallback(false);
+  }, [src]);
+
+  return (
+    <img
+      ref={imgRef}
+      className={styles.locationImage}
+      src={currentSrc}
+      alt=""
+      width={sizePx}
+      height={sizePx}
+      loading="eager"
+      decoding="async"
+      fetchPriority="high"
+      draggable={false}
+      onError={() => {
+        if (didFallback || currentSrc === FALLBACK_TILE_SRC) return;
+        setDidFallback(true);
+        setCurrentSrc(FALLBACK_TILE_SRC);
+      }}
+    />
+  );
+}
 
 export function LandingGate({
   onSelect,
@@ -116,10 +312,36 @@ export function LandingGate({
   onEntered,
 }: Props) {
   const gateRef = useRef<HTMLDivElement>(null);
+  const wordmarkRef = useRef<HTMLHeadingElement>(null);
+  const fanImageRefs = useRef<Array<HTMLImageElement | null>>([]);
+  const bootWordmarkRectRef = useRef<DOMRect | null>(null);
+  const didFlipWordmarkRef = useRef(false);
   const onEnteredRef = useRef(onEntered);
   useEffect(() => {
     onEnteredRef.current = onEntered;
   });
+
+  const [compact, setCompact] = useState(() => isCompactViewport());
+  // Cold boot preload (phone + desktop): Saudade alone at viewport centre,
+  // then one continuous settle into the hero slot. Fan art readiness is
+  // tracked separately so a slow decode never freezes the wordmark mid-hold.
+  // Only the home-rise return path skips the preload.
+  const [phase, setPhase] = useState<LandingPhase>(() => (entering ? 'revealed' : 'booting'));
+  const [artReady, setArtReady] = useState(() => entering);
+  // Assets (fan / tagline / search+Enter) stay off until the wordmark has
+  // finished its centre → rest settle.
+  const [heroReady, setHeroReady] = useState(() => entering);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+    const mq = window.matchMedia(COMPACT_MQ);
+    const sync = () => setCompact(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   // Home-rise (approach A, in reverse): when the landing is the incoming page
   // returning home, the whole gate rises up over the lifting outgoing page with
@@ -135,28 +357,36 @@ export function LandingGate({
       return undefined;
     }
 
+    // The search pill is portalled to <body>, so it cannot be carried by the
+    // gate's transform. Publish the live rise offset each frame and let the pill
+    // consume it, so pill and Enter button travel on one clock (a parallel CSS
+    // animation drifts a frame or two out of step, which reads as two assets
+    // moving at different speeds through the steep part of the curve).
+    const root = document.documentElement;
+    const clearRiseVar = () => root.style.removeProperty(GATE_RISE_VAR);
+
     const cancel = animateRise(el, {
+      onFrame: (translateY) => {
+        root.style.setProperty(GATE_RISE_VAR, `${translateY.toFixed(2)}px`);
+      },
       onDone: () => {
         el.style.transform = '';
         el.style.clipPath = '';
         el.style.willChange = '';
+        clearRiseVar();
         onEnteredRef.current?.();
       },
     });
     return () => {
       cancel();
-      // If interrupted, drop the inline rise styles so nothing is left stuck
-      // mid-rise.
       el.style.transform = '';
       el.style.clipPath = '';
       el.style.willChange = '';
+      clearRiseVar();
     };
   }, [entering]);
 
   const locations = useMemo<LandingLocation[]>(() => {
-    // Draw a fresh random six from the full valid roster on every landing load.
-    // Only genuine curated pins with bespoke art qualify, so no tile can render
-    // broken (missing pin or missing illustration).
     const candidates = worldLocations.flatMap((location) => {
       if (location.custom) return [];
       const art = getLocationArtForItem(location);
@@ -172,36 +402,121 @@ export function LandingGate({
     return shuffle(candidates).slice(0, LANDING_TILE_COUNT);
   }, []);
 
-  // The tile art is decoded off-screen before the fan is allowed to animate in,
-  // so images are ready to paint the instant each tile rises rather than popping
-  // in after layout once their own async decode finishes. A short fallback makes
-  // sure a slow or failed decode can never trap the fan hidden. Until ready the
-  // tiles reserve their full space and simply stay invisible (no layout shift).
-  const [tilesReady, setTilesReady] = useState(false);
+  // Kick network + decode for fan art immediately (in parallel with the
+  // centred wordmark), and also wait on the real <img> nodes once mounted.
   useEffect(() => {
-    if (locations.length === 0) {
-      setTilesReady(true);
-      return;
-    }
+    if (artReady) return undefined;
+
     let cancelled = false;
-    const decodes = locations.map(({ src }) => {
-      const image = new Image();
-      image.src = src;
-      return image.decode().catch(() => undefined);
+    const srcs = locations.map((entry) => entry.src);
+
+    void Promise.all([
+      waitForSources(srcs, PRELOAD_ART_TIMEOUT_MS),
+      waitForDomImages(fanImageRefs.current, PRELOAD_ART_TIMEOUT_MS),
+    ]).then(() => {
+      if (!cancelled) setArtReady(true);
     });
-    const fallback = window.setTimeout(() => {
-      if (!cancelled) setTilesReady(true);
-    }, 600);
-    void Promise.all(decodes).then(() => {
-      if (cancelled) return;
-      window.clearTimeout(fallback);
-      setTilesReady(true);
-    });
+
     return () => {
       cancelled = true;
-      window.clearTimeout(fallback);
     };
-  }, [locations]);
+  }, [artReady, locations]);
+
+  // As soon as the letter cascade has landed, leave the centre and settle into
+  // the hero slot — do not wait on art (that would freeze a second beat).
+  useEffect(() => {
+    if (phase !== 'booting') return undefined;
+
+    let cancelled = false;
+    const holdMs = prefersReducedMotion() ? PRELOAD_REDUCED_HOLD_MS : PRELOAD_WORDMARK_LAND_MS;
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      const wordmark = wordmarkRef.current;
+      if (wordmark) {
+        bootWordmarkRectRef.current = wordmark.getBoundingClientRect();
+      }
+      setPhase('revealed');
+    }, holdMs);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [phase]);
+
+  // One-shot FLIP on the SAME h1: invert from the centred boot rect to the
+  // resting hero slot (search row already in layout), then play transform back
+  // to identity. Clearing leaves it on that exact static slot — no second hop.
+  useLayoutEffect(() => {
+    if (phase !== 'revealed' || didFlipWordmarkRef.current) return;
+    if (prefersReducedMotion()) {
+      didFlipWordmarkRef.current = true;
+      setHeroReady(true);
+      return;
+    }
+
+    const el = wordmarkRef.current;
+    const from = bootWordmarkRectRef.current;
+    if (!el || !from) {
+      didFlipWordmarkRef.current = true;
+      setHeroReady(true);
+      return;
+    }
+
+    // Ensure resting layout (relative wordmark + reserved search row) is measured.
+    void el.offsetWidth;
+    const to = el.getBoundingClientRect();
+    if (to.width < 1 || to.height < 1) {
+      didFlipWordmarkRef.current = true;
+      setHeroReady(true);
+      return;
+    }
+
+    const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+    const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+    const sx = from.width / to.width;
+    const sy = from.height / to.height;
+
+    // No visible travel (already at rest) — still gate assets on the settle clock
+    // so a zero-distance FLIP never skips the preload beat.
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sx - 1) < 0.02 && Math.abs(sy - 1) < 0.02) {
+      didFlipWordmarkRef.current = true;
+      const timer = window.setTimeout(() => setHeroReady(true), PRELOAD_WORDMARK_SETTLE_MS);
+      return () => window.clearTimeout(timer);
+    }
+
+    didFlipWordmarkRef.current = true;
+    el.style.transition = 'none';
+    el.style.transformOrigin = 'center center';
+    el.style.willChange = 'transform';
+    // Kill inherited font-size transition so the FLIP scale is the only motion.
+    el.style.transitionProperty = 'transform';
+    el.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
+    void el.offsetWidth;
+    el.style.transition = `transform ${PRELOAD_WORDMARK_SETTLE_MS}ms ${PRELOAD_WORDMARK_SETTLE_EASE}`;
+    el.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
+
+    const clear = () => {
+      el.style.transition = '';
+      el.style.transitionProperty = '';
+      el.style.transform = '';
+      el.style.transformOrigin = '';
+      el.style.willChange = '';
+    };
+    // Release the assets while the wordmark is still on its way in, so the two
+    // beats overlap rather than reading as separate events. Only the h1 carries a
+    // transform, so nothing reflows as they appear and its arc is unaffected.
+    const cancelRelease = releaseWhenWithin(el, to.top, PRELOAD_ASSET_LEAD_PX, () =>
+      setHeroReady(true),
+    );
+    // Identity transform == measured resting rect; clear without a second move.
+    const settleDone = window.setTimeout(clear, PRELOAD_WORDMARK_SETTLE_MS + 16);
+    return () => {
+      cancelRelease();
+      window.clearTimeout(settleDone);
+      clear();
+    };
+  }, [phase]);
 
   const handleTilePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
     if (prefersReducedMotion()) return;
@@ -219,16 +534,91 @@ export function LandingGate({
     el.style.setProperty('--magnet-y', '0px');
   };
 
-  const fan = fanConfig ?? DEFAULT_FAN_CONFIG;
+  const fan = compact ? MOBILE_FAN_CONFIG : (fanConfig ?? DEFAULT_FAN_CONFIG);
+  const tilePx = compact ? MOBILE_TILE_PX : DESKTOP_TILE_PX;
+  // Phones get the scattered layout; desktop keeps the symmetric fan.
+  const scattered = compact;
+  // Keep search+Enter mounted for layout during preload so the wordmark FLIP
+  // lands on the true resting slot (the vertically-centred stack does not jump
+  // ~30px when the row later appears). Visibility/entrance stay gated on
+  // heroReady via CSS + the search portal.
 
-  // Reserve just enough room below the fan for the arc drop and the rotated
-  // tiles' lowest corners, so the tagline always clears the lowest tile. The
-  // hover lift and magnet nudge are transform-only (no reflow) and are absorbed
-  // by the even gap, so they need no extra reservation.
-  const theta = (fan.endRotationDeg * Math.PI) / 180;
+  // Room the row must reserve so no plate's rotated corner or vertical offset
+  // clips into the wordmark above or the copy below.
+  const maxRotationDeg = scattered
+    ? Math.max(...MOBILE_SCATTER_LAYOUT.map((spot) => Math.abs(spot.rotDeg)))
+    : fan.endRotationDeg;
+  const theta = (maxRotationDeg * Math.PI) / 180;
   const rotationOverhangPx =
-    (TILE_PX * (Math.abs(Math.sin(theta)) + Math.abs(Math.cos(theta)) - 1)) / 2;
-  const fanPadBottomPx = Math.ceil(fan.arcDepthPx + rotationOverhangPx + 4);
+    (tilePx * (Math.abs(Math.sin(theta)) + Math.abs(Math.cos(theta)) - 1)) / 2;
+  const scatterLowestPx = scattered
+    ? Math.max(0, ...MOBILE_SCATTER_LAYOUT.map((spot) => spot.yPx))
+    : 0;
+  const scatterHighestPx = scattered
+    ? Math.max(0, ...MOBILE_SCATTER_LAYOUT.map((spot) => -spot.yPx))
+    : 0;
+  const rowPadBottomPx = Math.ceil(
+    (scattered ? scatterLowestPx : fan.arcDepthPx) + rotationOverhangPx + 4,
+  );
+  const rowPadTopPx = Math.ceil(scatterHighestPx + rotationOverhangPx + 4);
+  const overlapRem = scattered ? MOBILE_SCATTER_OVERLAP_REM : fan.overlapRem;
+
+  const locationRows = scattered
+    ? [
+        locations.slice(0, MOBILE_SCATTER_ROW_SIZE),
+        locations.slice(MOBILE_SCATTER_ROW_SIZE),
+      ].filter((row) => row.length > 0)
+    : [locations];
+
+  const renderLocationTile = (
+    { location, src, label }: (typeof locations)[number],
+    index: number,
+    rowLength: number,
+  ) => {
+    const centre = (rowLength - 1) / 2;
+    const offset = centre === 0 ? 0 : (index % rowLength - centre) / centre;
+    const spot = scattered ? scatterSpotFor(index) : null;
+    const restRotation = spot ? spot.rotDeg : offset * fan.endRotationDeg;
+    const arcY = spot ? spot.yPx : offset * offset * fan.arcDepthPx;
+    const restScale = spot ? spot.scale : 1 - Math.abs(offset) * fan.scaleFalloff;
+    return (
+      <li
+        key={location.id}
+        className={styles.locationItem}
+        style={{ '--landing-index': index } as React.CSSProperties}
+      >
+        <button
+          type="button"
+          className={styles.locationButton}
+          data-tooltip={label}
+          aria-label={`Enter ${label}`}
+          disabled={!artReady}
+          style={{
+            '--rest-rot': `${restRotation.toFixed(2)}deg`,
+            '--arc-y': `${arcY.toFixed(2)}px`,
+            '--rest-scale': restScale.toFixed(3),
+            '--scatter-x': `${(spot?.xPx ?? 0).toFixed(2)}px`,
+          } as React.CSSProperties}
+          onClick={() => onSelect(location)}
+          onPointerMove={handleTilePointerMove}
+          onPointerLeave={resetTileMagnet}
+          onPointerCancel={resetTileMagnet}
+          onBlur={(event) => {
+            event.currentTarget.style.setProperty('--magnet-x', '0px');
+            event.currentTarget.style.setProperty('--magnet-y', '0px');
+          }}
+        >
+          <LandingFanImage
+            src={src}
+            sizePx={tilePx}
+            imgRef={(node) => {
+              fanImageRefs.current[index] = node;
+            }}
+          />
+        </button>
+      </li>
+    );
+  };
 
   const content = (
     <div
@@ -236,14 +626,19 @@ export function LandingGate({
       className={styles.gate}
       data-theme="light"
       data-landing-gate=""
+      data-phase={phase}
+      data-art-ready={artReady ? 'true' : 'false'}
+      data-hero-ready={heroReady ? 'true' : 'false'}
+      data-compact={compact ? 'true' : undefined}
       data-exiting={exiting ? 'true' : undefined}
       data-entering={entering ? 'true' : undefined}
       role="dialog"
       aria-modal="true"
       aria-label="Enter Saudade"
+      aria-busy={phase === 'booting' ? true : undefined}
     >
       <div className={styles.inner} data-search-open={searchOpen ? 'true' : undefined}>
-        <h1 className={styles.wordmark} aria-label={WORDMARK_TEXT}>
+        <h1 ref={wordmarkRef} className={styles.wordmark} aria-label={WORDMARK_TEXT}>
           {WORDMARK_TEXT.split('').map((letter, index) => (
             <span
               key={`${letter}-${index}`}
@@ -255,69 +650,46 @@ export function LandingGate({
             </span>
           ))}
         </h1>
-        <ul
-          className={styles.locationRow}
-          data-tiles-ready={tilesReady ? 'true' : undefined}
+        <div
+          className={scattered ? styles.locationStack : undefined}
           style={
             {
-              '--overlap': `${fan.overlapRem}rem`,
-              '--fan-pad-bottom': `${fanPadBottomPx}px`,
+              '--overlap': `${overlapRem}rem`,
+              '--fan-pad-bottom': `${rowPadBottomPx}px`,
+              '--fan-pad-top': `${rowPadTopPx}px`,
+              '--tile-size': `${tilePx}px`,
             } as React.CSSProperties
           }
         >
-          {locations.map(({ location, src, label }, index) => {
-            // Normalised distance from the centre of the row (−1 … +1), so the
-            // fan rotation, arch and edge scale stay symmetric for any tile count.
-            const centre = (locations.length - 1) / 2;
-            const offset = centre === 0 ? 0 : (index - centre) / centre;
-            const restRotation = offset * fan.endRotationDeg;
-            const arcY = offset * offset * fan.arcDepthPx;
-            const restScale = 1 - Math.abs(offset) * fan.scaleFalloff;
-            return (
-              <li
-                key={location.id}
-                className={styles.locationItem}
-                style={{ '--landing-index': index } as React.CSSProperties}
-              >
-                <button
-                  type="button"
-                  className={styles.locationButton}
-                  data-tooltip={label}
-                  aria-label={`Enter ${label}`}
-                  style={{
-                    '--rest-rot': `${restRotation.toFixed(2)}deg`,
-                    '--arc-y': `${arcY.toFixed(2)}px`,
-                    '--rest-scale': restScale.toFixed(3),
-                  } as React.CSSProperties}
-                  onClick={() => onSelect(location)}
-                  onPointerMove={handleTilePointerMove}
-                  onPointerLeave={resetTileMagnet}
-                  onPointerCancel={resetTileMagnet}
-                  onBlur={(event) => {
-                    event.currentTarget.style.setProperty('--magnet-x', '0px');
-                    event.currentTarget.style.setProperty('--magnet-y', '0px');
-                  }}
-                >
-                  <img
-                    className={styles.locationImage}
-                    src={src}
-                    alt=""
-                    width={TILE_PX}
-                    height={TILE_PX}
-                    loading="eager"
-                    decoding="async"
-                    draggable={false}
-                  />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+          {locationRows.map((row, rowIndex) => (
+            <ul
+              key={`landing-row-${rowIndex}`}
+              className={styles.locationRow}
+              style={
+                scattered
+                  ? ({
+                      '--fan-pad-bottom':
+                        rowIndex === locationRows.length - 1 ? `${rowPadBottomPx}px` : '0.45rem',
+                      '--fan-pad-top': rowIndex === 0 ? `${rowPadTopPx}px` : '0.35rem',
+                    } as React.CSSProperties)
+                  : undefined
+              }
+            >
+              {row.map((item, localIndex) =>
+                renderLocationTile(
+                  item,
+                  scattered ? rowIndex * MOBILE_SCATTER_ROW_SIZE + localIndex : localIndex,
+                  row.length,
+                ),
+              )}
+            </ul>
+          ))}
+        </div>
         <p className={styles.tagline}>
           An experience of sound. Invoking places, and the memories they hold through spatial audio. Best experienced with headphones.
         </p>
         {search && (
-          <div className={styles.searchSlot}>
+          <div className={styles.searchSlot} aria-hidden={heroReady ? undefined : true}>
             <div className={styles.searchRow}>
               {search}
               {onEnter && (
@@ -325,6 +697,7 @@ export function LandingGate({
                   type="button"
                   className={styles.enterButton}
                   onClick={onEnter}
+                  tabIndex={heroReady ? undefined : -1}
                 >
                   Enter
                 </button>
@@ -336,12 +709,5 @@ export function LandingGate({
     </div>
   );
 
-  // Portal the gate to <body> so its stacking lives at the document root, above
-  // the full-screen globe/map page (a body portal at z-index 400). The incoming
-  // home-rise raises the gate to z-index 450 so it genuinely RISES over the
-  // lifting globe with the shared curved edge, rather than being trapped inside
-  // the app's isolated stacking context (the SheetStack outlet) beneath the
-  // globe, which made the rise play hidden and then hard-cut in when the globe
-  // unmounted.
   return typeof document === 'undefined' ? content : createPortal(content, document.body);
 }
