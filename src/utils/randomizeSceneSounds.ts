@@ -26,6 +26,7 @@ const GENERIC_UNIQUE_TYPES = new Set<SoundType>([
  * named species coexist but two identical generic tiles never do.
  */
 function dedupKey(sound: SoundDef): string {
+  if (sound.recording) return sound.id;
   const type = inferSoundType(sound);
   if (type && GENERIC_UNIQUE_TYPES.has(type)) return `type:${type}`;
   return `name:${displaySoundName(sound)}`;

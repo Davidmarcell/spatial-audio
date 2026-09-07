@@ -1,4 +1,11 @@
 :root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --panel-radius: 24px;
+  --control-height: 48px;
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -83,7 +90,7 @@
   --search-shell-expanded-height: min(24rem, calc(100vh - 7rem - env(safe-area-inset-top, 0px)));
   --search-shell-pill-radius: 999px;
   --search-shell-open-radius-mid: 28px;
-  --search-shell-open-radius: 12px;
+  --search-shell-open-radius: var(--panel-radius);
   --radius-sm: 0.75rem;
   --radius-md: 1rem;
   --radius-lg: 1.25rem;
@@ -120,6 +127,9 @@
   background: #fff;
 
   --text: #1c1c1e;
+  --transport-surface: #ffffff;
+  --transport-text: #1c1c1e;
+  --transport-muted: #616166;
   --text-muted: #6e6e73;
   --text-secondary: #8e8e93;
   --text-on-accent: #ffffff;
@@ -205,6 +215,9 @@
   background: #000000;
 
   --text: #f5f5f7;
+  --transport-surface: #242426;
+  --transport-text: #f5f5f7;
+  --transport-muted: #c1c1c6;
   --text-muted: #98989d;
   --text-secondary: #636366;
   --text-on-accent: #f5f5f7;

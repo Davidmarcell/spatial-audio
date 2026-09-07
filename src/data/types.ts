@@ -76,6 +76,7 @@ export type SoundClip = {
 };
 
 export type SoundDef = {
+  recording?: import('./discoveredRecordings').DiscoveredRecording;
   id: string;
   name: string;
   category: SoundCategory;
@@ -112,6 +113,7 @@ export type BedSound = {
 };
 
 export type Region = {
+  discovery?: { status: 'ready' | 'unconfigured' | 'unavailable' | 'empty'; message: string };
   id: string;
   name: string;
   sounds: SoundDef[];

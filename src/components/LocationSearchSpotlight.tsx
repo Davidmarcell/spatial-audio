@@ -1,12 +1,13 @@
 import { UiIcon } from './UiIcon';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
+import { useModalFocus } from '../hooks/useModalFocus';
 import type { AppLocation } from '../data/environments';
 import { getRegion } from '../data/environments';
 import { getLocationArtForItem } from '../data/locationArt';
 import { getGeocodePlaceholderArt } from '../utils/geocodePlaceholderArt';
 import { publicUrl } from '../utils/publicUrl';
-import { resolveProceduralSoundscape } from '../utils/proceduralSoundscape';
+import { resolveDiscoveredSoundscape } from '../utils/discoveredSoundscape';
 import {
   createCustomWorldLocation,
   formatWorldLocationLabel,
@@ -369,11 +370,13 @@ function TrendingRow({
 }
 
 function ResultRow({
+  id,
   item,
   active,
   onSelect,
   onHighlight,
 }: {
+  id?: string;
   item: SearchItem;
   active?: boolean;
   onSelect: () => void;
@@ -382,6 +385,7 @@ function ResultRow({
   return (
     <li>
       <button
+        id={id}
         type="button"
         className={`${styles.resultButton} ${active ? styles.resultActive : ''}`}
         role="option"
@@ -460,6 +464,8 @@ export function LocationSearchSpotlight({
   // beat or a pending geocode fetch) that resolves afterwards can detect it lost
   // the race and not apply a stale place.
   const generateRunIdRef = useRef(0);
+  const discoveryAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => () => discoveryAbortRef.current?.abort(), []);
   // Bumped each time the panel opens so Trending draws a fresh random set.
   const [trendingToken, setTrendingToken] = useState(0);
 
@@ -594,6 +600,7 @@ export function LocationSearchSpotlight({
     // Invalidate any in-flight generate so its hold beat cannot apply a place
     // after the panel has reset (e.g. Escape, globe open, blocked).
     generateRunIdRef.current += 1;
+    discoveryAbortRef.current?.abort();
     setPhase('closed');
     setQuery('');
     setHighlightIndex(-1);
@@ -713,6 +720,7 @@ export function LocationSearchSpotlight({
   const isClosed = phase === 'closed';
   const isClosing = phase === 'closing-drop' || phase === 'closing-shrink';
   const isOpen = phase === 'opening-width' || phase === 'opening-rise' || phase === 'open';
+  useModalFocus(phase === 'open' && !blocked, panelRef);
   const isWidthExpanded =
     phase === 'opening-width' ||
     phase === 'opening-rise' ||
@@ -977,8 +985,8 @@ export function LocationSearchSpotlight({
   // real coordinates through so the app drops a custom globe pin at the searched
   // place (matching the "Use my location" flow) rather than snapping to one of a
   // few curated templates.
-  const buildGeneratedSelection = useCallback((result: GeocodeResult) => {
-    const soundscape = resolveProceduralSoundscape({
+  const buildGeneratedSelection = useCallback(async (result: GeocodeResult, signal: AbortSignal) => {
+    const soundscape = await resolveDiscoveredSoundscape({
       name: formatWorldLocationLabel({
         name: result.shortName,
         subtitle: result.subtitle || '',
@@ -993,7 +1001,7 @@ export function LocationSearchSpotlight({
         displayName: result.displayName,
         countryCode: result.countryCode,
       },
-    });
+    }, signal);
     const customLocation = createCustomWorldLocation({
       lat: result.lat,
       lng: result.lng,
@@ -1012,7 +1020,17 @@ export function LocationSearchSpotlight({
   // respects the paused/playing transport) are honoured automatically.
   const holdAndApplyGenerated = useCallback(
     async (result: GeocodeResult, runId: number) => {
-      const { soundscape, customLocation } = buildGeneratedSelection(result);
+      discoveryAbortRef.current?.abort();
+      const controller = new AbortController();
+      discoveryAbortRef.current = controller;
+      let selection: Awaited<ReturnType<typeof buildGeneratedSelection>>;
+      try {
+        selection = await buildGeneratedSelection(result, controller.signal);
+      } catch {
+        if (generateRunIdRef.current === runId) setGenerating(null);
+        return;
+      }
+      const { soundscape, customLocation } = selection;
       const holdMs = prefersReducedMotion() ? GENERATE_HOLD_REDUCED_MS : GENERATE_HOLD_MS;
       await new Promise((resolve) => window.setTimeout(resolve, holdMs));
       // Bailed out (reset/blocked/Escape) while we held the beat.
@@ -1119,11 +1137,17 @@ export function LocationSearchSpotlight({
     if (!isOpen) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing) return;
+      if (!(event.target instanceof Node) || !panelRef.current?.contains(event.target)) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         close();
         return;
       }
+
+      // Buttons keep native Enter/Space activation; list navigation belongs to
+      // the search field, so a result cannot also trigger an empty-query action.
+      if (event.target !== inputRef.current) return;
 
       if (event.key === 'ArrowDown') {
         event.preventDefault();
@@ -1316,6 +1340,7 @@ export function LocationSearchSpotlight({
               data-tooltip={isClosed ? 'Search places' : undefined}
               role={isClosed ? 'button' : 'dialog'}
               aria-label="Search locations"
+              aria-modal={isOpen || undefined}
               aria-expanded={isOpen}
               aria-haspopup="dialog"
               aria-controls={isOpen ? `${listboxId}-results` : undefined}
@@ -1352,12 +1377,15 @@ export function LocationSearchSpotlight({
                     <input
                       ref={inputRef}
                       type="search"
+                      role="combobox"
                       className={styles.input}
                       placeholder=""
                       value={query}
                       onChange={(event) => setQuery(event.target.value)}
                       aria-label="Search locations"
                       aria-autocomplete="list"
+                      aria-expanded={isOpen}
+                      aria-activedescendant={trimmedQuery && highlightIndex >= 0 && highlightIndex < selectableItems.length ? `${listboxId}-option-${highlightIndex}` : undefined}
                       aria-controls={`${listboxId}-results`}
                       autoComplete="off"
                       spellCheck={false}
@@ -1407,6 +1435,7 @@ export function LocationSearchSpotlight({
                               return (
                                 <ResultRow
                                   key={item.key}
+                                  id={`${listboxId}-option-${index}`}
                                   item={item}
                                   active={isActive(index)}
                                   onSelect={() => selectLocal(item)}
@@ -1443,6 +1472,7 @@ export function LocationSearchSpotlight({
                                   return (
                                     <li key={result.placeId}>
                                       <button
+                                        id={`${listboxId}-option-${index}`}
                                         type="button"
                                         className={`${styles.resultButton} ${isActive(index) ? styles.resultActive : ''}`}
                                         role="option"

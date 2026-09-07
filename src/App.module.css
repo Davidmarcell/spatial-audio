@@ -580,3 +580,16 @@
     display: none;
   }
 }
+.discoveryNotice {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(480px, calc(100% - 48px));
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text-muted);
+  z-index: 2;
+}

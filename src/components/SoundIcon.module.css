@@ -98,7 +98,6 @@
     opacity 0.24s ease;
   overflow: hidden;
   transform: scale(1);
-  animation: tilePulse 6s ease-in-out infinite;
 }
 
 @keyframes tilePulse {
@@ -156,7 +155,8 @@
   pointer-events: none;
 }
 
-.iconBody:hover .hoverOverlay {
+.iconBody:hover .hoverOverlay,
+.iconBody:focus-within .hoverOverlay {
   opacity: 1;
 }
 
@@ -215,8 +215,20 @@
   pointer-events: none;
 }
 
-.iconBody:hover .actionHit {
+.iconBody:hover .actionHit,
+.iconBody:focus-within .actionHit {
   pointer-events: auto;
+}
+
+.icon:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.actionHit:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .actionHitLeft {
@@ -251,7 +263,6 @@
   .icon {
     /* ~72px. The tiles sit further apart on phones now (see CANVAS_SPREAD_COMPACT),
        so a larger face reads clearly without crowding its neighbours. */
-    --canvas-tile-size: 4.5rem;
   }
 
   .label {

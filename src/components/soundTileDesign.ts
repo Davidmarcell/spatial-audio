@@ -19,9 +19,9 @@ export type SoundTileDesignConfig = {
 };
 
 export const DEFAULT_SOUND_TILE_DESIGN: SoundTileDesignConfig = {
-  cardRadiusPx: 28,
-  imageRadiusPx: 18,
-  paddingPx: 18,
+  cardRadiusPx: 24,
+  imageRadiusPx: 16,
+  paddingPx: 24,
   imageSizePx: 320,
   columnGapPx: 16,
   panelWidthPx: 380,

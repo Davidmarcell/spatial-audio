@@ -26,6 +26,7 @@ type Props = {
   draggingSoundId: string | null;
   dragActive: boolean;
   onDragStart: (sound: SoundDef, event: React.PointerEvent<HTMLButtonElement>) => void;
+  onAddSound: (sound: SoundDef) => void;
 };
 
 const TABS: Array<{ id: AddSoundTab; label: string }> = [
@@ -45,6 +46,7 @@ export function AddSoundSheet({
   draggingSoundId,
   dragActive,
   onDragStart,
+  onAddSound,
 }: Props) {
   const [tab, setTab] = useState<AddSoundTab>('wildlife');
   const [season, setSeason] = useState<Season>(defaultSeason);
@@ -181,11 +183,22 @@ export function AddSoundSheet({
               key={item.id}
               type="button"
               role="tab"
+              id={`sound-category-${item.id}`}
+              aria-controls="sound-category-panel"
+              tabIndex={tab === item.id ? 0 : -1}
               aria-selected={!isSearching && tab === item.id}
               className={`${styles.categorySegment} ${!isSearching && tab === item.id ? styles.categorySegmentActive : ''}`}
               onClick={() => {
                 setSearchQuery('');
                 setTab(item.id);
+              }}
+              onKeyDown={(event) => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === 'Home' ? TABS[0] : event.key === 'End' ? TABS[TABS.length - 1] : TABS[(TABS.findIndex((entry) => entry.id === item.id) + 1) % TABS.length];
+                setSearchQuery('');
+                setTab(next.id);
+                document.getElementById(`sound-category-${next.id}`)?.focus();
               }}
             >
               {item.label}
@@ -200,7 +213,7 @@ export function AddSoundSheet({
         )}
       </div>
 
-      <div className={styles.scroll} role="tabpanel">
+      <div className={styles.scroll} id="sound-category-panel" role="tabpanel" aria-labelledby={`sound-category-${tab}`}>
         {/* Height is measured from the content and eased, so filtering the list
             grows/shrinks the sheet instead of snapping to the new size. */}
         <div
@@ -247,6 +260,9 @@ export function AddSoundSheet({
                         className={`${styles.card} ${onCanvas ? styles.cardOnCanvas : ''}`}
                         disabled={onCanvas}
                         onPointerDown={(event) => handlePointerDown(sound, event)}
+                        onClick={(event) => {
+                          if (event.detail === 0) onAddSound(sound);
+                        }}
                       >
                         <span className={styles.cardHead}>
                           <span className={styles.iconWrap}>

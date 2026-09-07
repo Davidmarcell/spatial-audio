@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   line-height: 0;
-  background-color: #fff;
+  background-color: var(--transport-surface);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -41,7 +41,7 @@
   padding: 0.7rem 0.85rem;
   border-radius: 0.85rem;
   border: 1px solid var(--glass-border);
-  background-color: #fff;
+  background-color: var(--transport-surface);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: var(--glass-panel-shadow);

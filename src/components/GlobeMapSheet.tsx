@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useModalFocus } from '../hooks/useModalFocus';
 import type { WorldLocation } from '../data/worldLocations';
 import { animateRise, prefersReducedMotion } from './sheetRise';
 import styles from './GlobeMapSheet.module.css';
@@ -49,6 +50,7 @@ export function GlobeMapSheet({
   // exit lift plays (open flips false first, then the host clears `exiting`).
   const present = open || exiting;
   const fullscreenRef = useRef<HTMLDivElement>(null);
+  useModalFocus(present, fullscreenRef);
   const onEnteredRef = useRef(onEntered);
 
   useEffect(() => {
@@ -102,6 +104,7 @@ export function GlobeMapSheet({
       ref={fullscreenRef}
       className={`${styles.fullscreen} ${exiting ? styles.exiting : ''}`}
       role="dialog"
+      tabIndex={-1}
       aria-modal="true"
       aria-label="World map"
     >

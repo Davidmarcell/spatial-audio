@@ -1,9 +1,9 @@
 .cluster {
-  --control-size: 3rem;
+  --control-size: var(--control-height);
   /* Direction the volume pairs out from the play pill: 1 = right (desktop),
      -1 = left (phones, where the cluster is right-aligned). */
   --pair-dir: 1;
-  --volume-gap: 0.6rem;
+  --volume-gap: var(--space-2);
   --pair-duration: 200ms;
   /* Logosystem-style ease-out — same curve on open and close (no reverse easing). */
   --pair-ease: cubic-bezier(0, 0, 0.2, 1);
@@ -53,9 +53,14 @@
 /* Fully opaque play/pause chrome — no frosted wash. */
 .playPill :global(button),
 .volumeRail :global(button) {
-  background-color: #fff !important;
+  background-color: var(--transport-surface) !important;
+  color: var(--transport-text);
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+.volumeRail :global(button):hover {
+  color: var(--transport-text);
 }
 
 .playSlot[data-phase='opening'] .playPill,

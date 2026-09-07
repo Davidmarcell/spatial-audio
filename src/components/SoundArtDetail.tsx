@@ -15,6 +15,7 @@ import {
 import styles from './SoundArtDetail.module.css';
 
 export type DetailTarget = {
+  recording?: import('../data/discoveredRecordings').DiscoveredRecording;
   instanceId: string;
   soundId: string;
   name: string;
@@ -39,6 +40,8 @@ type Props = {
   artworkMode?: 'natural' | 'shared';
   /** Natural width/height used when `artworkMode="shared"`. */
   artAspect?: number;
+  /** Exact destination used by the flying artwork; no second layout estimate. */
+  sharedArtBox?: { artW: number; artH: number; isLandscape: boolean };
   /** Fade the meta/volume column during card-expand (0–1). */
   infoOpacity?: number;
 };
@@ -53,6 +56,7 @@ export function SoundArtDetailContent({
   artworkHidden = false,
   artworkMode = 'natural',
   artAspect = 1,
+  sharedArtBox,
   infoOpacity = 1,
 }: Props) {
   const artwork = getSoundArtworkForRegion(
@@ -69,7 +73,7 @@ export function SoundArtDetailContent({
   // available width. If these two ever diverge the card resizes after landing.
   const artBox =
     artworkMode === 'shared'
-      ? detailArtBox(
+      ? sharedArtBox ?? detailArtBox(
           artAspect,
           design.imageSizePx,
           portraitArtMaxHeightPx(),
@@ -106,6 +110,7 @@ export function SoundArtDetailContent({
       )}
 
       <div
+        data-detail-art="settled"
         className={[
           styles.artworkWrap,
           artworkMode === 'shared' ? styles.artworkWrapShared : '',
@@ -160,8 +165,18 @@ export function SoundArtDetailContent({
           <h3 className={styles.title}>{target.name}</h3>
 
           <dl className={styles.meta}>
+            {target.recording && (
+              <div className={styles.metaRow}>
+                <dt className={styles.metaLabel}>Field recording · creator-supplied location</dt>
+                <dd className={styles.metaValue}>
+                  <a href={target.recording.sourceUrl} target="_blank" rel="noreferrer noopener">
+                    {target.recording.author} · {target.recording.license} ↗
+                  </a>
+                </dd>
+              </div>
+            )}
             <div className={styles.metaRow}>
-              <dt className={styles.metaLabel}>Title</dt>
+              <dt className={styles.metaLabel}>{target.recording ? 'Illustrative artwork' : 'Title'}</dt>
               <dd className={styles.metaValue}>{artwork.title}</dd>
             </div>
             <div className={styles.metaRow}>

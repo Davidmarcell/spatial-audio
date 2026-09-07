@@ -91,17 +91,15 @@ const BREATH_FIELDS: SliderField[] = [
  * Deliberately NOT gated on `import.meta.env.DEV`: the app is reviewed from a
  * production preview build, where a dev-only gate would mean the controls never
  * appear. Opt in per session with `?radiance=1` (or the older `?shaderDebug=1`),
- * opt out with `?radiance=0`; the choice is remembered.
+ * opt out with `?radiance=0`. Saved visual values still apply independently.
  */
 function readTunerVisible(): boolean {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
   if (params.get('radiance') === '0' || params.get('shaderDebug') === '0') return false;
-  // Default ON so the Radiance controls are available without a query flag.
-  // Opt out with `?radiance=0`.
-  if (params.get('radiance') === '1' || params.get('shaderDebug') === '1') return true;
-  const stored = window.localStorage.getItem('saudade:playing-bar-edge-gradient-tuner-visible');
-  return stored !== '0';
+  // Review controls require an explicit URL opt-in, including preview builds.
+  // Old saved visibility flags must not expose tooling to ordinary visitors.
+  return params.get('radiance') === '1' || params.get('shaderDebug') === '1';
 }
 
 export function PlayingBarEdgeGradientTuner({

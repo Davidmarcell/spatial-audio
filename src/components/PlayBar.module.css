@@ -2,7 +2,8 @@
   font-size: 0.9375rem;
   font-weight: 500;
   /* Fully opaque play/pause surface. */
-  background-color: #fff;
+  background-color: var(--transport-surface);
+  color: var(--transport-text);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }

@@ -921,6 +921,13 @@ export default function App() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!selectedId) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (
+        event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey ||
+        target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="slider"], [role="combobox"]') ||
+        document.querySelector('[aria-modal="true"], [data-ui-modal-active="true"]') ||
+        !target?.closest('[data-instance-id]')
+      ) return;
       const step = event.shiftKey ? 0.1 : 0.04;
       switch (event.key) {
         case 'ArrowLeft':
@@ -1089,6 +1096,7 @@ export default function App() {
         soundId: item.soundId,
         name: sound ? displaySoundName(sound) : item.soundId,
         volume: item.volume,
+        recording: sound?.recording,
       });
     },
     [activeSounds, soundMap],
@@ -1746,6 +1754,9 @@ export default function App() {
         ref={mainRef}
       >
         <section className={styles.workspace} aria-label="Soundscape">
+          {region.discovery && (
+            <p className={styles.discoveryNotice} role="status">{region.discovery.message}</p>
+          )}
           <div className={styles.dockOverlay}>
             <SoundPalette
               ref={paletteRef}
@@ -1758,6 +1769,10 @@ export default function App() {
               magnetDrag={dockMagnetDrag}
               regionArt={regionArt}
               onDragStart={handlePaletteDragStart}
+              onAddSound={(sound) => {
+                addSound(sound);
+                void ensureScenePlaying();
+              }}
               onAddClick={(originRect) => {
                 setAddSoundOriginRect(snapshotOriginRect(originRect));
                 setShowAddSounds(true);
@@ -1966,6 +1981,11 @@ export default function App() {
         draggingSoundId={soundDrag?.source === 'library' ? soundDrag.sound.id : null}
         dragActive={soundDrag?.source === 'library' ? soundDrag.active : false}
         onDragStart={handleLibraryDragStart}
+        onAddSound={(sound) => {
+          addSound(sound);
+          void ensureScenePlaying();
+          setShowAddSounds(false);
+        }}
       />
 
       <ProjectInfoSheet open={showProjectInfo} onOpenChange={setShowProjectInfo} />

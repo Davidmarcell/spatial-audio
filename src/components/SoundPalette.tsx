@@ -61,6 +61,7 @@ type Props = {
   regionArt: RegionArtContext;
   onDragStart: (sound: SoundDef, event: React.PointerEvent<HTMLButtonElement>) => void;
   onAddClick: (originRect: DOMRect) => void;
+  onAddSound: (sound: SoundDef) => void;
 };
 
 export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function SoundPalette(
@@ -75,6 +76,7 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
     regionArt,
     onDragStart,
     onAddClick,
+    onAddSound,
   },
   ref,
 ) {
@@ -528,11 +530,14 @@ export const SoundPalette = forwardRef<SoundPaletteHandle, Props>(function Sound
                         transform: `scale(${hoverScale})`,
                       }}
                       onPointerDown={(event) => handlePointerDown(sound, event)}
+                      onClick={(event) => {
+                        if (event.detail === 0) onAddSound(sound);
+                      }}
                       onPointerEnter={(event) => syncTooltipAnchor(sound, event.currentTarget)}
                       onPointerLeave={() => setTooltipAnchor(null)}
                       onFocus={(event) => syncTooltipAnchor(sound, event.currentTarget)}
                       onBlur={() => setTooltipAnchor(null)}
-                      aria-label={`Drag ${sound.name} onto the grid`}
+                      aria-label={`Add ${sound.name} to the soundscape, or drag to position`}
                     >
                       <SoundIconImage
                         src={artwork.src}

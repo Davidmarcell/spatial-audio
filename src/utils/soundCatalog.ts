@@ -29,6 +29,7 @@ const GENERIC_TYPE_LABELS: Partial<Record<SoundType, string>> = {
 };
 
 export function displaySoundName(sound: SoundDef): string {
+  if (sound.recording) return sound.name;
   const type = sound.type ?? inferSoundType(sound);
   if (type && GENERIC_TYPE_LABELS[type]) {
     return GENERIC_TYPE_LABELS[type]!;

@@ -6,8 +6,8 @@ export const DOCK_SLOT_GAP = 0;
 export const DOCK_LIST_PAD_Y = 0.6;
 export const DOCK_PAD_X = 5.3;
 export const CANVAS_TILE_SIZE = 84;
-/** Compact canvas tile edge (~20% up from 50 so faces stay readable on phones). */
-export const MOBILE_CANVAS_TILE_SIZE = 60;
+/** Compact canvas face, shared by rendering, drag ghosts and hit geometry. */
+export const MOBILE_CANVAS_TILE_SIZE = 72;
 /** Compact dock face — 48px tiles with a tight stride so the tray stays dense. */
 export const MOBILE_DOCK_TILE_SIZE = 48;
 /** Horizontal pad inside the compact dock before the first tile. */

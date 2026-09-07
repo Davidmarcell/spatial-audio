@@ -9,7 +9,7 @@ import {
   scaleFromDistance,
 } from '../audio/spatialMath';
 import type { SpatialPoint } from '../data/types';
-import { isCompactViewport } from './soundPaletteLayout';
+import { getCanvasTileSize, isCompactViewport } from './soundPaletteLayout';
 import { SoundIconImage } from './SoundIconImage';
 import { UiIcon } from './UiIcon';
 import styles from './SoundIcon.module.css';
@@ -119,17 +119,20 @@ export function SoundIcon({
         className={`${styles.iconBody} ${isDragging ? styles.iconBodyDragging : ''}`}
         style={{
           transform: `rotate(${swayDeg}deg) scale(${scale})`,
-        }}
+          '--canvas-tile-size': `${getCanvasTileSize()}px`,
+        } as CSSProperties}
       >
         <button
           ref={iconRef}
           type="button"
           className={styles.icon}
           data-sound-icon
-          aria-label={`${name}. Drag to reposition. Click for details.`}
+          aria-label={`${name}. Open details. Arrow keys move this sound; Shift moves farther.`}
           aria-pressed={selected}
-          onClick={() => {
+          onClick={(event) => {
             onSelect(instanceId);
+            // Pointer activation is completed by the canvas drag controller.
+            if (event.detail === 0) onOpenDetail(instanceId, iconRef.current?.getBoundingClientRect() ?? null);
           }}
           onPointerDown={(event) => onPointerDown(instanceId, event)}
         >

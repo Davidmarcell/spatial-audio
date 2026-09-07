@@ -95,9 +95,10 @@ export function estimateDetailOpenRect(
     portraitArtMaxHeightPx(),
     Math.max(120, width - paddingPx * 2),
   );
-  const infoBlock = 240;
+  // Reserve room for wrapped credits plus the fully inset volume control.
+  const infoBlock = 288;
   const height = Math.min(
-    paddingPx * 2 + artH + infoBlock + 16,
+    paddingPx * 2 + artH + infoBlock + 24,
     vh * 0.92,
   );
   return {

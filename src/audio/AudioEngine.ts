@@ -2,26 +2,10 @@ import type { SoundDef, SpatialPoint } from '../data/types';
 import { publicUrl } from '../utils/publicUrl';
 import { gainFromDistance, toPannerPosition } from './spatialMath';
 
-/** Cap on simultaneous fetch+decode preload requests so a scene with many
- * beds doesn't saturate the connection/CPU and starve the first playable
- * layer behind a wall of parallel work. */
-const PRELOAD_CONCURRENCY = 4;
-
-async function mapWithConcurrency<T>(
-  items: readonly T[],
-  limit: number,
-  task: (item: T) => Promise<unknown>,
-): Promise<void> {
-  let cursor = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (cursor < items.length) {
-      const item = items[cursor];
-      cursor += 1;
-      await task(item);
-    }
-  });
-  await Promise.all(workers);
-}
+/** One budget shared by preloads, spatial sources and UI audio. */
+const LOAD_CONCURRENCY = 4;
+const DECODED_CACHE_BYTES = 64 * 1024 * 1024;
+const REQUEST_TIMEOUT_MS = 15_000;
 
 /**
  * Per-playback recipe resolved by the soundscape selection layer. Lets the
@@ -86,9 +70,15 @@ export class AudioEngine {
   private masterVolume = 1;
   private duckingGain = 1;
   private bufferCache = new Map<string, AudioBuffer>();
+  private bufferCacheBytes = 0;
   private inflight = new Map<string, Promise<AudioBuffer>>();
+  private loadingCount = 0;
+  private loadQueue: Array<() => void> = [];
   private sources = new Map<string, SourceNode>();
+  private sourceRequests = new Map<string, symbol>();
+  private loopRequests = new Map<string, symbol>();
   private playing = false;
+  private transportEpoch = 0;
   // Monotonic load-session token. Bumped whenever a new soundscape supersedes
   // the current one, so any async buffer load (fetch/decode) still in flight
   // for the old scene can detect it lost the race and refuse to start playing.
@@ -134,17 +124,11 @@ export class AudioEngine {
 
   /** Preload only the given variant files (lazy: a scene's chosen clips). */
   async preloadVariants(srcs: Iterable<string>): Promise<void> {
-    // Decode works while suspended; do not fail preload before a user gesture.
+    // Decode works while suspended. A resume() promise may wait for a gesture,
+    // so preloading must not await it or attempt to change playback state.
     this.ensureGraph();
-    if (this.context!.state === 'suspended') {
-      try {
-        await this.context!.resume();
-      } catch {
-        // Autoplay policy: stay suspended until unlock() on a gesture.
-      }
-    }
     const unique = [...new Set([...srcs].filter(Boolean))];
-    await mapWithConcurrency(unique, PRELOAD_CONCURRENCY, (src) => this.loadBuffer(src));
+    await Promise.all(unique.map((src) => this.loadBuffer(src)));
   }
 
   /**
@@ -192,36 +176,45 @@ export class AudioEngine {
     src: string,
     options?: { volume?: number; fadeInSeconds?: number },
   ): Promise<void> {
-    await this.unlock();
-    const ctx = this.context!;
-    const master = this.masterGain;
-    if (!master) return;
-
+    // Invalidate before the first await: closing the globe during unlock or
+    // fetch must prevent its ambience from starting after the globe is gone.
     this.stopLoop(id);
+    const request = Symbol(id);
+    this.loopRequests.set(id, request);
+    try {
+      await this.unlock();
+      if (this.loopRequests.get(id) !== request) return;
+      const ctx = this.context!;
+      const master = this.masterGain;
+      if (!master) return;
 
-    const buffer = await this.loadBuffer(src);
-    if (!this.context || !this.masterGain) return;
+      const buffer = await this.loadBuffer(src);
+      if (!this.context || !this.masterGain || this.loopRequests.get(id) !== request) return;
 
-    const volume = Math.max(0, Math.min(1, options?.volume ?? 0.2));
-    const fadeIn = Math.max(0, options?.fadeInSeconds ?? 0.8);
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
+      const volume = Math.max(0, Math.min(1, options?.volume ?? 0.2));
+      const fadeIn = Math.max(0, options?.fadeInSeconds ?? 0.8);
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
 
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.connect(gain);
-    gain.connect(master);
-    source.start(0);
-    if (fadeIn > 0) {
-      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + fadeIn);
-    } else {
-      gain.gain.value = volume;
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(gain);
+      gain.connect(master);
+      source.start(0);
+      if (fadeIn > 0) {
+        gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + fadeIn);
+      } else {
+        gain.gain.value = volume;
+      }
+      this.uiLoops.set(id, { source, gain });
+    } finally {
+      if (this.loopRequests.get(id) === request) this.loopRequests.delete(id);
     }
-    this.uiLoops.set(id, { source, gain });
   }
 
   stopLoop(id: string, fadeOutSeconds = 0.45): void {
+    this.loopRequests.delete(id);
     const entry = this.uiLoops.get(id);
     if (!entry || !this.context) return;
     this.uiLoops.delete(id);
@@ -260,21 +253,35 @@ export class AudioEngine {
 
   private async loadBuffer(src: string): Promise<AudioBuffer> {
     const cached = this.bufferCache.get(src);
-    if (cached) return cached;
+    if (cached) {
+      this.bufferCache.delete(src);
+      this.bufferCache.set(src, cached);
+      return cached;
+    }
 
     const pending = this.inflight.get(src);
     if (pending) return pending;
 
-    const promise = (async () => {
-      const response = await fetch(publicUrl(src));
-      if (!response.ok) {
-        throw new Error(`Failed to load audio: ${src}`);
+    const promise = this.withLoadSlot(async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      let arrayBuffer: ArrayBuffer;
+      try {
+        const response = await fetch(publicUrl(src), { signal: controller.signal });
+        if (!response.ok) throw new Error(`Failed to load audio (${response.status}): ${src}`);
+        arrayBuffer = await response.arrayBuffer();
+      } catch (error) {
+        if (controller.signal.aborted) throw new Error(`Timed out loading audio: ${src}`, { cause: error });
+        throw error;
+      } finally {
+        clearTimeout(timeout);
       }
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await this.context!.decodeAudioData(arrayBuffer.slice(0));
-      this.bufferCache.set(src, audioBuffer);
+      // Web Audio decoding cannot be aborted. Hold the shared slot until it
+      // completes, and let callers reject stale playback with their epoch/token.
+      const audioBuffer = await this.context!.decodeAudioData(arrayBuffer);
+      this.cacheBuffer(src, audioBuffer);
       return audioBuffer;
-    })();
+    });
 
     this.inflight.set(src, promise);
     try {
@@ -282,6 +289,36 @@ export class AudioEngine {
     } finally {
       this.inflight.delete(src);
     }
+  }
+
+  private async withLoadSlot<T>(task: () => Promise<T>): Promise<T> {
+    if (this.loadingCount >= LOAD_CONCURRENCY) {
+      await new Promise<void>((resolve) => this.loadQueue.push(resolve));
+    } else {
+      this.loadingCount += 1;
+    }
+    try {
+      return await task();
+    } finally {
+      const next = this.loadQueue.shift();
+      if (next) next(); // Transfer this slot directly to the next queued load.
+      else this.loadingCount -= 1;
+    }
+  }
+
+  private cacheBuffer(src: string, buffer: AudioBuffer): void {
+    const bytes = buffer.length * buffer.numberOfChannels * Float32Array.BYTES_PER_ELEMENT;
+    // Active layers keep their own AudioBuffer references; eviction affects
+    // reuse only, so an oversized clip can still play without filling the cache.
+    if (bytes > DECODED_CACHE_BYTES) return;
+    while (this.bufferCacheBytes + bytes > DECODED_CACHE_BYTES) {
+      const oldest = this.bufferCache.entries().next().value;
+      if (!oldest) break;
+      this.bufferCache.delete(oldest[0]);
+      this.bufferCacheBytes -= oldest[1].length * oldest[1].numberOfChannels * Float32Array.BYTES_PER_ELEMENT;
+    }
+    this.bufferCache.set(src, buffer);
+    this.bufferCacheBytes += bytes;
   }
 
   /**
@@ -297,6 +334,7 @@ export class AudioEngine {
    */
   beginSoundscapeTransition(): void {
     this.loadEpoch += 1;
+    this.sourceRequests.clear();
     for (const instanceId of [...this.sources.keys()]) {
       this.removeSource(instanceId);
     }
@@ -312,102 +350,91 @@ export class AudioEngine {
     // Pin the load session: if a new soundscape supersedes us at any await
     // point below, we must discard this load and never start playback.
     const epoch = this.loadEpoch;
-    await this.unlock();
-    if (epoch !== this.loadEpoch) return;
-    const ctx = this.context!;
+    const request = Symbol(instanceId);
+    this.sourceRequests.set(instanceId, request);
+    try {
+      await this.unlock();
+      if (epoch !== this.loadEpoch || this.sourceRequests.get(instanceId) !== request) return;
+      const ctx = this.context!;
 
-    const primarySrc = recipe?.src || sound.src;
-    if (!primarySrc) return;
+      const primarySrc = recipe?.src || sound.src;
+      if (!primarySrc) return;
 
-    const wantCrossfade =
-      sound.loop && Boolean(recipe?.sustained) && Boolean(recipe?.secondarySrc);
+      const wantCrossfade =
+        sound.loop && Boolean(recipe?.sustained) && Boolean(recipe?.secondarySrc);
 
-    const gain = ctx.createGain();
-    const panner = ctx.createPanner();
-    panner.panningModel = 'equalpower';
-    panner.distanceModel = 'inverse';
-    // Raised alongside `PANNER_LATERAL_GAIN`: widening the stereo field pushes
-    // side-placed sources further from the listener, and on the old 0.35 ref the
-    // inverse curve dimmed them by ~25%. This keeps their loudness where it was
-    // so the wider image is heard as direction, not as a volume drop.
-    panner.refDistance = 0.5;
-    panner.maxDistance = 3;
-    panner.rolloffFactor = 1.2;
-    panner.coneInnerAngle = 360;
-    panner.coneOuterAngle = 360;
+      const layerSrcs = wantCrossfade ? [primarySrc, recipe!.secondarySrc!] : [primarySrc];
+      const buffers = await Promise.all(layerSrcs.map((src) => this.loadBuffer(src)));
+      if (epoch !== this.loadEpoch || !this.context || this.sourceRequests.get(instanceId) !== request) return;
 
-    panner.connect(gain);
-    gain.connect(this.sceneGain ?? this.masterGain!);
-
-    const layerSrcs = wantCrossfade ? [primarySrc, recipe!.secondarySrc!] : [primarySrc];
-    const buffers = await Promise.all(layerSrcs.map((src) => this.loadBuffer(src)));
-
-    // Discard if a newer soundscape superseded us (or the engine was torn down)
-    // while buffers were loading. This kills the "late-arriving rain clip starts
-    // after I've already left" race: the already-connected gain/panner nodes are
-    // released and no source node is ever created or started.
-    if (epoch !== this.loadEpoch || !this.context) {
-      gain.disconnect();
-      panner.disconnect();
-      return;
-    }
-
-    // A concurrent addSource for this same instanceId may have already registered
-    // a node under this key while we were awaiting the buffer load. This happens
-    // in practice for the drag preview: it reuses one fixed instance id and fires
-    // a fresh addSource on every pointer move, so a burst of moves during the
-    // first (uncached) fetch/decode all pass the caller's `hasSource` guard and
-    // race here. Tear down any previously registered node first, using the shared
-    // source map, so its still-playing buffer sources can never be orphaned —
-    // left sounding but absent from the map, and therefore unreachable by
-    // pause()/removeSource(). Whichever load resolves last is the one that plays.
-    if (this.sources.has(instanceId)) {
+      // Allocate/connect only after loading succeeds. Failed or cancelled loads
+      // never leave silent panners and gains connected to the scene bus.
       this.removeSource(instanceId);
-    }
 
-    const baseDetune = recipe?.detuneCents ?? 0;
-    const baseOffset = recipe?.loopOffset ?? 0;
+      const gain = ctx.createGain();
+      const panner = ctx.createPanner();
+      panner.panningModel = 'equalpower';
+      panner.distanceModel = 'inverse';
+      // Raised alongside `PANNER_LATERAL_GAIN`: widening the stereo field pushes
+      // side-placed sources further from the listener, and on the old 0.35 ref the
+      // inverse curve dimmed them by ~25%. This keeps their loudness where it was
+      // so the wider image is heard as direction, not as a volume drop.
+      panner.refDistance = 0.5;
+      panner.maxDistance = 3;
+      panner.rolloffFactor = 1.2;
+      panner.coneInnerAngle = 360;
+      panner.coneOuterAngle = 360;
 
-    const layers: Layer[] = layerSrcs.map((src, index) => {
-      const layerGain = ctx.createGain();
-      // First layer starts audible; the crossfade partner starts silent.
-      const baseLevel = wantCrossfade ? 0.85 : 1;
-      layerGain.gain.value = wantCrossfade && index === 1 ? 0 : baseLevel;
-      layerGain.connect(panner);
-      return {
-        src,
-        buffer: buffers[index],
-        gain: layerGain,
-        source: null,
-        // Give the crossfade partner a small extra detune so it never phases.
-        detuneCents: baseDetune + (index === 1 ? 7 : 0),
-        loopOffset: index === 1 ? (baseOffset + 0.37) % 1 : baseOffset,
-        baseLevel,
-      };
-    });
+      panner.connect(gain);
+      gain.connect(this.sceneGain ?? this.masterGain!);
 
-    this.sources.set(instanceId, {
-      soundId: sound.id,
-      loop: sound.loop,
-      layers,
-      gain,
-      panner,
-      userVolume: volume,
-      lastDistance: 0,
-      crossfade: wantCrossfade,
-      crossfadeTimer: null,
-      crossfadeIndex: 0,
-    });
+      const baseDetune = recipe?.detuneCents ?? 0;
+      const baseOffset = recipe?.loopOffset ?? 0;
 
-    this.updatePosition(instanceId, position);
-    this.updateVolume(instanceId, volume);
+      const layers: Layer[] = layerSrcs.map((src, index) => {
+        const layerGain = ctx.createGain();
+        // First layer starts audible; the crossfade partner starts silent.
+        const baseLevel = wantCrossfade ? 0.85 : 1;
+        layerGain.gain.value = wantCrossfade && index === 1 ? 0 : baseLevel;
+        layerGain.connect(panner);
+        return {
+          src,
+          buffer: buffers[index],
+          gain: layerGain,
+          source: null,
+          // Give the crossfade partner a small extra detune so it never phases.
+          detuneCents: baseDetune + (index === 1 ? 7 : 0),
+          loopOffset: index === 1 ? (baseOffset + 0.37) % 1 : baseOffset,
+          baseLevel,
+        };
+      });
 
-    if (this.playing) {
-      this.startSource(instanceId);
+      this.sources.set(instanceId, {
+        soundId: sound.id,
+        loop: sound.loop,
+        layers,
+        gain,
+        panner,
+        userVolume: volume,
+        lastDistance: 0,
+        crossfade: wantCrossfade,
+        crossfadeTimer: null,
+        crossfadeIndex: 0,
+      });
+
+      this.updatePosition(instanceId, position);
+      this.updateVolume(instanceId, volume);
+
+      if (this.playing) {
+        this.startSource(instanceId);
+      }
+    } finally {
+      if (this.sourceRequests.get(instanceId) === request) this.sourceRequests.delete(instanceId);
     }
   }
 
   removeSource(instanceId: string): void {
+    this.sourceRequests.delete(instanceId);
     const node = this.sources.get(instanceId);
     if (!node) return;
     this.stopSource(instanceId);
@@ -477,7 +504,9 @@ export class AudioEngine {
   }
 
   async play(): Promise<void> {
+    const epoch = ++this.transportEpoch;
     await this.unlock();
+    if (epoch !== this.transportEpoch) return;
     if (this.playing) return;
     this.playing = true;
     // Bring the whole scene up as one gesture rather than snapping every layer
@@ -497,6 +526,7 @@ export class AudioEngine {
   }
 
   pause(): void {
+    this.transportEpoch += 1;
     this.playing = false;
     for (const instanceId of this.sources.keys()) {
       this.stopSource(instanceId);
@@ -504,6 +534,8 @@ export class AudioEngine {
   }
 
   clear(): void {
+    this.loadEpoch += 1;
+    this.sourceRequests.clear();
     this.pause();
     for (const instanceId of [...this.sources.keys()]) {
       this.removeSource(instanceId);
